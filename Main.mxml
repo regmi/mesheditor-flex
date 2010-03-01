@@ -1,0 +1,35 @@
+<?xml version="1.0" encoding="utf-8"?>
+<custom:MeshEditor
+    xmlns:mx="http://www.adobe.com/2006/mxml" width="840" height="590"
+    xmlns:custom="com.*"
+    layout="absolute"
+>
+    <mx:Style source="./assets/style.css"/>
+
+    <mx:Label text="Mesh Editor" top="10" left="10"/>
+    
+    <custom:DrawingArea width="600" height="500" left = "10" top="30">
+
+    </custom:DrawingArea>
+
+    <mx:Accordion width="200" height="400" top="30" left="620" styleName="accordion">
+        <mx:Canvas label="Vertices" width="100%" height="100%">
+            <mx:List width="100%" height="100%"/>
+            <mx:HBox bottom="10" left="10">
+                <mx:Button label="Add"/>
+                <mx:Button label="Remove"/>
+            </mx:HBox>
+        </mx:Canvas>
+        
+        <mx:Canvas label="Elements" width="100%" height="100%">
+            <mx:Label x="10" y="10" text="Contents 2"/>
+        </mx:Canvas>
+    </mx:Accordion>
+
+    <mx:HBox bottom="10" left="10">
+        <mx:Button label="Play"/>
+        <mx:Button label="Stop"/>
+        <mx:Button label="Load"/>
+    </mx:HBox>
+
+</custom:MeshEditor>
