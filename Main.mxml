@@ -8,27 +8,31 @@
 
     <mx:Label text="Mesh Editor" top="10" left="10"/>
     
-    <custom:DrawingArea width="600" height="500" left = "10" top="30">
+    <custom:DrawingArea width="600" height="500" left = "10" top="30"/>
 
-    </custom:DrawingArea>
+    <mx:VBox top="30" left="620">
+        <mx:Accordion id="accordion" width="200" height="400" styleName="accordion">
+            <mx:Canvas label="Vertices" width="100%" height="100%">
+                <mx:List id="lstVertex" width="100%" height="100%"/>
+            </mx:Canvas>
 
-    <mx:Accordion width="200" height="400" top="30" left="620" styleName="accordion">
-        <mx:Canvas label="Vertices" width="100%" height="100%">
-            <mx:List width="100%" height="100%"/>
-            <mx:HBox bottom="10" left="10">
-                <mx:Button label="Add"/>
-                <mx:Button label="Remove"/>
-            </mx:HBox>
-        </mx:Canvas>
-        
-        <mx:Canvas label="Elements" width="100%" height="100%">
-            <mx:Label x="10" y="10" text="Contents 2"/>
-        </mx:Canvas>
-    </mx:Accordion>
+            <mx:Canvas label="Elements" width="100%" height="100%">
+                <mx:List width="100%" height="100%"/>
+            </mx:Canvas>
+
+            <mx:Canvas label="Boundarys" width="100%" height="100%">
+                <mx:List width="100%" height="100%"/>
+            </mx:Canvas>
+        </mx:Accordion>
+    
+        <mx:HBox horizontalAlign="center">
+            <mx:Button id="btnShowWindow" label="Add"/>
+            <mx:Button id="btnRemoveItem" label="Remove"/>
+        </mx:HBox>
+    </mx:VBox>
 
     <mx:HBox bottom="10" left="10">
-        <mx:Button label="Play"/>
-        <mx:Button label="Stop"/>
+        <mx:Button label="Save"/>
         <mx:Button label="Load"/>
     </mx:HBox>
 
