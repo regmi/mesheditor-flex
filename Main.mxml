@@ -13,10 +13,14 @@
     <mx:VBox top="30" left="620">
         <mx:Accordion id="accordion" width="200" height="400" styleName="accordion">
             <mx:Canvas label="Vertices" width="100%" height="100%">
-                <mx:List id="lstVertex" width="100%" height="100%"/>
+                <mx:DataGrid id="gridVertices" width="100%" height="100%"/>
             </mx:Canvas>
 
             <mx:Canvas label="Elements" width="100%" height="100%">
+                <mx:List width="100%" height="100%"/>
+            </mx:Canvas>
+
+            <mx:Canvas label="Curvs" width="100%" height="100%">
                 <mx:List width="100%" height="100%"/>
             </mx:Canvas>
 

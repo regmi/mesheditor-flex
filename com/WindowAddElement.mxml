@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<mx:TitleWindow xmlns:mx="http://www.adobe.com/2006/mxml" width="400" height="200" xmlns:custom="com.*"
+<mx:TitleWindow xmlns:mx="http://www.adobe.com/2006/mxml" width="420" height="370" xmlns:custom="com.*"
     title="Add Element"
     showCloseButton="true"
 >
@@ -11,17 +11,24 @@
         ]]>
     </mx:Script>
 
-    <mx:Form>
-        <mx:FormItem label="X:">
-            <mx:TextInput width="150"/>
-        </mx:FormItem>
-        <mx:FormItem label="Y:">
-            <mx:TextInput width="150"/>
-        </mx:FormItem>
-    </mx:Form>
+    <mx:HBox width="100%">
+        <mx:Label text="Available Vertices"/>
+        <mx:Spacer width="100%"/>
+        <mx:Label text="Element Vertices"/>
+    </mx:HBox>
+
+    <mx:HBox width="100%" height="100%" verticalAlign="middle">
+        <mx:List width="100%" height="100%"/>
+        <mx:VBox horizontalAlign="center">
+            <mx:Button label="L"/>
+            <mx:Button label="R"/>
+        </mx:VBox>
+        <mx:List width="100%" height="100%"/>
+    </mx:HBox>
     
     <mx:ControlBar bottom="0" left="0" horizontalAlign="center">
-        <mx:Button id="btnOk" label="Add"/>
+        <mx:Button id="btnAdd" label="Add"/>
     </mx:ControlBar>
+    
 </mx:TitleWindow>  
 

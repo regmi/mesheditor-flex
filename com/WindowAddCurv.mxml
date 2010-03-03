@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <mx:TitleWindow xmlns:mx="http://www.adobe.com/2006/mxml" width="400" height="200" xmlns:custom="com.*"
-    title="Add Boundary"
+    title="Add Curv"
     showCloseButton="true"
 >
     <mx:Script>
@@ -16,5 +16,3 @@
         <mx:Button id="btnAdd" label="Add"/>
     </mx:ControlBar>
 </mx:TitleWindow>
-
-
