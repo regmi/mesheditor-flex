@@ -13,11 +13,23 @@
     <mx:VBox top="30" left="620">
         <mx:Accordion id="accordion" width="200" height="400" styleName="accordion">
             <mx:Canvas label="Vertices" width="100%" height="100%">
-                <mx:DataGrid id="gridVertices" width="100%" height="100%"/>
+                <mx:DataGrid id="gridVertices" width="100%" height="100%">
+                    <mx:columns>
+                        <mx:DataGridColumn dataField="X" headerText="X"/>
+                        <mx:DataGridColumn dataField="Y" headerText="Y"/>
+                    </mx:columns>
+                </mx:DataGrid>
             </mx:Canvas>
 
             <mx:Canvas label="Elements" width="100%" height="100%">
-                <mx:List width="100%" height="100%"/>
+                <mx:DataGrid id="gridElements" width="100%" height="100%">
+                    <mx:columns>
+                        <mx:DataGridColumn dataField="V1" headerText="V1"/>
+                        <mx:DataGridColumn dataField="V2" headerText="V2"/>
+                        <mx:DataGridColumn dataField="V3" headerText="V3"/>
+                        <mx:DataGridColumn dataField="V4" headerText="V4"/>
+                    </mx:columns>
+                </mx:DataGrid>
             </mx:Canvas>
 
             <mx:Canvas label="Curvs" width="100%" height="100%">

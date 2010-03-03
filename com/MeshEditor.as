@@ -9,31 +9,32 @@ package com
 
     import com.WindowAddVertex;
     import com.WindowAddElement;
-    import com.WindowAddCurv;
+    import com.WindowAddCurve;
 
-    public dynamic class MeshEditor extends Application
+    public class MeshEditor extends Application
     {
         // Components in MXML
         public var btnShowWindow:Button;
-        public var btnRemoveItems:Button;
+        public var btnRemoveItem:Button;
         public var gridVertices:DataGrid;
+        public var accordion:Accordion;
 
         private var windowAddVertex:WindowAddVertex;
         private var windowAddElement:WindowAddElement;
-        private var windowAddBoundary:WindowAddBoundary;
-        private var windowAddCurv:WindowAddCurv;
+        private var windowAddBoundry:WindowAddBoundry;
+        private var windowAddCurve:WindowAddCurve;
         
         [Bindable]
-        private var xmlVertices:XMLList; 
+        private var xmlVertices:XML; 
 
         public function MeshEditor()
         {
             this.windowAddVertex = null;
             this.windowAddElement = null;
-            this.windowAddBoundary = null;
-            this.windowAddCurv = null;
+            this.windowAddBoundry = null;
+            this.windowAddCurve = null;
             
-            this.xmlVertices = new XMLList("<vertices><vertex><X></X><Y></Y></vertex></vertices>"); 
+            this.xmlVertices = new XML("<vertices><vertex><X>1</X><Y>2</Y></vertex><vertex><X>2</X><Y>1</Y></vertex></vertices>"); 
 
             this.addEventListener(FlexEvent.CREATION_COMPLETE, this.creationComplete );
         }
@@ -43,7 +44,7 @@ package com
             this.btnShowWindow.addEventListener(MouseEvent.CLICK, this.btnShowWindowClick);
             this.btnRemoveItem.addEventListener(MouseEvent.CLICK, this.btnRemoveItemClick);
 
-            this.gridVertices.dataProvider = this.xmlVertices;
+            this.gridVertices.dataProvider = this.xmlVertices.vertex;
         }
 
         private function btnShowWindowClick(evt:MouseEvent):void
@@ -72,24 +73,24 @@ package com
             }
             else if(this.accordion.selectedIndex == 2)
             {
-                if(this.windowAddCurv == null)
+                if(this.windowAddCurve == null)
                 {
-                    this.windowAddCurv = new WindowAddCurv();
-                    this.windowAddCurv.addEventListener(CloseEvent.CLOSE, this.dialogCloseClick);
+                    this.windowAddCurve = new WindowAddCurve();
+                    this.windowAddCurve.addEventListener(CloseEvent.CLOSE, this.dialogCloseClick);
                 
-                    PopUpManager.addPopUp(this.windowAddCurv, this, false);
-                    PopUpManager.centerPopUp(this.windowAddCurv);
+                    PopUpManager.addPopUp(this.windowAddCurve, this, false);
+                    PopUpManager.centerPopUp(this.windowAddCurve);
                 }
             }
             else if(this.accordion.selectedIndex == 3)
             {
-                if(this.windowAddBoundary == null)
+                if(this.windowAddBoundry == null)
                 {
-                    this.windowAddBoundary = new WindowAddBoundary();
-                    this.windowAddBoundary.addEventListener(CloseEvent.CLOSE, this.dialogCloseClick);
+                    this.windowAddBoundry = new WindowAddBoundry();
+                    this.windowAddBoundry.addEventListener(CloseEvent.CLOSE, this.dialogCloseClick);
 
-                    PopUpManager.addPopUp(this.windowAddBoundary, this, false);
-                    PopUpManager.centerPopUp(this.windowAddBoundary);
+                    PopUpManager.addPopUp(this.windowAddBoundry, this, false);
+                    PopUpManager.centerPopUp(this.windowAddBoundry);
                 }
             }
         }
@@ -111,15 +112,15 @@ package com
                 PopUpManager.removePopUp(this.windowAddElement);
                 this.windowAddElement = null;
             }
-            else if (evt.target is WindowAddCurv)
+            else if (evt.target is WindowAddCurve)
             {
-                PopUpManager.removePopUp(this.windowAddCurv);
-                this.windowAddCurv = null;
+                PopUpManager.removePopUp(this.windowAddCurve);
+                this.windowAddCurve = null;
             }
-            else if (evt.target is WindowAddBoundary)
+            else if (evt.target is WindowAddBoundry)
             {
-                PopUpManager.removePopUp(this.windowAddBoundary);
-                this.windowAddBoundary = null;
+                PopUpManager.removePopUp(this.windowAddBoundry);
+                this.windowAddBoundry = null;
             }
         }
     }

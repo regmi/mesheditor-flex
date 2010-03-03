@@ -1,5 +1,5 @@
 CC = mxmlc
-DEBUG = -debug=true
+DEBUG = -debug=false
 CFLAGS = -use-network=false
 
 all: 

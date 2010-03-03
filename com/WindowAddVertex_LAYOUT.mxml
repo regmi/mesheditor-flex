@@ -1,0 +1,39 @@
+<?xml version="1.0" encoding="utf-8"?>
+<mx:TitleWindow xmlns:mx="http://www.adobe.com/2006/mxml" width="250" height="180" xmlns:custom="com.*"
+    title="Add Vertex"
+    showCloseButton="true"    
+    verticalAlign="middle"
+>
+    <mx:Script>
+        <![CDATA[
+
+        ]]>
+    </mx:Script>
+    
+    <mx:Array id="numValidator">
+        <mx:NumberValidator source="{txtX}" property="text" minValue="-100" maxValue="100"/>
+        <mx:NumberValidator source="{txtY}" property="text" minValue="-100" maxValue="100"/>
+    </mx:Array>
+    
+    <mx:HBox width="100%" horizontalAlign="center">
+        <mx:VBox>
+            <mx:Label text="X :"/>
+        </mx:VBox>
+        <mx:VBox>
+            <mx:TextInput id="txtX" width="100%"/>
+        </mx:VBox>
+    </mx:HBox>
+
+    <mx:HBox width="100%" horizontalAlign="center">
+        <mx:VBox>
+            <mx:Label text="Y :"/>
+        </mx:VBox>
+        <mx:VBox>
+            <mx:TextInput id="txtY" width="100%"/>
+        </mx:VBox>
+    </mx:HBox>
+    
+    <mx:ControlBar bottom="0" left="0" horizontalAlign="center">
+        <mx:Button id="btnAdd" label="Add"/>
+    </mx:ControlBar>
+</mx:TitleWindow>  
