@@ -19,6 +19,12 @@ package com
         {
             this.graphics.clear();
             this.graphics.drawRect(0,0,this.width,this.height);
+            
+            for(var i:int=0;i<;i++)
+            {
+                this.graphics.moveTo(x,y);
+                this.graphics.lineTo(x,y);
+            }
         }
         
     }

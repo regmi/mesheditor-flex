@@ -3,13 +3,17 @@ package com
     import mx.core.*;
     import mx.events.*;
     import mx.controls.*;
-    import flash.events.*;
     import mx.containers.*;
     import mx.managers.PopUpManager;
+
+    import flash.events.*;
 
     import com.WindowAddVertex;
     import com.WindowAddElement;
     import com.WindowAddCurve;
+
+    import com.VertexEvent;
+    import com.VertexManager;
 
     public class MeshEditor extends Application
     {
@@ -23,9 +27,8 @@ package com
         private var windowAddElement:WindowAddElement;
         private var windowAddBoundry:WindowAddBoundry;
         private var windowAddCurve:WindowAddCurve;
-        
-        [Bindable]
-        private var xmlVertices:XML; 
+
+        private var vertexManager:VertexManager;
 
         public function MeshEditor()
         {
@@ -33,18 +36,17 @@ package com
             this.windowAddElement = null;
             this.windowAddBoundry = null;
             this.windowAddCurve = null;
-            
-            this.xmlVertices = new XML("<vertices><vertex><X>1</X><Y>2</Y></vertex><vertex><X>2</X><Y>1</Y></vertex></vertices>"); 
 
-            this.addEventListener(FlexEvent.CREATION_COMPLETE, this.creationComplete );
+            this.addEventListener(FlexEvent.CREATION_COMPLETE, this.creationComplete);
         }
 
         private function creationComplete(evt:FlexEvent):void
         {
             this.btnShowWindow.addEventListener(MouseEvent.CLICK, this.btnShowWindowClick);
             this.btnRemoveItem.addEventListener(MouseEvent.CLICK, this.btnRemoveItemClick);
-
-            this.gridVertices.dataProvider = this.xmlVertices.vertex;
+            
+            this.vertexManager = new VertexManager();
+            this.vertexManager.addEventListener(VertexEvent.VERTEX_LIST_CHANGE, this.vertexListChangeHandler);
         }
 
         private function btnShowWindowClick(evt:MouseEvent):void
@@ -54,7 +56,8 @@ package com
                 if(this.windowAddVertex == null)
                 {
                     this.windowAddVertex = new WindowAddVertex();
-                    this.windowAddVertex.addEventListener(CloseEvent.CLOSE, this.dialogCloseClick);
+                    this.windowAddVertex.addEventListener(CloseEvent.CLOSE, this.windowCloseClick);
+                    this.windowAddVertex.addEventListener(VertexEvent.ADD_VERTEX, this.addVertexHandler);
 
                     PopUpManager.addPopUp(this.windowAddVertex, this, false);
                     PopUpManager.centerPopUp(this.windowAddVertex);
@@ -65,7 +68,7 @@ package com
                 if(this.windowAddElement == null)
                 {
                     this.windowAddElement = new WindowAddElement();
-                    this.windowAddElement.addEventListener(CloseEvent.CLOSE, this.dialogCloseClick);
+                    this.windowAddElement.addEventListener(CloseEvent.CLOSE, this.windowCloseClick);
 
                     PopUpManager.addPopUp(this.windowAddElement, this, false);
                     PopUpManager.centerPopUp(this.windowAddElement);   
@@ -76,8 +79,8 @@ package com
                 if(this.windowAddCurve == null)
                 {
                     this.windowAddCurve = new WindowAddCurve();
-                    this.windowAddCurve.addEventListener(CloseEvent.CLOSE, this.dialogCloseClick);
-                
+                    this.windowAddCurve.addEventListener(CloseEvent.CLOSE, this.windowCloseClick);
+
                     PopUpManager.addPopUp(this.windowAddCurve, this, false);
                     PopUpManager.centerPopUp(this.windowAddCurve);
                 }
@@ -87,7 +90,7 @@ package com
                 if(this.windowAddBoundry == null)
                 {
                     this.windowAddBoundry = new WindowAddBoundry();
-                    this.windowAddBoundry.addEventListener(CloseEvent.CLOSE, this.dialogCloseClick);
+                    this.windowAddBoundry.addEventListener(CloseEvent.CLOSE, this.windowCloseClick);
 
                     PopUpManager.addPopUp(this.windowAddBoundry, this, false);
                     PopUpManager.centerPopUp(this.windowAddBoundry);
@@ -97,10 +100,25 @@ package com
 
         private function btnRemoveItemClick(evt:MouseEvent):void
         {
-            trace(this.xmlVertices.toXMLString());
+            if(this.accordion.selectedIndex == 0)
+            {
+
+            }
+            else if(this.accordion.selectedIndex == 1)
+            {
+
+            }
+            else if(this.accordion.selectedIndex == 2)
+            {
+
+            }
+            else if(this.accordion.selectedIndex == 4)
+            {
+
+            }
         }
-        
-        private function dialogCloseClick(evt:CloseEvent):void
+
+        private function windowCloseClick(evt:CloseEvent):void
         {
             if(evt.target is WindowAddVertex)
             {
@@ -122,6 +140,19 @@ package com
                 PopUpManager.removePopUp(this.windowAddBoundry);
                 this.windowAddBoundry = null;
             }
+        }
+
+        private function addVertexHandler(evt:VertexEvent):void
+        {
+            this.vertexManager.addVertex(evt.data);
+        }
+
+        private function vertexListChangeHandler(evt:VertexEvent):void
+        {
+            this.gridVertices.dataProvider = evt.target.vertices.vertex;
+            
+            if(this.windowAddElement != null)
+                this.windowAddElement.dispatchEvent(evt);
         }
     }
 }

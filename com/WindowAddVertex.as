@@ -7,13 +7,13 @@ package com
     import mx.validators.*;
     
     import com.WindowAddVertex_LAYOUT;
+    import com.VertexEvent;
     
     public class WindowAddVertex extends WindowAddVertex_LAYOUT
     {
         public function WindowAddVertex():void
         {
             super();
-            
             this.addEventListener(FlexEvent.CREATION_COMPLETE, this.creationComplete);
         }
         
@@ -27,7 +27,14 @@ package com
             var errors:Array = Validator.validateAll(this.numValidator);
             if (errors.length == 0)
             {
-                Alert.show("Looks valid to me.", "SUCCESS");
+                var vertexEvt:VertexEvent = new VertexEvent(VertexEvent.ADD_VERTEX);
+                vertexEvt.data = new Object()
+                vertexEvt.data.x = this.txtX.text;
+                vertexEvt.data.y = this.txtY.text;
+                this.dispatchEvent(vertexEvt);
+
+                var closeEvt:CloseEvent = new CloseEvent("close");
+                this.dispatchEvent(closeEvt);
             }
         }
     }

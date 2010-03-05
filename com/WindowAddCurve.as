@@ -9,7 +9,7 @@ package com
     import com.WindowAddCurve_LAYOUT;
     
     public class WindowAddCurve extends WindowAddCurve_LAYOUT
-    {
+    {        
         public function WindowAddCurve():void
         {
             super();
