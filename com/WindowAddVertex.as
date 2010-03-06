@@ -7,7 +7,7 @@ package com
     import mx.validators.*;
     
     import com.WindowAddVertex_LAYOUT;
-    import com.VertexEvent;
+    import com.MeshEditorEvent;
     
     public class WindowAddVertex extends WindowAddVertex_LAYOUT
     {
@@ -16,24 +16,24 @@ package com
             super();
             this.addEventListener(FlexEvent.CREATION_COMPLETE, this.creationComplete);
         }
-        
+
         private function creationComplete(evt:FlexEvent):void
         {
             this.btnAdd.addEventListener(MouseEvent.CLICK, this.btnAddClick);
         }
-        
+
         private function btnAddClick(evt:MouseEvent):void
         {
             var errors:Array = Validator.validateAll(this.numValidator);
             if (errors.length == 0)
             {
-                var vertexEvt:VertexEvent = new VertexEvent(VertexEvent.ADD_VERTEX);
-                vertexEvt.data = new Object()
-                vertexEvt.data.x = this.txtX.text;
-                vertexEvt.data.y = this.txtY.text;
-                this.dispatchEvent(vertexEvt);
+                var meEvt:MeshEditorEvent = new MeshEditorEvent(MeshEditorEvent.VERTEX_SUBMIT);
+                meEvt.data = new Object()
+                meEvt.data.x = this.txtX.text;
+                meEvt.data.y = this.txtY.text;
+                this.dispatchEvent(meEvt);
 
-                var closeEvt:CloseEvent = new CloseEvent("close");
+                var closeEvt:CloseEvent = new CloseEvent(CloseEvent.CLOSE);
                 this.dispatchEvent(closeEvt);
             }
         }

@@ -3,7 +3,7 @@
     xmlns:mx="http://www.adobe.com/2006/mxml" width="840" height="590"
     xmlns:custom="com.*"
     layout="absolute"
->
+>    
     <mx:Style source="./assets/style.css"/>
 
     <mx:Label text="Mesh Editor" top="10" left="10"/>
@@ -13,23 +13,23 @@
     <mx:VBox top="30" left="620" horizontalAlign="center">
         <mx:Accordion id="accordion" width="200" height="400" styleName="accordion">
             <mx:Canvas label="Vertices" width="100%" height="100%">
-                <mx:DataGrid id="gridVertices" width="100%" height="100%">
+                <mx:DataGrid id="gridVertices" width="100%" height="100%" allowMultipleSelection="true">
                     <mx:columns>
-                        <mx:DataGridColumn dataField="ID" headerText="ID" width="30"/>
-                        <mx:DataGridColumn dataField="X" headerText="X"/>
-                        <mx:DataGridColumn dataField="Y" headerText="Y"/>
+                        <mx:DataGridColumn dataField="@id" headerText="ID" width="30"/>
+                        <mx:DataGridColumn dataField="x" headerText="X"/>
+                        <mx:DataGridColumn dataField="y" headerText="Y"/>
                     </mx:columns>
                 </mx:DataGrid>
             </mx:Canvas>
 
             <mx:Canvas label="Elements" width="100%" height="100%">
-                <mx:DataGrid id="gridElements" width="100%" height="100%">
+                <mx:DataGrid id="gridElements" width="100%" height="100%" allowMultipleSelection="true">
                     <mx:columns>
-                        <mx:DataGridColumn dataField="ID" headerText="ID" width="30"/>
-                        <mx:DataGridColumn dataField="V1" headerText="V1"/>
-                        <mx:DataGridColumn dataField="V2" headerText="V2"/>
-                        <mx:DataGridColumn dataField="V3" headerText="V3"/>
-                        <mx:DataGridColumn dataField="V4" headerText="V4"/>
+                        <mx:DataGridColumn dataField="@id" headerText="ID" width="30"/>
+                        <mx:DataGridColumn dataField="v1" headerText="V1"/>
+                        <mx:DataGridColumn dataField="v2" headerText="V2"/>
+                        <mx:DataGridColumn dataField="v3" headerText="V3"/>
+                        <mx:DataGridColumn dataField="v4" headerText="V4"/>
                     </mx:columns>
                 </mx:DataGrid>
             </mx:Canvas>

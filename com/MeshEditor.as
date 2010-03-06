@@ -12,8 +12,9 @@ package com
     import com.WindowAddElement;
     import com.WindowAddCurve;
 
-    import com.VertexEvent;
+    import com.MeshEditorEvent;
     import com.VertexManager;
+    import com.ElementManager;
 
     public class MeshEditor extends Application
     {
@@ -21,6 +22,7 @@ package com
         public var btnShowWindow:Button;
         public var btnRemoveItem:Button;
         public var gridVertices:DataGrid;
+        public var gridElements:DataGrid;
         public var accordion:Accordion;
 
         private var windowAddVertex:WindowAddVertex;
@@ -29,6 +31,7 @@ package com
         private var windowAddCurve:WindowAddCurve;
 
         private var vertexManager:VertexManager;
+        private var elementManager:ElementManager;
 
         public function MeshEditor()
         {
@@ -44,9 +47,12 @@ package com
         {
             this.btnShowWindow.addEventListener(MouseEvent.CLICK, this.btnShowWindowClick);
             this.btnRemoveItem.addEventListener(MouseEvent.CLICK, this.btnRemoveItemClick);
-            
+
             this.vertexManager = new VertexManager();
-            this.vertexManager.addEventListener(VertexEvent.VERTEX_LIST_CHANGE, this.vertexListChangeHandler);
+            this.vertexManager.addEventListener(MeshEditorEvent.VERTEX_LIST_CHANGE, this.vertexListChangeHandler);
+
+            this.elementManager = new ElementManager();
+            this.elementManager.addEventListener(MeshEditorEvent.ELEMENT_LIST_CHANGE, this.elementListChangeHandler);
         }
 
         private function btnShowWindowClick(evt:MouseEvent):void
@@ -57,7 +63,7 @@ package com
                 {
                     this.windowAddVertex = new WindowAddVertex();
                     this.windowAddVertex.addEventListener(CloseEvent.CLOSE, this.windowCloseClick);
-                    this.windowAddVertex.addEventListener(VertexEvent.ADD_VERTEX, this.addVertexHandler);
+                    this.windowAddVertex.addEventListener(MeshEditorEvent.VERTEX_SUBMIT, this.submitVertexHandler);
 
                     PopUpManager.addPopUp(this.windowAddVertex, this, false);
                     PopUpManager.centerPopUp(this.windowAddVertex);
@@ -68,8 +74,10 @@ package com
                 if(this.windowAddElement == null)
                 {
                     this.windowAddElement = new WindowAddElement();
+                    this.windowAddElement.initAvailableVertices(this.vertexManager.vertices);
                     this.windowAddElement.addEventListener(CloseEvent.CLOSE, this.windowCloseClick);
-
+                    this.windowAddElement.addEventListener(MeshEditorEvent.ELEMENT_SUBMIT, this.submitElementHandler);
+                    
                     PopUpManager.addPopUp(this.windowAddElement, this, false);
                     PopUpManager.centerPopUp(this.windowAddElement);   
                 }
@@ -100,13 +108,21 @@ package com
 
         private function btnRemoveItemClick(evt:MouseEvent):void
         {
+            var itm:Object;
+            
             if(this.accordion.selectedIndex == 0)
             {
-
+                for each (itm in this.gridVertices.selectedItems)
+                {
+                    this.vertexManager.removeVertex(itm);
+                }
             }
             else if(this.accordion.selectedIndex == 1)
             {
-
+                for each (itm in this.gridElements.selectedItems)
+                {
+                    this.elementManager.removeElement(itm);
+                }
             }
             else if(this.accordion.selectedIndex == 2)
             {
@@ -142,17 +158,27 @@ package com
             }
         }
 
-        private function addVertexHandler(evt:VertexEvent):void
+        private function submitVertexHandler(evt:MeshEditorEvent):void
         {
             this.vertexManager.addVertex(evt.data);
         }
 
-        private function vertexListChangeHandler(evt:VertexEvent):void
+        private function submitElementHandler(evt:MeshEditorEvent):void
+        {
+            this.elementManager.addElement(evt.data);
+        }
+
+        private function vertexListChangeHandler(evt:MeshEditorEvent):void
         {
             this.gridVertices.dataProvider = evt.target.vertices.vertex;
-            
+
             if(this.windowAddElement != null)
-                this.windowAddElement.dispatchEvent(evt);
+                this.windowAddElement.initAvailableVertices(this.vertexManager.vertices);
+        }
+
+        private function elementListChangeHandler(evt:MeshEditorEvent):void
+        {
+            this.gridElements.dataProvider = evt.target.elements.element;
         }
     }
 }
