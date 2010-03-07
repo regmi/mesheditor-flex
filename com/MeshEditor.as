@@ -53,6 +53,8 @@ package com
 
             this.elementManager = new ElementManager();
             this.elementManager.addEventListener(MeshEditorEvent.ELEMENT_LIST_CHANGE, this.elementListChangeHandler);
+            
+            this.gridVertices.dataProvider = this.vertexManager.vertices.vertex;
         }
 
         private function btnShowWindowClick(evt:MouseEvent):void

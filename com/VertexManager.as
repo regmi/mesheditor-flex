@@ -11,7 +11,13 @@ package com
         
         public function VertexManager():void
         {
-            this.xmlVertices = new XML("<vertices></vertices>"); 
+            this.xmlVertices = new XML("<vertices>" + 
+            "<vertex id='1'><x>1</x><y>1</y></vertex>" +
+            "<vertex id='2'><x>2</x><y>2</y></vertex>" +
+            "<vertex id='3'><x>3</x><y>3</y></vertex>" +
+            "<vertex id='4'><x>4</x><y>4</y></vertex>" +
+            "<vertex id='5'><x>5</x><y>5</y></vertex>" +
+            "</vertices>"); 
             this.nextId = 1;
         }
 

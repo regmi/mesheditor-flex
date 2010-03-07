@@ -28,7 +28,7 @@
 
         <mx:VBox height="100%" width="100%" verticalAlign="middle" horizontalAlign="center">
             <mx:Label text="Element Vertices"/>
-            <mx:DataGrid width="100%" id="gridElementVertices">
+            <mx:DataGrid width="100%" id="gridElementVertices" rowCount="5">
                 <mx:columns>
                     <mx:DataGridColumn dataField="@id" headerText="ID" width="30"/>
                     <mx:DataGridColumn dataField="x" headerText="X"/>

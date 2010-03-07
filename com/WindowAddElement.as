@@ -72,7 +72,7 @@ package com
 
         private function btnAddToElementClick(evt:MouseEvent):void
         {
-            if(this.gridAvailableVertices.selectedItem != null)
+            if(this.gridAvailableVertices.selectedItem != null && this.xmlElementVertices.*.length() < 4)
             {
                 this.removeVertex(this.xmlAvailableVertices, this.gridAvailableVertices.selectedItem);
                 this.appendVertex(this.xmlElementVertices, this.gridAvailableVertices.selectedItem);
@@ -96,14 +96,17 @@ package com
 
         private function btnAddClick(evt:MouseEvent):void
         {
-            var meEvt:MeshEditorEvent = new MeshEditorEvent(MeshEditorEvent.ELEMENT_SUBMIT);
-            var dta:Object = new Object();
-            dta.vertices = this.xmlElementVertices;
-            meEvt.data = dta;
-            this.dispatchEvent(meEvt);
+            if(this.xmlElementVertices.*.length() > 2)
+            {
+                var meEvt:MeshEditorEvent = new MeshEditorEvent(MeshEditorEvent.ELEMENT_SUBMIT);
+                var dta:Object = new Object();
+                dta.vertices = this.xmlElementVertices;
+                meEvt.data = dta;
+                this.dispatchEvent(meEvt);
 
-            var closeEvt:CloseEvent = new CloseEvent(CloseEvent.CLOSE);
-            this.dispatchEvent(closeEvt);
+                var closeEvt:CloseEvent = new CloseEvent(CloseEvent.CLOSE);
+                this.dispatchEvent(closeEvt);
+            }
         }
 
         private function appendVertex(destXml:XML, vertex:Object):void
