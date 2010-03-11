@@ -43,39 +43,34 @@ package com
             {
                 this.xmlElementVertices = new XML("<vertices></vertices>");
             }
-            else
-            {
-                var e:XML = new XML("<vertices></vertices>");
-                
-                for(var i:int=0;i<this.xmlElementVertices.*.length();i++)
-                {
-                    if(this.vertexExists(this.xmlAvailableVertices, this.xmlElementVertices.vertex[i]))
-                    {
-                        this.removeVertex(this.xmlAvailableVertices, this.xmlElementVertices.vertex[i]);
-                        e.appendChild(this.xmlElementVertices.vertex[i]);
-                    }
-                }
+        }
 
-                this.xmlElementVertices = e;
-            }
+        public function addAvailableVertex(data:Object):void
+        {
+            this.appendVertexToXML(this.xmlAvailableVertices, data);
+            this.gridAvailableVertices.dataProvider = this.xmlAvailableVertices.vertex;
+        }
 
-            try
-            {
-                this.gridAvailableVertices.dataProvider = this.xmlAvailableVertices.vertex;
-            }catch(e:Error){}
+        public function removeAvailableVertex(data:Object):void
+        {
+            this.removeVertexFromXML(this.xmlAvailableVertices, data);
+            this.removeVertexFromXML(this.xmlElementVertices, data);
 
-            try
-            {
-                this.gridElementVertices.dataProvider = this.xmlElementVertices.vertex;
-            }catch(e:Error){}
+            this.gridAvailableVertices.dataProvider = this.xmlAvailableVertices.vertex;
+            this.gridElementVertices.dataProvider = this.xmlElementVertices.vertex;
         }
 
         private function btnAddToElementClick(evt:MouseEvent):void
         {
             if(this.gridAvailableVertices.selectedItem != null && this.xmlElementVertices.*.length() < 4)
             {
-                this.removeVertex(this.xmlAvailableVertices, this.gridAvailableVertices.selectedItem);
-                this.appendVertex(this.xmlElementVertices, this.gridAvailableVertices.selectedItem);
+                var sv:Object = new Object();
+                sv.id = this.gridAvailableVertices.selectedItem.@id;
+                sv.x = this.gridAvailableVertices.selectedItem.x;
+                sv.y = this.gridAvailableVertices.selectedItem.y;
+
+                this.removeVertexFromXML(this.xmlAvailableVertices, sv);
+                this.appendVertexToXML(this.xmlElementVertices, sv);
 
                 this.gridAvailableVertices.dataProvider = this.xmlAvailableVertices.vertex;
                 this.gridElementVertices.dataProvider = this.xmlElementVertices.vertex;
@@ -86,8 +81,13 @@ package com
         {
             if(this.gridElementVertices.selectedItem != null)
             {
-                this.removeVertex(this.xmlElementVertices, this.gridElementVertices.selectedItem);
-                this.appendVertex(this.xmlAvailableVertices, this.gridElementVertices.selectedItem);
+                var sv:Object = new Object();
+                sv.id = this.gridElementVertices.selectedItem.@id;
+                sv.x = this.gridElementVertices.selectedItem.x;
+                sv.y = this.gridElementVertices.selectedItem.y;
+
+                this.removeVertexFromXML(this.xmlElementVertices, sv);
+                this.appendVertexToXML(this.xmlAvailableVertices, sv);
 
                 this.gridAvailableVertices.dataProvider = this.xmlAvailableVertices.vertex;
                 this.gridElementVertices.dataProvider = this.xmlElementVertices.vertex;
@@ -100,7 +100,11 @@ package com
             {
                 var meEvt:MeshEditorEvent = new MeshEditorEvent(MeshEditorEvent.ELEMENT_SUBMIT);
                 var dta:Object = new Object();
-                dta.vertices = this.xmlElementVertices;
+                dta.vertexId = [];
+                for each(var v:XML in this.xmlElementVertices.vertex)
+                {
+                    dta.vertexId.push(v.@id);
+                }
                 meEvt.data = dta;
                 this.dispatchEvent(meEvt);
 
@@ -109,33 +113,15 @@ package com
             }
         }
 
-        private function appendVertex(destXml:XML, vertex:Object):void
+        private function appendVertexToXML(destXml:XML, data:Object):void
         {
-            var xmlStr:String = "<vertex id='" + (vertex as XML).@id + "'><x>" + vertex.x + "</x><y>" + vertex.x + "</y></vertex>";
+            var xmlStr:String = "<vertex id='" + data.id + "'><x>" + data.x + "</x><y>" + data.x + "</y></vertex>";
             destXml.appendChild(new XML(xmlStr));
         }
 
-        private function removeVertex(srcXml:XML, vertex:Object):void
+        private function removeVertexFromXML(srcXml:XML, data:Object):void
         {
-            for( var i:int=0;i<srcXml.*.length();i++)
-            {
-                if(srcXml.vertex[i].@id == (vertex as XML).@id)
-                {
-                    delete srcXml.vertex[i];
-                    break;
-                }
-            }
-        }
-        
-        private function vertexExists(srcXml:XML, data:XML):Boolean
-        {
-            for each(var vtx:XML in srcXml.vertex)
-            {
-                if(vtx.@id == data.@id)
-                    return true;
-            }
-
-            return false;
+            delete srcXml.vertex.(@id == data.id)[0];
         }
     }
 }

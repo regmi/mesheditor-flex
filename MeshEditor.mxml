@@ -3,12 +3,10 @@
     xmlns:mx="http://www.adobe.com/2006/mxml" width="840" height="590"
     xmlns:custom="com.*"
     layout="absolute"
->    
+>
     <mx:Style source="./assets/style.css"/>
 
-    <mx:Label text="Mesh Editor" top="10" left="10"/>
-    
-    <custom:DrawingArea width="600" height="500" left = "10" top="30"/>
+    <mx:Label text="Mesh Editor" fontWeight="bold" fontSize="20" top="0" left="10"/>
 
     <mx:VBox top="30" left="620" horizontalAlign="center">
         <mx:Accordion id="accordion" width="200" height="400" styleName="accordion">

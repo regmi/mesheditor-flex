@@ -8,48 +8,49 @@ package com
         [Bindable]
         private var xmlVertices:XML; 
         private var nextId:int;
-        
+
         public function VertexManager():void
         {
             this.xmlVertices = new XML("<vertices>" + 
-            "<vertex id='1'><x>1</x><y>1</y></vertex>" +
-            "<vertex id='2'><x>2</x><y>2</y></vertex>" +
-            "<vertex id='3'><x>3</x><y>3</y></vertex>" +
-            "<vertex id='4'><x>4</x><y>4</y></vertex>" +
-            "<vertex id='5'><x>5</x><y>5</y></vertex>" +
+            "<vertex id='1'><x>20</x><y>400</y></vertex>" +
+            "<vertex id='2'><x>40</x><y>300</y></vertex>" +
+            "<vertex id='3'><x>60</x><y>200</y></vertex>" +
+            "<vertex id='4'><x>80</x><y>100</y></vertex>" +
+            "<vertex id='5'><x>400</x><y>200</y></vertex>" +
             "</vertices>"); 
-            this.nextId = 1;
+            this.nextId = 6;
         }
 
         public function addVertex(data:Object):void
         {
             if (! this.checkDuplicate(data))
             {
-                var xmlStr:String = "<vertex id='"+ this.nextId++ + "'>";
+                var xmlStr:String = "<vertex id='"+ this.nextId + "'>";
                 xmlStr += "<x>" + data.x + "</x>";
                 xmlStr += "<y>" + data.y + "</y>";
                 xmlStr += "</vertex>";
 
+                var evt:MeshEditorEvent = new MeshEditorEvent(MeshEditorEvent.VERTEX_ADDED);
+                evt.data = data;
+                evt.data.id = this.nextId;
+
                 this.xmlVertices.appendChild(new XML(xmlStr));
-                this.dispatchEvent(new MeshEditorEvent(MeshEditorEvent.VERTEX_LIST_CHANGE));
+                this.dispatchEvent(evt);
+                this.nextId++;
             }
         }
 
         public function removeVertex(data:Object):void
         {
-            for( var i:int=0;i<this.xmlVertices.*.length();i++)
-            {
-                if(this.xmlVertices.vertex[i].@id == (data as XML).@id)
-                {
-                    delete this.xmlVertices.vertex[i];
-                    break;
-                }
-            }
+            delete this.xmlVertices.vertex.(@id == data.id)[0];
+
+            var evt:MeshEditorEvent = new MeshEditorEvent(MeshEditorEvent.VERTEX_REMOVED);
+            evt.data = data;
+
+            this.dispatchEvent(evt);
 
             if(this.xmlVertices.*.length() == 0)
                 this.nextId = 1;
-            
-            this.dispatchEvent(new MeshEditorEvent(MeshEditorEvent.VERTEX_LIST_CHANGE));
         }
 
         private function editVertex(evt:Object):void
@@ -59,13 +60,10 @@ package com
 
         private function checkDuplicate(data:Object):Boolean
         {
-            for(var i:int;i<this.xmlVertices.*.length();i++)
-            {
-                if (this.xmlVertices.vertex[i].x == data.x && this.xmlVertices.vertex[i].y == data.y)
-                    return true;
-            }
-
-            return false;
+            if(this.xmlVertices.vertex.(x == data.x && y == data.y).length() != 0)
+                return true;
+            else
+                return false;
         }
 
         public function get vertices():XML

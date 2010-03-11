@@ -4,15 +4,13 @@ package com
 
     public class MeshEditorEvent extends Event
     {
-        public static const VERTEX_ADD:String = "vertexAdd";
-        public static const VERTEX_REMOVE:String = "vertexRemove";
-        public static const VERTEX_EDIT:String = "vertexEdit";
+        public static const VERTEX_ADDED:String = "vertexAdded";
+        public static const VERTEX_REMOVED:String = "vertexRemoved";
         public static const VERTEX_SUBMIT:String = "vertexSubmit";
         public static const VERTEX_LIST_CHANGE:String = "vertexListChange";
 
-        public static const ELEMENT_ADD:String = "elementAdd";
-        public static const ELEMENT_REMOVE:String = "elementRemove";
-        public static const ELEMENT_EDIT:String = "elementEdit";
+        public static const ELEMENT_ADDED:String = "elementAdded";
+        public static const ELEMENT_REMOVED:String = "elementRemoved";
         public static const ELEMENT_SUBMIT:String = "elementSubmit";
         public static const ELEMENT_LIST_CHANGE:String = "elementListChange";
 

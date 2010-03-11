@@ -15,6 +15,7 @@ package com
     import com.MeshEditorEvent;
     import com.VertexManager;
     import com.ElementManager;
+    import com.DrawingArea;
 
     public class MeshEditor extends Application
     {
@@ -32,6 +33,7 @@ package com
 
         private var vertexManager:VertexManager;
         private var elementManager:ElementManager;
+        private var drawingArea:DrawingArea;
 
         public function MeshEditor()
         {
@@ -49,11 +51,18 @@ package com
             this.btnRemoveItem.addEventListener(MouseEvent.CLICK, this.btnRemoveItemClick);
 
             this.vertexManager = new VertexManager();
-            this.vertexManager.addEventListener(MeshEditorEvent.VERTEX_LIST_CHANGE, this.vertexListChangeHandler);
+            this.vertexManager.addEventListener(MeshEditorEvent.VERTEX_ADDED, this.vertexAddedHandler);
+            this.vertexManager.addEventListener(MeshEditorEvent.VERTEX_REMOVED, this.vertexRemovedHandler);
 
             this.elementManager = new ElementManager();
-            this.elementManager.addEventListener(MeshEditorEvent.ELEMENT_LIST_CHANGE, this.elementListChangeHandler);
-            
+            this.elementManager.addEventListener(MeshEditorEvent.ELEMENT_ADDED, this.elementAddedHandler);
+            this.elementManager.addEventListener(MeshEditorEvent.ELEMENT_REMOVED, this.elementAddedHandler);
+
+            this.drawingArea = new DrawingArea(600, 500);
+            this.drawingArea.x = 10;
+            this.drawingArea.y = 30;
+            this.addChild(this.drawingArea);
+
             this.gridVertices.dataProvider = this.vertexManager.vertices.vertex;
         }
 
@@ -116,14 +125,14 @@ package com
             {
                 for each (itm in this.gridVertices.selectedItems)
                 {
-                    this.vertexManager.removeVertex(itm);
+                    this.vertexManager.removeVertex({id:itm.@id, x:itm.x, y:itm.y});
                 }
             }
             else if(this.accordion.selectedIndex == 1)
             {
                 for each (itm in this.gridElements.selectedItems)
                 {
-                    this.elementManager.removeElement(itm);
+                    this.elementManager.removeElement({id:itm.@id});
                 }
             }
             else if(this.accordion.selectedIndex == 2)
@@ -170,15 +179,27 @@ package com
             this.elementManager.addElement(evt.data);
         }
 
-        private function vertexListChangeHandler(evt:MeshEditorEvent):void
+        private function vertexAddedHandler(evt:MeshEditorEvent):void
         {
             this.gridVertices.dataProvider = evt.target.vertices.vertex;
 
             if(this.windowAddElement != null)
-                this.windowAddElement.initAvailableVertices(this.vertexManager.vertices);
+                this.windowAddElement.addAvailableVertex(evt.data);
+
+            this.drawingArea.addVertex(evt.data);
         }
 
-        private function elementListChangeHandler(evt:MeshEditorEvent):void
+        private function vertexRemovedHandler(evt:MeshEditorEvent):void
+        {
+            this.gridVertices.dataProvider = evt.target.vertices.vertex;
+
+            if(this.windowAddElement != null)
+                this.windowAddElement.removeAvailableVertex(evt.data);
+
+            this.drawingArea.removeVertex(evt.data);
+        }
+
+        private function elementAddedHandler(evt:MeshEditorEvent):void
         {
             this.gridElements.dataProvider = evt.target.elements.element;
         }

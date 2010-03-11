@@ -17,42 +17,42 @@ package com
 
         public function addElement(data:Object):void
         {
-            var xmlStr:String = "<element id='"+ this.nextId++ + "'>";
-            xmlStr += "<v1>" + (data.vertices as XML).vertex[0].@id + "</v1>";
-            xmlStr += "<v2>" + (data.vertices as XML).vertex[1].@id + "</v2>";
-            xmlStr += "<v3>" + (data.vertices as XML).vertex[2].@id + "</v3>";
-
-            try
+            if(!this.checkDuplicate(data))
             {
-                xmlStr += "<v4>" + (data.vertices as XML).vertex[3].@id + "</v4>";
-            }
-            catch(e:Error){}
+                var xmlStr:String = "<element id='"+ this.nextId + "'>";
+                xmlStr += "<v1>" + data.vertexId[0] + "</v1>";
+                xmlStr += "<v2>" + data.vertexId[1] + "</v2>";
+                xmlStr += "<v3>" + data.vertexId[2] + "</v3>";
 
-            xmlStr += "</element>";
-            var e:XML = new XML(xmlStr);
+                var tmp:int = int(data.vertexId[3])
+                if(tmp != 0)
+                {
+                    xmlStr += "<v4>" + tmp + "</v4>";
+                }
 
-            if(!this.checkDuplicate(e))
-            {
+                xmlStr += "</element>";
+                var e:XML = new XML(xmlStr);
                 this.xmlElements.appendChild(e);
-                this.dispatchEvent(new MeshEditorEvent(MeshEditorEvent.ELEMENT_LIST_CHANGE));
+
+                var evt:MeshEditorEvent = new MeshEditorEvent(MeshEditorEvent.ELEMENT_ADDED);
+                evt.data = data;
+                evt.data.id = this.nextId;
+                this.dispatchEvent(evt);
+                this.nextId++;
             }
         }
 
         public function removeElement(data:Object):void
         {
-            for( var i:int=0;i<this.xmlElements.*.length();i++)
-            {
-                if(this.xmlElements.element[i].@ID == (data as XML).@ID)
-                {
-                    delete this.xmlElements.element[i];
-                    break;
-                }
-            }
+            delete this.xmlElements.element.(@id == data.id)[0];
 
             if(this.xmlElements.*.length() == 0)
                 this.nextId = 1;
-            
-            this.dispatchEvent(new MeshEditorEvent(MeshEditorEvent.ELEMENT_LIST_CHANGE));
+
+            var evt:MeshEditorEvent = new MeshEditorEvent(MeshEditorEvent.ELEMENT_REMOVED);
+            evt.data = data;
+
+            this.dispatchEvent(evt);
         }
 
         private function editVertex(evt:Object):void
@@ -60,18 +60,18 @@ package com
 
         }
 
-        private function checkDuplicate(e:XML):Boolean
+        private function checkDuplicate(data:Object):Boolean
         {
             var vId1:Array = [];
             var vId2:Array = [];
             var count:int = 0;
             var tmp:int = 0;
 
-            vId1.push(int(e.v1));
-            vId1.push(int(e.v2));
-            vId1.push(int(e.v3));
+            vId1.push(int(data.vertexId[0]));
+            vId1.push(int(data.vertexId[1]));
+            vId1.push(int(data.vertexId[2]));
 
-            tmp = int(e.v4)
+            tmp = int(data.vertexId[3])
             if(tmp != 0)
                 vId1.push(tmp);
 
