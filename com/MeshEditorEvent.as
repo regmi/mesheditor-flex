@@ -13,6 +13,7 @@ package com
         public static const ELEMENT_REMOVED:String = "elementRemoved";
         public static const ELEMENT_SUBMIT:String = "elementSubmit";
         public static const ELEMENT_LIST_CHANGE:String = "elementListChange";
+        public static const ELEMENT_SELECTED:String = "elementSelected";
 
         /*
         *

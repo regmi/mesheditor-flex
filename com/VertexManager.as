@@ -11,12 +11,13 @@ package com
 
         public function VertexManager():void
         {
+            super();
             this.xmlVertices = new XML("<vertices>" + 
-            "<vertex id='1'><x>20</x><y>400</y></vertex>" +
-            "<vertex id='2'><x>40</x><y>300</y></vertex>" +
-            "<vertex id='3'><x>60</x><y>200</y></vertex>" +
-            "<vertex id='4'><x>80</x><y>100</y></vertex>" +
-            "<vertex id='5'><x>400</x><y>200</y></vertex>" +
+            "<vertex id='1'><x>100</x><y>400</y></vertex>" +
+            "<vertex id='2'><x>400</x><y>300</y></vertex>" +
+            "<vertex id='3'><x>500</x><y>400</y></vertex>" +
+            "<vertex id='4'><x>10</x><y>250</y></vertex>" +
+            "<vertex id='5'><x>500</x><y>50</y></vertex>" +
             "</vertices>"); 
             this.nextId = 6;
         }
@@ -69,6 +70,26 @@ package com
         public function get vertices():XML
         {
             return this.xmlVertices;
+        }
+
+        public function getVertex(id:int):XML
+        {
+            return this.xmlVertices.vertex.(@id == id)[0];
+        }
+
+        public function dispatchVertexAdded():void
+        {
+            for each(var vertex:XML in this.xmlVertices.vertex)
+            {
+                var obj:Object = new Object();
+                obj.id = int(vertex.@id);
+                obj.x = int(vertex.x);
+                obj.y = int(vertex.y);
+
+                var evt:MeshEditorEvent = new MeshEditorEvent(MeshEditorEvent.VERTEX_ADDED);
+                evt.data = obj;
+                this.dispatchEvent(evt);
+            }
         }
     }
 }

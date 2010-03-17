@@ -22,14 +22,17 @@ package com
             this.xmlAvailableVertices = null;
             this.xmlElementVertices = null;
 
-            this.addEventListener(FlexEvent.CREATION_COMPLETE, this.creationComplete);
+            this.addEventListener(FlexEvent.CREATION_COMPLETE, this.creationComplete, false, 0, true);
         }
 
         private function creationComplete(evt:FlexEvent):void
         {
-            this.btnAddToElement.addEventListener(MouseEvent.CLICK, this.btnAddToElementClick);
-            this.btnRemoveFromElement.addEventListener(MouseEvent.CLICK, this.btnRemoveFromElementClick);
-            this.btnAdd.addEventListener(MouseEvent.CLICK, this.btnAddClick);
+            this.btnAddToElement.addEventListener(MouseEvent.CLICK, this.btnAddToElementClick, false, 0, true);
+            this.btnRemoveFromElement.addEventListener(MouseEvent.CLICK, this.btnRemoveFromElementClick, false, 0, true);
+            this.btnAdd.addEventListener(MouseEvent.CLICK, this.btnAddClick, false, 0, true);
+            
+            this.gridAvailableVertices.addEventListener(ListEvent.ITEM_CLICK, this.gridAvailableVerticesItemClick, false, 0, true);
+            this.gridElementVertices.addEventListener(ListEvent.ITEM_CLICK, this.gridAvailableVerticesItemClick, false, 0, true);
 
             if(this.xmlAvailableVertices != null)
                 this.gridAvailableVertices.dataProvider = this.xmlAvailableVertices.vertex;
@@ -74,6 +77,20 @@ package com
 
                 this.gridAvailableVertices.dataProvider = this.xmlAvailableVertices.vertex;
                 this.gridElementVertices.dataProvider = this.xmlElementVertices.vertex;
+                
+                if(this.xmlElementVertices.*.length() >= 3)
+                {
+                    var vl:Array = [];
+                    for each(var v:XML in this.xmlElementVertices.vertex)
+                    {
+                        vl.push({id:v.@id, x:v.x, y:v.y});
+                    }
+                    
+                    var e:MeshEditorEvent = new MeshEditorEvent(MeshEditorEvent.ELEMENT_SELECTED);
+                    e.data = new Object();
+                    e.data.vertexList = vl;
+                    this.dispatchEvent(e);
+                }
             }
         }
 
@@ -91,6 +108,20 @@ package com
 
                 this.gridAvailableVertices.dataProvider = this.xmlAvailableVertices.vertex;
                 this.gridElementVertices.dataProvider = this.xmlElementVertices.vertex;
+                
+                if(this.xmlElementVertices.*.length() >= 3)
+                {
+                    var vl:Array = [];
+                    for each(var v:XML in this.xmlElementVertices.vertex)
+                    {
+                        vl.push({id:v.@id, x:v.x, y:v.y});
+                    }
+                    
+                    var e:MeshEditorEvent = new MeshEditorEvent(MeshEditorEvent.ELEMENT_SELECTED);
+                    e.data = new Object();
+                    e.data.vertexList = vl;
+                    this.dispatchEvent(e);
+                }
             }
         }
 
@@ -100,10 +131,10 @@ package com
             {
                 var meEvt:MeshEditorEvent = new MeshEditorEvent(MeshEditorEvent.ELEMENT_SUBMIT);
                 var dta:Object = new Object();
-                dta.vertexId = [];
+                dta.vertexList = [];
                 for each(var v:XML in this.xmlElementVertices.vertex)
                 {
-                    dta.vertexId.push(v.@id);
+                    dta.vertexList.push({id:v.@id, x:v.x, y:v.y});
                 }
                 meEvt.data = dta;
                 this.dispatchEvent(meEvt);
@@ -115,13 +146,19 @@ package com
 
         private function appendVertexToXML(destXml:XML, data:Object):void
         {
-            var xmlStr:String = "<vertex id='" + data.id + "'><x>" + data.x + "</x><y>" + data.x + "</y></vertex>";
+            var xmlStr:String = "<vertex id='" + data.id + "'><x>" + data.x + "</x><y>" + data.y + "</y></vertex>";
             destXml.appendChild(new XML(xmlStr));
         }
 
         private function removeVertexFromXML(srcXml:XML, data:Object):void
         {
             delete srcXml.vertex.(@id == data.id)[0];
+        }
+
+        private function gridAvailableVerticesItemClick(evt:ListEvent):void
+        {
+            evt.rowIndex = int(evt.target.selectedItem.@id);
+            this.dispatchEvent(evt);
         }
     }
 }

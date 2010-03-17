@@ -14,12 +14,12 @@ package com
         public function WindowAddVertex():void
         {
             super();
-            this.addEventListener(FlexEvent.CREATION_COMPLETE, this.creationComplete);
+            this.addEventListener(FlexEvent.CREATION_COMPLETE, this.creationComplete, false, 0, true);
         }
 
         private function creationComplete(evt:FlexEvent):void
         {
-            this.btnAdd.addEventListener(MouseEvent.CLICK, this.btnAddClick);
+            this.btnAdd.addEventListener(MouseEvent.CLICK, this.btnAddClick, false, 0, true);
         }
 
         private function btnAddClick(evt:MouseEvent):void

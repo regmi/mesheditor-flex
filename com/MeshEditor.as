@@ -49,19 +49,21 @@ package com
         {
             this.btnShowWindow.addEventListener(MouseEvent.CLICK, this.btnShowWindowClick);
             this.btnRemoveItem.addEventListener(MouseEvent.CLICK, this.btnRemoveItemClick);
-
-            this.vertexManager = new VertexManager();
-            this.vertexManager.addEventListener(MeshEditorEvent.VERTEX_ADDED, this.vertexAddedHandler);
-            this.vertexManager.addEventListener(MeshEditorEvent.VERTEX_REMOVED, this.vertexRemovedHandler);
-
-            this.elementManager = new ElementManager();
-            this.elementManager.addEventListener(MeshEditorEvent.ELEMENT_ADDED, this.elementAddedHandler);
-            this.elementManager.addEventListener(MeshEditorEvent.ELEMENT_REMOVED, this.elementAddedHandler);
+            this.gridVertices.addEventListener(ListEvent.ITEM_CLICK, this.gridVerticesItemClick);
 
             this.drawingArea = new DrawingArea(600, 500);
             this.drawingArea.x = 10;
             this.drawingArea.y = 30;
             this.addChild(this.drawingArea);
+
+            this.vertexManager = new VertexManager();
+            this.vertexManager.addEventListener(MeshEditorEvent.VERTEX_ADDED, this.vertexAddedHandler);
+            this.vertexManager.addEventListener(MeshEditorEvent.VERTEX_REMOVED, this.vertexRemovedHandler);
+            this.vertexManager.dispatchVertexAdded();
+
+            this.elementManager = new ElementManager();
+            this.elementManager.addEventListener(MeshEditorEvent.ELEMENT_ADDED, this.elementAddedHandler);
+            this.elementManager.addEventListener(MeshEditorEvent.ELEMENT_REMOVED, this.elementRemovedHandler);
 
             this.gridVertices.dataProvider = this.vertexManager.vertices.vertex;
         }
@@ -73,8 +75,8 @@ package com
                 if(this.windowAddVertex == null)
                 {
                     this.windowAddVertex = new WindowAddVertex();
-                    this.windowAddVertex.addEventListener(CloseEvent.CLOSE, this.windowCloseClick);
-                    this.windowAddVertex.addEventListener(MeshEditorEvent.VERTEX_SUBMIT, this.submitVertexHandler);
+                    this.windowAddVertex.addEventListener(CloseEvent.CLOSE, this.windowCloseClick, false, 0, true);
+                    this.windowAddVertex.addEventListener(MeshEditorEvent.VERTEX_SUBMIT, this.submitVertexHandler, false, 0, true);
 
                     PopUpManager.addPopUp(this.windowAddVertex, this, false);
                     PopUpManager.centerPopUp(this.windowAddVertex);
@@ -86,19 +88,25 @@ package com
                 {
                     this.windowAddElement = new WindowAddElement();
                     this.windowAddElement.initAvailableVertices(this.vertexManager.vertices);
-                    this.windowAddElement.addEventListener(CloseEvent.CLOSE, this.windowCloseClick);
-                    this.windowAddElement.addEventListener(MeshEditorEvent.ELEMENT_SUBMIT, this.submitElementHandler);
-                    
+                    this.windowAddElement.addEventListener(CloseEvent.CLOSE, this.windowCloseClick, false, 0, true);
+                    this.windowAddElement.addEventListener(MeshEditorEvent.ELEMENT_SUBMIT, this.submitElementHandler, false, 0, true);
+                    this.windowAddElement.addEventListener(ListEvent.ITEM_CLICK, this.gridVerticesItemClick, false, 0, true);
+                    this.windowAddElement.addEventListener(MeshEditorEvent.ELEMENT_SELECTED, this.elementSelected, false, 0, true);
+
                     PopUpManager.addPopUp(this.windowAddElement, this, false);
                     PopUpManager.centerPopUp(this.windowAddElement);   
                 }
+                
+                if(!this.gridElements.hasEventListener(ListEvent.ITEM_CLICK))
+                    this.gridElements.addEventListener(ListEvent.ITEM_CLICK, this.gridElementsItemClick, false, 0, true);
+
             }
             else if(this.accordion.selectedIndex == 2)
             {
                 if(this.windowAddCurve == null)
                 {
                     this.windowAddCurve = new WindowAddCurve();
-                    this.windowAddCurve.addEventListener(CloseEvent.CLOSE, this.windowCloseClick);
+                    this.windowAddCurve.addEventListener(CloseEvent.CLOSE, this.windowCloseClick, false, 0, true);
 
                     PopUpManager.addPopUp(this.windowAddCurve, this, false);
                     PopUpManager.centerPopUp(this.windowAddCurve);
@@ -109,7 +117,7 @@ package com
                 if(this.windowAddBoundry == null)
                 {
                     this.windowAddBoundry = new WindowAddBoundry();
-                    this.windowAddBoundry.addEventListener(CloseEvent.CLOSE, this.windowCloseClick);
+                    this.windowAddBoundry.addEventListener(CloseEvent.CLOSE, this.windowCloseClick, false, 0, true);
 
                     PopUpManager.addPopUp(this.windowAddBoundry, this, false);
                     PopUpManager.centerPopUp(this.windowAddBoundry);
@@ -202,6 +210,39 @@ package com
         private function elementAddedHandler(evt:MeshEditorEvent):void
         {
             this.gridElements.dataProvider = evt.target.elements.element;
+            this.drawingArea.addElement(evt.data);
+        }
+
+        private function elementRemovedHandler(evt:MeshEditorEvent):void
+        {
+            this.gridElements.dataProvider = evt.target.elements.element;
+            this.drawingArea.removeElement(evt.data);
+        }
+
+        private function gridVerticesItemClick(evt:ListEvent):void
+        {
+            if(evt.target == this.gridVertices)
+                this.drawingArea.selectVertex({id:evt.target.selectedItem.@id});
+            else if(evt.target == this.windowAddElement)
+                this.drawingArea.selectVertex({id:evt.rowIndex});
+        }
+
+        private function gridElementsItemClick(evt:ListEvent):void
+        {
+            var vl:Array = [];
+            evt.target.selectedItem.@id
+            var element:XML = this.elementManager.getElement(evt.target.selectedItem.@id);
+            for each(var v:XML in element.*)
+            {
+                var vertex:XML = this.vertexManager.getVertex(int(v));
+                vl.push({id:vertex.@id, x:vertex.x, y:vertex.y});
+            }
+            this.drawingArea.selectElement({vertexList:vl});
+        }
+        
+        private function elementSelected(evt:MeshEditorEvent):void
+        {
+            this.drawingArea.selectElement(evt.data);
         }
     }
 }

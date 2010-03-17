@@ -11,7 +11,12 @@ package com
         
         public function ElementManager():void
         {
-            this.xmlElements = new XML("<elements></elements>"); 
+            super();
+            this.xmlElements = new XML("<elements>" +
+            //"<element id='1'><v1>2</v1><v2>4</v2><v3>5</v3></element>" +
+            //"<element id='2'><v1>1</v1><v2>2</v2><v3>4</v3></element>" +
+            //"<element id='3'><v1>5</v1><v2>3</v2><v3>2</v3></element>" +
+            "</elements>");
             this.nextId = 1;
         }
 
@@ -20,15 +25,12 @@ package com
             if(!this.checkDuplicate(data))
             {
                 var xmlStr:String = "<element id='"+ this.nextId + "'>";
-                xmlStr += "<v1>" + data.vertexId[0] + "</v1>";
-                xmlStr += "<v2>" + data.vertexId[1] + "</v2>";
-                xmlStr += "<v3>" + data.vertexId[2] + "</v3>";
 
-                var tmp:int = int(data.vertexId[3])
-                if(tmp != 0)
+                try
                 {
-                    xmlStr += "<v4>" + tmp + "</v4>";
-                }
+                    for(var i:int=0; i<data.vertexList.length;i++)
+                        xmlStr += "<v" +(i+1)+ ">" + data.vertexList[i].id + "</v" + (i+1) + ">";
+                }catch(e:Error){}
 
                 xmlStr += "</element>";
                 var e:XML = new XML(xmlStr);
@@ -67,13 +69,11 @@ package com
             var count:int = 0;
             var tmp:int = 0;
 
-            vId1.push(int(data.vertexId[0]));
-            vId1.push(int(data.vertexId[1]));
-            vId1.push(int(data.vertexId[2]));
-
-            tmp = int(data.vertexId[3])
-            if(tmp != 0)
-                vId1.push(tmp);
+            try
+            {
+                for(var i:int=0; i<data.vertexList.length;i++)
+                    vId1.push(int(data.vertexList[i].id));
+            }catch(e:Error){}
 
             for each(var element:XML in this.xmlElements.element)
             {
@@ -104,6 +104,11 @@ package com
             }
 
             return false;
+        }
+
+        public function getElement(id:int):XML
+        {
+            return this.xmlElements.element.(@id == id)[0];
         }
 
         public function get elements():XML
