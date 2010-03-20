@@ -20,6 +20,7 @@ package com
 
             this.graphics.clear();
             this.graphics.lineStyle(1, 0x0033FF);
+            this.graphics.beginFill(0xCECECE, 0.5);
 
             for(var i:int=1;i<vertexList.length;i++)
             {   
@@ -29,6 +30,8 @@ package com
             }
 
             this.graphics.lineTo(0,0);
+            this.graphics.endFill();
+            trace("-a-");
         }
     }
 }

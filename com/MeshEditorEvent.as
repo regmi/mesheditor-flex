@@ -7,23 +7,25 @@ package com
         public static const VERTEX_ADDED:String = "vertexAdded";
         public static const VERTEX_REMOVED:String = "vertexRemoved";
         public static const VERTEX_SUBMIT:String = "vertexSubmit";
-        public static const VERTEX_LIST_CHANGE:String = "vertexListChange";
 
         public static const ELEMENT_ADDED:String = "elementAdded";
         public static const ELEMENT_REMOVED:String = "elementRemoved";
         public static const ELEMENT_SUBMIT:String = "elementSubmit";
-        public static const ELEMENT_LIST_CHANGE:String = "elementListChange";
         public static const ELEMENT_SELECTED:String = "elementSelected";
 
+        public static const BOUNDARY_ADDED:String = "boundaryAdded";
+        public static const BOUNDARY_REMOVED:String = "boundaryRemoved";
+        public static const BOUNDARY_SUBMIT:String = "boundarySubmit";
+        public static const BOUNDARY_SELECTED:String = "boundarySelected";
+
         /*
-        *
         *
         */
         public var data:Object;
 
         public function MeshEditorEvent(eventName:String)
         {
-            super (eventName);
+            super(eventName);
         }
 
         public override function clone():Event 

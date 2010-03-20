@@ -24,22 +24,24 @@ package com
         public var btnRemoveItem:Button;
         public var gridVertices:DataGrid;
         public var gridElements:DataGrid;
+        public var gridBoundaries:DataGrid;
         public var accordion:Accordion;
 
         private var windowAddVertex:WindowAddVertex;
         private var windowAddElement:WindowAddElement;
-        private var windowAddBoundry:WindowAddBoundry;
+        private var windowAddBoundary:WindowAddBoundary;
         private var windowAddCurve:WindowAddCurve;
 
         private var vertexManager:VertexManager;
         private var elementManager:ElementManager;
+        private var boundaryManager:BoundaryManager;
         private var drawingArea:DrawingArea;
 
         public function MeshEditor()
         {
             this.windowAddVertex = null;
             this.windowAddElement = null;
-            this.windowAddBoundry = null;
+            this.windowAddBoundary = null;
             this.windowAddCurve = null;
 
             this.addEventListener(FlexEvent.CREATION_COMPLETE, this.creationComplete);
@@ -64,6 +66,10 @@ package com
             this.elementManager = new ElementManager();
             this.elementManager.addEventListener(MeshEditorEvent.ELEMENT_ADDED, this.elementAddedHandler);
             this.elementManager.addEventListener(MeshEditorEvent.ELEMENT_REMOVED, this.elementRemovedHandler);
+
+            this.boundaryManager = new BoundaryManager();
+            this.boundaryManager.addEventListener(MeshEditorEvent.BOUNDARY_ADDED, this.boundaryAddedHandler);
+            this.boundaryManager.addEventListener(MeshEditorEvent.BOUNDARY_REMOVED, this.boundaryRemovedHandler);
 
             this.gridVertices.dataProvider = this.vertexManager.vertices.vertex;
         }
@@ -114,14 +120,21 @@ package com
             }
             else if(this.accordion.selectedIndex == 3)
             {
-                if(this.windowAddBoundry == null)
+                if(this.windowAddBoundary == null)
                 {
-                    this.windowAddBoundry = new WindowAddBoundry();
-                    this.windowAddBoundry.addEventListener(CloseEvent.CLOSE, this.windowCloseClick, false, 0, true);
+                    this.windowAddBoundary = new WindowAddBoundary();
+                    this.windowAddBoundary.initAvailableVertices(this.vertexManager.vertices);
+                    this.windowAddBoundary.addEventListener(CloseEvent.CLOSE, this.windowCloseClick, false, 0, true);
+                    this.windowAddBoundary.addEventListener(MeshEditorEvent.BOUNDARY_SUBMIT, this.submitBoundaryHandler, false, 0, true);
+                    this.windowAddBoundary.addEventListener(ListEvent.ITEM_CLICK, this.gridVerticesItemClick, false, 0, true);
+                    this.windowAddBoundary.addEventListener(MeshEditorEvent.BOUNDARY_SELECTED, this.boundarySelected, false, 0, true);
 
-                    PopUpManager.addPopUp(this.windowAddBoundry, this, false);
-                    PopUpManager.centerPopUp(this.windowAddBoundry);
+                    PopUpManager.addPopUp(this.windowAddBoundary, this, false);
+                    PopUpManager.centerPopUp(this.windowAddBoundary);
                 }
+
+                if(!this.gridBoundaries.hasEventListener(ListEvent.ITEM_CLICK))
+                    this.gridBoundaries.addEventListener(ListEvent.ITEM_CLICK, this.gridBoundariesItemClick, false, 0, true);
             }
         }
 
@@ -147,9 +160,13 @@ package com
             {
 
             }
-            else if(this.accordion.selectedIndex == 4)
+            else if(this.accordion.selectedIndex == 3)
             {
-
+                for each (itm in this.gridBoundaries.selectedItems)
+                {
+                    trace("-a-")
+                    this.boundaryManager.removeBoundary({id:itm.@id});
+                }
             }
         }
 
@@ -170,10 +187,10 @@ package com
                 PopUpManager.removePopUp(this.windowAddCurve);
                 this.windowAddCurve = null;
             }
-            else if (evt.target is WindowAddBoundry)
+            else if (evt.target is WindowAddBoundary)
             {
-                PopUpManager.removePopUp(this.windowAddBoundry);
-                this.windowAddBoundry = null;
+                PopUpManager.removePopUp(this.windowAddBoundary);
+                this.windowAddBoundary = null;
             }
         }
 
@@ -185,6 +202,16 @@ package com
         private function submitElementHandler(evt:MeshEditorEvent):void
         {
             this.elementManager.addElement(evt.data);
+        }
+
+        private function submitBoundaryHandler(evt:MeshEditorEvent):void
+        {
+            trace("--Add Boundary--");
+            trace(evt.data.vertexList[0]);
+            trace(evt.data.vertexList[1]);
+            trace(evt.data.marker);
+
+            this.boundaryManager.addBoundary(evt.data);
         }
 
         private function vertexAddedHandler(evt:MeshEditorEvent):void
@@ -213,17 +240,30 @@ package com
             this.drawingArea.addElement(evt.data);
         }
 
+        private function boundaryAddedHandler(evt:MeshEditorEvent):void
+        {
+            this.gridBoundaries.dataProvider = evt.target.boundaries.boundary;
+            this.drawingArea.addBoundary(evt.data);
+        }
+
         private function elementRemovedHandler(evt:MeshEditorEvent):void
         {
             this.gridElements.dataProvider = evt.target.elements.element;
             this.drawingArea.removeElement(evt.data);
         }
 
+        private function boundaryRemovedHandler(evt:MeshEditorEvent):void
+        {
+            trace("-br-")
+            this.gridBoundaries.dataProvider = evt.target.boundaries.boundary;
+            this.drawingArea.removeBoundary(evt.data);
+        }
+
         private function gridVerticesItemClick(evt:ListEvent):void
         {
             if(evt.target == this.gridVertices)
                 this.drawingArea.selectVertex({id:evt.target.selectedItem.@id});
-            else if(evt.target == this.windowAddElement)
+            else// if(evt.target == this.windowAddElement)
                 this.drawingArea.selectVertex({id:evt.rowIndex});
         }
 
@@ -239,10 +279,31 @@ package com
             }
             this.drawingArea.selectElement({vertexList:vl});
         }
-        
+
+        private function gridBoundariesItemClick(evt:ListEvent):void
+        {
+            var vl:Array = [];
+            evt.target.selectedItem.@id
+            var element:XML = this.boundaryManager.getBoundary(evt.target.selectedItem.@id);
+            
+            var vertex:XML = this.vertexManager.getVertex(int(element.v1));
+            vl.push({id:vertex.@id, x:vertex.x, y:vertex.y});
+
+            vertex = this.vertexManager.getVertex(int(element.v2));
+            vl.push({id:vertex.@id, x:vertex.x, y:vertex.y});
+
+            this.drawingArea.selectBoundary({vertexList:vl});
+        }
+
         private function elementSelected(evt:MeshEditorEvent):void
         {
             this.drawingArea.selectElement(evt.data);
+        }
+
+        private function boundarySelected(evt:MeshEditorEvent):void
+        {
+            trace("--Boundary Selected--");
+            this.drawingArea.selectBoundary(evt.data);
         }
     }
 }

@@ -35,7 +35,15 @@
             <mx:Canvas label="Curves" width="100%" height="100%">
             </mx:Canvas>
 
-            <mx:Canvas label="Boundrys" width="100%" height="100%">
+            <mx:Canvas label="Boundaries" width="100%" height="100%">
+                <mx:DataGrid id="gridBoundaries" width="100%" height="100%" allowMultipleSelection="true">
+                    <mx:columns>
+                        <mx:DataGridColumn dataField="@id" headerText="ID" width="30"/>
+                        <mx:DataGridColumn dataField="v1" headerText="V1"/>
+                        <mx:DataGridColumn dataField="v2" headerText="V2"/>
+                        <mx:DataGridColumn dataField="marker" headerText="Marker"/>
+                    </mx:columns>
+                </mx:DataGrid>
             </mx:Canvas>
         </mx:Accordion>
     

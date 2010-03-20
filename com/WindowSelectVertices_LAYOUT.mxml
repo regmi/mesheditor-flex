@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<mx:TitleWindow xmlns:mx="http://www.adobe.com/2006/mxml" width="420" height="370" xmlns:custom="com.*" title="Add Element" showCloseButton="true"
+<mx:TitleWindow xmlns:mx="http://www.adobe.com/2006/mxml" width="420" height="370" xmlns:custom="com.*" title="Select Vertices" showCloseButton="true"
     paddingLeft="0" paddingRight="0" paddingTop="0" paddingBottom="0"
 >
     <mx:Script>
@@ -22,13 +22,13 @@
         </mx:VBox>
 
         <mx:VBox height="100%" verticalAlign="middle" >
-            <mx:Button id="btnAddToElement" label=">>"/>
-            <mx:Button id="btnRemoveFromElement" label="R"/>
+            <mx:Button id="btnSelectVertex" label=">>"/>
+            <mx:Button id="btnDeselectVertex" label="R"/>
         </mx:VBox>
 
-        <mx:VBox height="100%" width="100%" verticalAlign="middle" horizontalAlign="center">
-            <mx:Label text="Element Vertices"/>
-            <mx:DataGrid width="100%" id="gridElementVertices" rowCount="5">
+        <mx:VBox id="vboxRight" height="100%" width="100%" verticalAlign="middle" horizontalAlign="center">
+            <mx:Label text="Selected Vertices"/>
+            <mx:DataGrid width="100%" id="gridSelectedVertices" rowCount="5">
                 <mx:columns>
                     <mx:DataGridColumn dataField="@id" headerText="ID" width="30"/>
                     <mx:DataGridColumn dataField="x" headerText="X"/>

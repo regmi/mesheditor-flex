@@ -17,6 +17,7 @@ package com
 
         private var vertexSelectMarker:VertexSelectMarker;
         private var elementSelectMarker:ElementSelectMarker;
+        private var boundarySelectMarker:BoundarySelectMarker;
 
         public function DrawingArea(w:int, h:int):void
         {
@@ -40,6 +41,7 @@ package com
 
             this.vertexSelectMarker = new VertexSelectMarker();
             this.elementSelectMarker = new ElementSelectMarker();
+            this.boundarySelectMarker = new BoundarySelectMarker();
         }
 
         public function addVertex(data:Object):void
@@ -60,6 +62,14 @@ package com
             this.vertexSelectMarker.timeOut(null);
         }
 
+        public function selectVertex(data:Object):void
+        {
+            this.vertexSelectMarker.x = this.dictVertexMarker[int(data.id)].x;
+            this.vertexSelectMarker.y = this.dictVertexMarker[int(data.id)].y;
+            this.vertexContainer.addChild(this.vertexSelectMarker);
+            this.vertexSelectMarker.setTimeOut();
+        }
+
         public function addElement(data:Object):void
         {
             var em:ElementMarker = new ElementMarker();
@@ -75,16 +85,26 @@ package com
 
             this.elementSelectMarker.timeOut(null);
         }
-        
-        public function selectVertex(data:Object):void
-        {
-            this.vertexSelectMarker.x = this.dictVertexMarker[int(data.id)].x;
-            this.vertexSelectMarker.y = this.dictVertexMarker[int(data.id)].y;
-            this.vertexContainer.addChild(this.vertexSelectMarker);
-            this.vertexSelectMarker.setTimeOut();
-        }
 
         public function selectElement(data:Object):void
+        {
+            this.elementContainer.addChild(this.elementSelectMarker);
+            this.elementSelectMarker.drawBorder(data.vertexList);
+            this.elementSelectMarker.setTimeOut();
+        }
+
+        public function addBoundary(data:Object):void
+        {
+            trace("--DA:addBoundary--")
+            this.selectBoundary(data);
+        }
+
+        public function removeBoundary(data:Object):void
+        {
+            trace("--DA:removeBoundary--")
+        }
+
+        public function selectBoundary(data:Object):void
         {
             this.elementContainer.addChild(this.elementSelectMarker);
             this.elementSelectMarker.drawBorder(data.vertexList);

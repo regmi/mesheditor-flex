@@ -13,13 +13,16 @@ package com
         {
             super();
             this.xmlVertices = new XML("<vertices>" + 
-            "<vertex id='1'><x>100</x><y>400</y></vertex>" +
-            "<vertex id='2'><x>400</x><y>300</y></vertex>" +
-            "<vertex id='3'><x>500</x><y>400</y></vertex>" +
-            "<vertex id='4'><x>10</x><y>250</y></vertex>" +
-            "<vertex id='5'><x>500</x><y>50</y></vertex>" +
+            "<vertex id='1'><x>100</x><y>100</y></vertex>" +
+            "<vertex id='2'><x>100</x><y>200</y></vertex>" +
+            "<vertex id='3'><x>200</x><y>100</y></vertex>" +
+            "<vertex id='4'><x>200</x><y>200</y></vertex>" +
+            "<vertex id='5'><x>300</x><y>200</y></vertex>" +
+            "<vertex id='6'><x>200</x><y>300</y></vertex>" +
+            "<vertex id='7'><x>300</x><y>300</y></vertex>" +
+            "<vertex id='8'><x>275</x><y>125</y></vertex>" +
             "</vertices>"); 
-            this.nextId = 6;
+            this.nextId = 9;
         }
 
         public function addVertex(data:Object):void

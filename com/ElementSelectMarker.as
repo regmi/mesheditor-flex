@@ -35,7 +35,7 @@ package com
             this.y = vertexList[0].y;
 
             this.graphics.clear();
-            this.graphics.lineStyle(1, 0x0033FF);
+            this.graphics.lineStyle(2, 0xAA0000);
 
             this.graphics.beginFill(0x3399CC, 0.5);
             for(var i:int=1;i<vertexList.length;i++)
