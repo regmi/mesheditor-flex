@@ -20,19 +20,32 @@ package com
         {
             if (! this.checkDuplicate(data))
             {
-                var xmlStr:String = "<boundary id='"+ this.nextId + "'>";
+                var evt:MeshEditorEvent = new MeshEditorEvent(MeshEditorEvent.BOUNDARY_ADDED);
+                evt.data = data;
+
+                var xmlStr:String = "";
+
+                if(data.id == null)
+                {
+                    xmlStr = "<boundary id='"+ this.nextId + "'>";
+                    evt.data.id = this.nextId;
+                }
+                else
+                {
+                    xmlStr = "<boundary id='"+ data.id + "'>";
+                    if(data.id > this.nextId)
+                        this.nextId = data.id;
+                }
+
                 xmlStr += "<v1>" + data.vertexList[0].id + "</v1>";
                 xmlStr += "<v2>" + data.vertexList[1].id + "</v2>";
                 xmlStr += "<marker>" +data.marker + "</marker>";
                 xmlStr += "</boundary>";
 
-                var evt:MeshEditorEvent = new MeshEditorEvent(MeshEditorEvent.BOUNDARY_ADDED);
-                evt.data = data;
-                evt.data.id = this.nextId;
-
                 this.xmlBoundaries.appendChild(new XML(xmlStr));
-                this.dispatchEvent(evt);
+
                 this.nextId++;
+                this.dispatchEvent(evt);
             }
         }
 
@@ -63,6 +76,14 @@ package com
                 return false;
         }
 
+        public function removeBoundaryWithVertex(data:Object):void
+        {
+            for each(var b:XML in this.xmlBoundaries.boundary.(v1 == data.id || v2 == data.id))
+            {
+                this.removeBoundary({id:b.@id});
+            }
+        }
+
         public function get boundaries():XML
         {
             return this.xmlBoundaries;
@@ -71,6 +92,27 @@ package com
         public function getBoundary(id:int):XML
         {
             return this.xmlBoundaries.boundary.(@id == id)[0];
+        }
+
+        public function loadBoundaries(boundaries:XMLList, vertices:XMLList):void
+        {
+            this.xmlBoundaries = new XML("<boundaries></boundaries>");
+
+            for each(var boundary:XML in boundaries.boundary)
+            {
+                var data:Object = new Object()
+                data.id = boundary.@id;
+                data.vertexList = [];
+                data.marker = boundary.marker;
+
+                var v1:XML = vertices.vertex.(@id == boundary.v1)[0];
+                data.vertexList.push({id:boundary.v1, x:v1.x, y:v1.y})
+
+                var v2:XML = vertices.vertex.(@id == boundary.v2)[0];
+                data.vertexList.push({id:boundary.v2, x:v2.x, y:v2.y})
+
+                this.addBoundary(data);
+            }
         }
     }
 }

@@ -47,10 +47,10 @@ package com
         public function addVertex(data:Object):void
         {
             var vm:VertexMarker = new VertexMarker();
-            vm.x = parseInt(data.x);
-            vm.y = parseInt(data.y);
+            vm.x = data.x;
+            vm.y = data.y;
 
-            this.dictVertexMarker[data.id] = vm;
+            this.dictVertexMarker[int(data.id)] = vm;
             this.vertexContainer.addChild(vm);
         }
 
@@ -67,14 +67,16 @@ package com
             this.vertexSelectMarker.x = this.dictVertexMarker[int(data.id)].x;
             this.vertexSelectMarker.y = this.dictVertexMarker[int(data.id)].y;
             this.vertexContainer.addChild(this.vertexSelectMarker);
+
             this.vertexSelectMarker.setTimeOut();
         }
 
         public function addElement(data:Object):void
         {
             var em:ElementMarker = new ElementMarker();
-            this.dictElementMarker[data.id] = em;
+            this.dictElementMarker[int(data.id)] = em;
             this.elementContainer.addChild(em);
+
             em.drawBorder(data.vertexList);
         }
 
@@ -90,25 +92,33 @@ package com
         {
             this.elementContainer.addChild(this.elementSelectMarker);
             this.elementSelectMarker.drawBorder(data.vertexList);
+
             this.elementSelectMarker.setTimeOut();
-        }
-
-        public function addBoundary(data:Object):void
-        {
-            trace("--DA:addBoundary--")
-            this.selectBoundary(data);
-        }
-
-        public function removeBoundary(data:Object):void
-        {
-            trace("--DA:removeBoundary--")
         }
 
         public function selectBoundary(data:Object):void
         {
             this.elementContainer.addChild(this.elementSelectMarker);
             this.elementSelectMarker.drawBorder(data.vertexList);
+
             this.elementSelectMarker.setTimeOut();
+        }
+
+        public function clear():void
+        {
+            var key:String;
+
+            for(key in this.dictVertexMarker)
+            {
+                this.vertexContainer.removeChild(this.dictVertexMarker[key]);
+                this.dictVertexMarker[key] = null;
+            }
+
+            for(key in this.dictElementMarker)
+            {
+                this.elementContainer.removeChild(this.dictElementMarker[key]);
+                this.dictElementMarker[key] = null;
+            }
         }
     }
 }

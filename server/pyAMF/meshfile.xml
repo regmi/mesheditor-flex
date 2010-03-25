@@ -1,0 +1,59 @@
+<mesheditor>
+  <vertices>
+    <vertex id="1">
+      <x>100</x>
+      <y>100</y>
+    </vertex>
+    <vertex id="2">
+      <x>100</x>
+      <y>200</y>
+    </vertex>
+    <vertex id="3">
+      <x>200</x>
+      <y>100</y>
+    </vertex>
+    <vertex id="4">
+      <x>200</x>
+      <y>200</y>
+    </vertex>
+    <vertex id="5">
+      <x>300</x>
+      <y>200</y>
+    </vertex>
+    <vertex id="6">
+      <x>200</x>
+      <y>300</y>
+    </vertex>
+    <vertex id="7">
+      <x>300</x>
+      <y>300</y>
+    </vertex>
+    <vertex id="8">
+      <x>275</x>
+      <y>125</y>
+    </vertex>
+    <vertex id="9">
+      <x>325</x>
+      <y>75</y>
+    </vertex>
+  </vertices>
+  <elements>
+    <element id="1">
+      <v1>9</v1>
+      <v2>8</v2>
+      <v3>3</v3>
+    </element>
+    <element id="2">
+      <v1>9</v1>
+      <v2>8</v2>
+      <v3>5</v3>
+    </element>
+    <element id="3">
+      <v1>1</v1>
+      <v2>2</v2>
+      <v3>4</v3>
+      <v4>3</v4>
+    </element>
+  </elements>
+  <boundaries/>
+</mesheditor>

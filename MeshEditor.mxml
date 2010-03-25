@@ -4,6 +4,25 @@
     xmlns:custom="com.*"
     layout="absolute"
 >
+    <mx:Script>
+        <![CDATA[
+            import mx.managers.*;
+            import mx.events.*;
+            
+            private function gridBoundariesCreationComplete(evt:FlexEvent):void
+            {
+                this.gridBoundaries.dataProvider = this.boundaryManager.boundaries.boundary;
+                this.gridBoundaries.addEventListener(ListEvent.ITEM_CLICK, this.gridBoundariesItemClick, false, 0, true);
+            }
+
+            private function gridElementsCreationComplete(evt:FlexEvent):void
+            {
+                this.gridElements.dataProvider = this.elementManager.elements.element;
+                this.gridElements.addEventListener(ListEvent.ITEM_CLICK, this.gridElementsItemClick, false, 0, true);
+            }
+        ]]>
+    </mx:Script>
+
     <mx:Style source="./assets/style.css"/>
 
     <mx:Label text="Mesh Editor" fontWeight="bold" fontSize="20" top="0" left="10"/>
@@ -21,7 +40,7 @@
             </mx:Canvas>
 
             <mx:Canvas label="Elements" width="100%" height="100%">
-                <mx:DataGrid id="gridElements" width="100%" height="100%" allowMultipleSelection="true">
+                <mx:DataGrid id="gridElements" width="100%" height="100%" allowMultipleSelection="true" creationComplete="gridElementsCreationComplete(event)">
                     <mx:columns>
                         <mx:DataGridColumn dataField="@id" headerText="ID" width="30"/>
                         <mx:DataGridColumn dataField="v1" headerText="V1"/>
@@ -36,7 +55,7 @@
             </mx:Canvas>
 
             <mx:Canvas label="Boundaries" width="100%" height="100%">
-                <mx:DataGrid id="gridBoundaries" width="100%" height="100%" allowMultipleSelection="true">
+                <mx:DataGrid id="gridBoundaries" width="100%" height="100%" allowMultipleSelection="true" creationComplete="gridBoundariesCreationComplete(event)">
                     <mx:columns>
                         <mx:DataGridColumn dataField="@id" headerText="ID" width="30"/>
                         <mx:DataGridColumn dataField="v1" headerText="V1"/>
@@ -46,7 +65,7 @@
                 </mx:DataGrid>
             </mx:Canvas>
         </mx:Accordion>
-    
+
         <mx:HBox horizontalAlign="center">
             <mx:Button id="btnShowWindow" label="+"/>
             <mx:Button id="btnRemoveItem" label="-"/>
@@ -54,8 +73,9 @@
     </mx:VBox>
 
     <mx:HBox bottom="10" left="10">
-        <mx:Button label="Save"/>
-        <mx:Button label="Load"/>
+        <mx:Button id="btnSaveMesh" label="Save" toolTip="Save Mesh Locally"/>
+        <mx:Button id="btnLoadMesh" label="Load" toolTip="Load local Mesh"/>
+        <mx:Button id="btnSubmitMesh" label="Submit" toolTip="Submit mesh to the server"/>
     </mx:HBox>
 
 </custom:MeshEditor>

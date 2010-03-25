@@ -4,8 +4,17 @@ package com
     import mx.events.*;
     import mx.controls.*;
     import mx.containers.*;
-    import mx.managers.PopUpManager;
 
+    import mx.managers.PopUpManager;
+    import mx.messaging.ChannelSet;
+    import mx.messaging.channels.AMFChannel;
+    import mx.rpc.AbstractOperation;
+    import mx.rpc.events.FaultEvent;
+    import mx.rpc.events.ResultEvent;
+    import mx.rpc.remoting.mxml.RemoteObject;
+    import mx.rpc.http.HTTPService;
+
+    import flash.net.*;
     import flash.events.*;
 
     import com.WindowAddVertex;
@@ -26,6 +35,9 @@ package com
         public var gridElements:DataGrid;
         public var gridBoundaries:DataGrid;
         public var accordion:Accordion;
+        public var btnSaveMesh:Button;
+        public var btnLoadMesh:Button;
+        public var btnSubmitMesh:Button;
 
         private var windowAddVertex:WindowAddVertex;
         private var windowAddElement:WindowAddElement;
@@ -33,9 +45,11 @@ package com
         private var windowAddCurve:WindowAddCurve;
 
         private var vertexManager:VertexManager;
-        private var elementManager:ElementManager;
-        private var boundaryManager:BoundaryManager;
+        protected var elementManager:ElementManager;
+        protected var boundaryManager:BoundaryManager;
         private var drawingArea:DrawingArea;
+        private var meshfile:FileReference;
+        private var httpService:HTTPService;
 
         public function MeshEditor()
         {
@@ -43,6 +57,9 @@ package com
             this.windowAddElement = null;
             this.windowAddBoundary = null;
             this.windowAddCurve = null;
+
+            this.httpService = new HTTPService();
+            this.httpService.addEventListener(ResultEvent.RESULT, this.saveMeshResult);
 
             this.addEventListener(FlexEvent.CREATION_COMPLETE, this.creationComplete);
         }
@@ -52,6 +69,9 @@ package com
             this.btnShowWindow.addEventListener(MouseEvent.CLICK, this.btnShowWindowClick);
             this.btnRemoveItem.addEventListener(MouseEvent.CLICK, this.btnRemoveItemClick);
             this.gridVertices.addEventListener(ListEvent.ITEM_CLICK, this.gridVerticesItemClick);
+            this.btnSaveMesh.addEventListener(MouseEvent.CLICK, this.btnSaveMeshClick);
+            this.btnLoadMesh.addEventListener(MouseEvent.CLICK, this.btnLoadMeshClick);
+            this.btnSubmitMesh.addEventListener(MouseEvent.CLICK, this.btnSubmitMeshClick);
 
             this.drawingArea = new DrawingArea(600, 500);
             this.drawingArea.x = 10;
@@ -61,7 +81,6 @@ package com
             this.vertexManager = new VertexManager();
             this.vertexManager.addEventListener(MeshEditorEvent.VERTEX_ADDED, this.vertexAddedHandler);
             this.vertexManager.addEventListener(MeshEditorEvent.VERTEX_REMOVED, this.vertexRemovedHandler);
-            this.vertexManager.dispatchVertexAdded();
 
             this.elementManager = new ElementManager();
             this.elementManager.addEventListener(MeshEditorEvent.ELEMENT_ADDED, this.elementAddedHandler);
@@ -102,10 +121,6 @@ package com
                     PopUpManager.addPopUp(this.windowAddElement, this, false);
                     PopUpManager.centerPopUp(this.windowAddElement);   
                 }
-                
-                if(!this.gridElements.hasEventListener(ListEvent.ITEM_CLICK))
-                    this.gridElements.addEventListener(ListEvent.ITEM_CLICK, this.gridElementsItemClick, false, 0, true);
-
             }
             else if(this.accordion.selectedIndex == 2)
             {
@@ -132,9 +147,6 @@ package com
                     PopUpManager.addPopUp(this.windowAddBoundary, this, false);
                     PopUpManager.centerPopUp(this.windowAddBoundary);
                 }
-
-                if(!this.gridBoundaries.hasEventListener(ListEvent.ITEM_CLICK))
-                    this.gridBoundaries.addEventListener(ListEvent.ITEM_CLICK, this.gridBoundariesItemClick, false, 0, true);
             }
         }
 
@@ -164,7 +176,6 @@ package com
             {
                 for each (itm in this.gridBoundaries.selectedItems)
                 {
-                    trace("-a-")
                     this.boundaryManager.removeBoundary({id:itm.@id});
                 }
             }
@@ -206,11 +217,6 @@ package com
 
         private function submitBoundaryHandler(evt:MeshEditorEvent):void
         {
-            trace("--Add Boundary--");
-            trace(evt.data.vertexList[0]);
-            trace(evt.data.vertexList[1]);
-            trace(evt.data.marker);
-
             this.boundaryManager.addBoundary(evt.data);
         }
 
@@ -232,42 +238,45 @@ package com
                 this.windowAddElement.removeAvailableVertex(evt.data);
 
             this.drawingArea.removeVertex(evt.data);
+            this.elementManager.removeElementWithVertex(evt.data);
+            this.boundaryManager.removeBoundaryWithVertex(evt.data);
         }
 
         private function elementAddedHandler(evt:MeshEditorEvent):void
         {
-            this.gridElements.dataProvider = evt.target.elements.element;
+            if(this.gridElements != null)
+                this.gridElements.dataProvider = this.elementManager.elements.element;
+
             this.drawingArea.addElement(evt.data);
         }
 
         private function boundaryAddedHandler(evt:MeshEditorEvent):void
         {
-            this.gridBoundaries.dataProvider = evt.target.boundaries.boundary;
-            this.drawingArea.addBoundary(evt.data);
+            if(this.gridBoundaries != null)
+                this.gridBoundaries.dataProvider = evt.target.boundaries.boundary;
         }
 
         private function elementRemovedHandler(evt:MeshEditorEvent):void
         {
-            this.gridElements.dataProvider = evt.target.elements.element;
+            if(this.gridElements != null)
+                this.gridElements.dataProvider = evt.target.elements.element;
             this.drawingArea.removeElement(evt.data);
         }
 
         private function boundaryRemovedHandler(evt:MeshEditorEvent):void
         {
-            trace("-br-")
             this.gridBoundaries.dataProvider = evt.target.boundaries.boundary;
-            this.drawingArea.removeBoundary(evt.data);
         }
 
         private function gridVerticesItemClick(evt:ListEvent):void
         {
             if(evt.target == this.gridVertices)
                 this.drawingArea.selectVertex({id:evt.target.selectedItem.@id});
-            else// if(evt.target == this.windowAddElement)
+            else
                 this.drawingArea.selectVertex({id:evt.rowIndex});
         }
 
-        private function gridElementsItemClick(evt:ListEvent):void
+        protected function gridElementsItemClick(evt:ListEvent):void
         {
             var vl:Array = [];
             evt.target.selectedItem.@id
@@ -280,7 +289,7 @@ package com
             this.drawingArea.selectElement({vertexList:vl});
         }
 
-        private function gridBoundariesItemClick(evt:ListEvent):void
+        protected function gridBoundariesItemClick(evt:ListEvent):void
         {
             var vl:Array = [];
             evt.target.selectedItem.@id
@@ -302,8 +311,108 @@ package com
 
         private function boundarySelected(evt:MeshEditorEvent):void
         {
-            trace("--Boundary Selected--");
             this.drawingArea.selectBoundary(evt.data);
+        }
+
+        private function btnSaveMeshClick(evt:MouseEvent):void
+        {
+            this.meshfile = new FileReference();
+            
+            var data:XML = new XML("<mesheditor></mesheditor>");
+            data.appendChild(this.vertexManager.vertices);
+            data.appendChild(this.elementManager.elements);
+            data.appendChild(this.boundaryManager.boundaries);
+            this.meshfile.save(data, "meshfile.xml")
+        }
+
+        private function btnSubmitMeshClick(evt:MouseEvent):void
+        {
+
+            var data:XML = new XML("<mesheditor></mesheditor>");
+            data.appendChild(this.vertexManager.vertices);
+            data.appendChild(this.elementManager.elements);
+            data.appendChild(this.boundaryManager.boundaries);
+
+            /*
+            //Using Remote Object
+            var ro:RemoteObject = this.initService("mesh", "http://134.197.8.118:8000");
+
+            var operation:AbstractOperation = ro.getOperation('saveMesh');
+            operation.addEventListener(ResultEvent.RESULT, this.saveMeshResult);
+
+            operation.send(data.toXMLString());
+            */
+
+            //Using POST/GET
+            this.httpService.url = "http://localhost:8000/upload/";
+            this.httpService.method = "POST";
+            this.httpService.send({meshXML:data.toXMLString()});
+        }
+
+        private function btnLoadMeshClick(evt:MouseEvent):void
+        {
+            this.meshfile = new FileReference();
+            this.meshfile.addEventListener(Event.COMPLETE, this.meshfileLoadComplete, false, 0, true);
+            this.meshfile.addEventListener(Event.SELECT, this.meshfileSelect, false, 0, true);
+            this.meshfile.browse([new FileFilter("meshfile", "*.xml")]);
+        }
+
+        private function initService(serviceName:String, url:String):RemoteObject
+        {
+            var channel:AMFChannel = new AMFChannel("pyamf-channel", url);
+            var channels:ChannelSet = new ChannelSet();
+            channels.addChannel(channel);
+
+            var remoteObject:RemoteObject = new RemoteObject(serviceName);  
+            remoteObject.showBusyCursor = true;
+            remoteObject.channelSet = channels;
+            remoteObject.addEventListener(FaultEvent.FAULT, this.remoteServiceFault, false, 0, true);
+            remoteObject.addEventListener(SecurityErrorEvent.SECURITY_ERROR, this.remoteServiceSecurityError, false, 0, true);
+
+            return remoteObject;
+        }
+
+        private function saveMeshResult(evt:ResultEvent):void
+        {
+            //Using POST/GET
+            for(var key:* in evt.result)
+            {
+                trace(evt.result[key]);
+            }
+
+            /*
+            // Using pyAMF
+            if(evt.result)
+            {
+                Alert.show("Mesh saved in server !", "Saved");
+            }
+            */
+        }
+
+        private function meshfileLoadComplete(evt:Event):void
+        {
+            var xml:XML = new XML(this.meshfile.data);
+            this.drawingArea.clear();
+            this.vertexManager.loadVertices(xml.vertices);
+            this.elementManager.loadElements(xml.elements, xml.vertices);
+            this.boundaryManager.loadBoundaries(xml.boundaries, xml.vertices);
+        }
+
+        private function meshfileSelect(evt:Event):void
+        {
+            this.meshfile.load();
+        }
+
+        private function remoteServiceFault(event:FaultEvent):void
+        {
+            var errorMsg:String = "Service error:\n" + event.fault.faultCode;
+            Alert.show(event.fault.faultDetail, errorMsg);
+        }
+
+        private function remoteServiceSecurityError(event:SecurityErrorEvent):void
+        {
+            var errorMsg:String = "Service security error";
+            Alert.show(event.text, errorMsg);	
         }
     }
 }

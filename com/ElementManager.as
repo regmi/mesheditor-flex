@@ -12,11 +12,7 @@ package com
         public function ElementManager():void
         {
             super();
-            this.xmlElements = new XML("<elements>" +
-            //"<element id='1'><v1>2</v1><v2>4</v2><v3>5</v3></element>" +
-            //"<element id='2'><v1>1</v1><v2>2</v2><v3>4</v3></element>" +
-            //"<element id='3'><v1>5</v1><v2>3</v2><v3>2</v3></element>" +
-            "</elements>");
+            this.xmlElements = new XML("<elements></elements>");
             this.nextId = 1;
         }
 
@@ -24,7 +20,22 @@ package com
         {
             if(!this.checkDuplicate(data))
             {
-                var xmlStr:String = "<element id='"+ this.nextId + "'>";
+                var evt:MeshEditorEvent = new MeshEditorEvent(MeshEditorEvent.ELEMENT_ADDED);
+                evt.data = data;
+
+                var xmlStr:String = "";
+
+                if(data.id == null)
+                {
+                    xmlStr = "<element id='"+ this.nextId + "'>";
+                    evt.data.id = this.nextId;
+                }
+                else
+                {
+                    xmlStr = "<element id='"+ data.id + "'>";
+                    if(data.id > this.nextId)
+                        this.nextId = data.id;
+                }
 
                 try
                 {
@@ -35,12 +46,9 @@ package com
                 xmlStr += "</element>";
                 var e:XML = new XML(xmlStr);
                 this.xmlElements.appendChild(e);
-
-                var evt:MeshEditorEvent = new MeshEditorEvent(MeshEditorEvent.ELEMENT_ADDED);
-                evt.data = data;
-                evt.data.id = this.nextId;
-                this.dispatchEvent(evt);
+                
                 this.nextId++;
+                this.dispatchEvent(evt);
             }
         }
 
@@ -106,6 +114,33 @@ package com
             return false;
         }
 
+        public function removeElementWithVertex(data:Object):void
+        {
+            for each(var e:XML in this.xmlElements.element)
+            {
+                if(e.v1 == data.id)
+                    this.removeElement({id:e.@id});
+                else
+                {
+                    if(e.v2 == data.id)
+                        this.removeElement({id:e.@id});
+                    else
+                    {
+                        if(e.v3 == data.id)
+                            this.removeElement({id:e.@id});
+                        else
+                        {
+                            try
+                            {
+                                if(e.v4 == data.id)
+                                    this.removeElement({id:e.@id});
+                            }catch(e:Error){}
+                        }
+                    }
+                }
+            }
+        }
+
         public function getElement(id:int):XML
         {
             return this.xmlElements.element.(@id == id)[0];
@@ -114,6 +149,26 @@ package com
         public function get elements():XML
         {
             return this.xmlElements;
+        }
+
+        public function loadElements(elements:XMLList, vertices:XMLList):void
+        {
+            this.xmlElements = new XML("<elements></elements>");
+
+            for each(var element:XML in elements.element)
+            {
+                var data:Object = new Object()
+                data.id = element.@id;
+                data.vertexList = [];
+
+                for each(var vId:XML in element.*)
+                {
+                    var vertex:XML = vertices.vertex.(@id == vId)[0];
+                    data.vertexList.push({id:vId, x:vertex.x, y:vertex.y})
+                }
+
+                this.addElement(data);
+            }
         }
     }
 }

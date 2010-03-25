@@ -51,8 +51,11 @@ package com
 
         public function timeOut(evt:TimerEvent):void
         {
-            this.timer.stop();
-            this.parent.removeChild(this);
+            if(this.parent != null)
+            {
+                this.timer.stop();
+                this.parent.removeChild(this);
+            }
         }
     }
 }
