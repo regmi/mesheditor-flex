@@ -11,6 +11,7 @@ urlpatterns = patterns('',
     # (r'^server/', include('server.foo.urls')),
     (r'^$', 'app.views.index'),
     (r'^upload/$', 'app.views.upload'),
+    (r'^flex/$', 'app.views.flex'),
 
     (r'^(?P<path>.*)$', 'django.views.static.serve',
         {'document_root': p}),
