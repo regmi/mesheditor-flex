@@ -1,6 +1,7 @@
 package com
 {
     import com.MeshEditorEvent;
+    import flash.ui.*;
     import flash.events.*;
     import flash.display.*;
     import flash.geom.*;
@@ -10,6 +11,18 @@ package com
         public function ElementMarker()
         {
             super();
+
+            var menuItem:ContextMenuItem = new ContextMenuItem("Change Color");
+            //menuItem.addEventListener(ContextMenuEvent.MENU_ITEM_SELECT,changeColor);
+
+            var customContextMenu:ContextMenu = new ContextMenu();
+
+
+            //hide the Flash menu
+            //customContextMenu.hideBuiltInItems();
+            customContextMenu.customItems.push(menuItem);
+
+            this.contextMenu = customContextMenu;
         }
 
         //It should be called only after ElementMarker is placed in the display list

@@ -16,6 +16,7 @@ package com
 
     import flash.net.*;
     import flash.events.*;
+    import flash.external.*;
 
     import com.WindowAddVertex;
     import com.WindowAddElement;
@@ -336,17 +337,29 @@ package com
             /*
             //Using Remote Object
             var ro:RemoteObject = this.initService("mesh", "http://134.197.8.118:8000");
-
             var operation:AbstractOperation = ro.getOperation('saveMesh');
             operation.addEventListener(ResultEvent.RESULT, this.saveMeshResult);
-
             operation.send(data.toXMLString());
             */
 
+            /*
             //Using POST/GET
             this.httpService.url = "http://localhost:8000/upload/";
             this.httpService.method = "POST";
             this.httpService.send({meshXML:data.toXMLString()});
+            */
+
+            var jsFunction:String = "showAlert";
+            var arg:String = data.toXMLString();
+
+            if(ExternalInterface.available)
+            {
+                ExternalInterface.call(jsFunction, arg);
+            }
+            else
+            {
+                trace("-No External Interface-")
+            }
         }
 
         private function btnLoadMeshClick(evt:MouseEvent):void
@@ -414,5 +427,6 @@ package com
             var errorMsg:String = "Service security error";
             Alert.show(event.text, errorMsg);	
         }
+
     }
 }

@@ -46,6 +46,10 @@ var requiredRevision = 28;
 <body scroll="no">
 <script language="JavaScript" type="text/javascript">
 <!--
+function showAlert(msg)
+{
+	alert(msg);
+}
 // Version check for the Flash Player that has the ability to start Player Product Install (6.0r65)
 var hasProductInstall = DetectFlashVer(6, 0, 65);
 
@@ -98,24 +102,5 @@ if ( hasProductInstall && !hasRequestedVersion ) {
   }
 // -->
 </script>
-<noscript>
-  	<object classid="clsid:D27CDB6E-AE6D-11cf-96B8-444553540000"
-			id="MeshEditor" width="830" height="400"
-			codebase="http://fpdownload.macromedia.com/get/flashplayer/current/swflash.cab">
-			<param name="movie" value="MeshEditor.swf" />
-			<param name="quality" value="high" />
-			<param name="bgcolor" value="#869ca7" />
-			<param name="allowScriptAccess" value="sameDomain" />
-			<embed src="MeshEditor.swf" quality="high" bgcolor="#869ca7"
-				width="830" height="400" name="MeshEditor" align="middle"
-				play="true"
-				loop="false"
-				quality="high"
-				allowScriptAccess="sameDomain"
-				type="application/x-shockwave-flash"
-				pluginspage="http://www.adobe.com/go/getflashplayer">
-			</embed>
-	</object>
-</noscript>
 </body>
 </html>
