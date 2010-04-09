@@ -92,6 +92,8 @@ package com
             this.boundaryManager.addEventListener(MeshEditorEvent.BOUNDARY_REMOVED, this.boundaryRemovedHandler);
 
             this.gridVertices.dataProvider = this.vertexManager.vertices.vertex;
+
+            this.parseFlashVars();
         }
 
         private function btnShowWindowClick(evt:MouseEvent):void
@@ -328,37 +330,38 @@ package com
 
         private function btnSubmitMeshClick(evt:MouseEvent):void
         {
-
+            /*
             var data:XML = new XML("<mesheditor></mesheditor>");
             data.appendChild(this.vertexManager.vertices);
             data.appendChild(this.elementManager.elements);
             data.appendChild(this.boundaryManager.boundaries);
 
-            /*
             //Using Remote Object
             var ro:RemoteObject = this.initService("mesh", "http://134.197.8.118:8000");
             var operation:AbstractOperation = ro.getOperation('saveMesh');
             operation.addEventListener(ResultEvent.RESULT, this.saveMeshResult);
             operation.send(data.toXMLString());
-            */
 
-            /*
             //Using POST/GET
             this.httpService.url = "http://localhost:8000/upload/";
             this.httpService.method = "POST";
             this.httpService.send({meshXML:data.toXMLString()});
             */
 
-            var jsFunction:String = "showAlert";
-            var arg:String = data.toXMLString();
+            var arg:String = this.convertData();
+            trace(arg)
 
             if(ExternalInterface.available)
             {
-                ExternalInterface.call(jsFunction, arg);
+                var jsFunction1:String = "$('#cell_input_" + Application.application.parameters['output_cell'] + "').val";
+                ExternalInterface.call(jsFunction1, arg);
+                
+                var jsFunction2:String = "evaluate_cell";
+                ExternalInterface.call(jsFunction2, Application.application.parameters['output_cell']);
             }
             else
             {
-                trace("-No External Interface-")
+                trace("-No External Interface-");
             }
         }
 
@@ -425,8 +428,129 @@ package com
         private function remoteServiceSecurityError(event:SecurityErrorEvent):void
         {
             var errorMsg:String = "Service security error";
-            Alert.show(event.text, errorMsg);	
+            Alert.show(event.text, errorMsg);
         }
 
+        private function convertData():String
+        {
+            var str:String = "dom = Domain([";
+
+            for each (var v:XML in this.vertexManager.vertices.vertex)
+            {
+                str += "[" + v.x + "," + v.y + "],";
+            }
+            str += "],[";
+            
+            for each (var el:XML in this.elementManager.elements.element)
+            {
+                var i1:int = this.vertexManager.getIndex(el.v1);
+                var i2:int = this.vertexManager.getIndex(el.v2);
+                var i3:int = this.vertexManager.getIndex(el.v3);
+
+                var i4:int = this.vertexManager.getIndex(el.v4);
+                if(i4 == -1)
+                {
+                    str += "[" + i1 + "," + i2 + "," + i3 + "," + i1 + "],";
+                }
+                else
+                {
+                    str += "[" + i1 + "," + i2 + "," + i3 + "," + i4 + "," + i1 + "],";
+                }
+            }
+            str += "],[";
+
+            for each (var b:XML in this.boundaryManager.boundaries.boundary)
+            {
+                i1 = this.vertexManager.getIndex(b.v1);
+                i2 = this.vertexManager.getIndex(b.v2);
+
+                str += "[" + i1 + "," + i2 + "," + b.marker +"],";
+            }
+            str += "],[])";
+
+            return str;
+        }
+
+        private function parseFlashVars():void
+        {
+            //Parse and add vertices
+            var vertex_list:String = Application.application.parameters['nodes'];
+            if(vertex_list != "")
+            {
+                var vertices:Array = vertex_list.split(",");
+                for each(var v:String in vertices)
+                {
+                    var xy:Array = v.split(" ");
+
+                    if(xy[0] != null && xy[1] != null)
+                        this.vertexManager.addVertex({x:xy[0], y:xy[1]})
+                }
+            }
+
+            //Parse and add Elements
+            var v1:XML,v2:XML,v3:XML,v4:XML;
+            var obj:Object;
+
+            var element_list:String = Application.application.parameters['elements'];
+            if(element_list != "")
+            {
+                var elements:Array = element_list.split(",");
+                for each(var e:String in elements)
+                {
+                    var vertex:Array = e.split(" ");
+                    obj = new Object();
+                    obj.vertexList = [];
+
+                    if(vertex.length == 4 && vertex[0] != null && vertex[1] != null && vertex[2] != null && vertex[3] != null)
+                    {
+                        v1 = this.vertexManager.getVertex(int(vertex[0])+1);
+                        obj.vertexList.push({id:v1.@id,x:v1.x,y:v1.y});
+                        v2 = this.vertexManager.getVertex(int(vertex[1])+1);
+                        obj.vertexList.push({id:v2.@id,x:v2.x,y:v2.y});
+                        v3 = this.vertexManager.getVertex(int(vertex[2])+1);
+                        obj.vertexList.push({id:v3.@id,x:v3.x,y:v3.y});
+
+                        this.elementManager.addElement(obj);
+                    }
+                    else if(vertex.length == 5 && vertex[0] != null && vertex[1] != null && vertex[2] != null && vertex[3] != null && vertex[4] != null)
+                    {
+                        v1 = this.vertexManager.getVertex(int(vertex[0])+1);
+                        obj.vertexList.push({id:v1.@id,x:v1.x,y:v1.y});
+                        v2 = this.vertexManager.getVertex(int(vertex[1])+1);
+                        obj.vertexList.push({id:v2.@id,x:v2.x,y:v2.y});
+                        v3 = this.vertexManager.getVertex(int(vertex[2])+1);
+                        obj.vertexList.push({id:v3.@id,x:v3.x,y:v3.y});
+                        v4 = this.vertexManager.getVertex(int(vertex[3])+1);
+                        obj.vertexList.push({id:v4.@id,x:v4.x,y:v4.y});
+
+                        this.elementManager.addElement(obj);
+                    }
+                }
+            }
+
+            //Parse and add Boundaries
+            var boundary_list:String = Application.application.parameters['boundaries'];
+            if(vertex_list != "")
+            {
+                var boundaries:Array = boundary_list.split(",");
+                for each(var b:String in boundaries)
+                {
+                    var vertex_marker:Array = b.split(" ");
+                    obj = new Object()
+                    obj.vertexList = [];
+
+                    if(vertex_marker[0] != null && vertex_marker[1] != null && vertex_marker[2] != null)
+                    {
+                        v1 = this.vertexManager.getVertex(int(vertex_marker[0])+1);
+                        obj.vertexList.push({id:v1.@id,x:v1.x,y:v1.y});
+                        v2 = this.vertexManager.getVertex(int(vertex_marker[1])+1);
+                        obj.vertexList.push({id:v2.@id,x:v2.x,y:v2.y});
+                        obj.marker = vertex_marker[2];
+
+                        this.boundaryManager.addBoundary(obj)
+                    }
+                }
+            }
+        }
     }
 }

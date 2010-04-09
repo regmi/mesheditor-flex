@@ -83,6 +83,19 @@ package com
             return this.xmlVertices.vertex.(@id == id)[0];
         }
 
+        public function getIndex(id:String):int
+        {
+            var index:int = 0
+            for each(var v:XML in this.xmlVertices.vertex)
+            {
+                if(v.@id == id)
+                    return index;
+                else
+                    index++;
+            }
+            return -1;
+        }
+
         public function loadVertices(vertices:XMLList):void
         {
             this.xmlVertices = new XML("<vertices></vertices>");
