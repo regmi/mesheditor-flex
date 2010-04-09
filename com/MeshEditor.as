@@ -433,14 +433,15 @@ package com
 
         private function convertData():String
         {
-            var str:String = "dom = Domain([";
+            var var_name:String = Application.application.parameters['var_name'] == null ? 'domain' : Application.application.parameters['var_name'];
+            var str:String = var_name + " = Domain([";
 
             for each (var v:XML in this.vertexManager.vertices.vertex)
             {
                 str += "[" + v.x + "," + v.y + "],";
             }
             str += "],[";
-            
+
             for each (var el:XML in this.elementManager.elements.element)
             {
                 var i1:int = this.vertexManager.getIndex(el.v1);
