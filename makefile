@@ -1,4 +1,4 @@
-CC = mxmlc
+CC = /home/ondrej/ext/flex/bin/mxmlc
 DEBUG = -debug=false
 CFLAGS = -use-network=true -target-player=10.0.0
  
