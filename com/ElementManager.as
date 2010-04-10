@@ -151,9 +151,15 @@ package com
             return this.xmlElements;
         }
 
+        public function clear():void
+        {
+            this.nextId = 0;
+            this.xmlElements = new XML("<elements></elements>");
+        }
+
         public function loadElements(elements:XMLList, vertices:XMLList):void
         {
-            this.xmlElements = new XML("<elements></elements>");
+            this.clear();
 
             for each(var element:XML in elements.element)
             {

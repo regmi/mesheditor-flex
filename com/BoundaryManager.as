@@ -94,9 +94,15 @@ package com
             return this.xmlBoundaries.boundary.(@id == id)[0];
         }
 
+        public function clear():void
+        {
+            this.nextId = 0;
+            this.xmlBoundaries = new XML("<boundaries></boundaries>");
+        }
+
         public function loadBoundaries(boundaries:XMLList, vertices:XMLList):void
         {
-            this.xmlBoundaries = new XML("<boundaries></boundaries>");
+            this.clear();
 
             for each(var boundary:XML in boundaries.boundary)
             {

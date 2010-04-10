@@ -96,9 +96,16 @@ package com
             return -1;
         }
 
-        public function loadVertices(vertices:XMLList):void
+        public function clear():void
         {
             this.xmlVertices = new XML("<vertices></vertices>");
+            this.nextId = 0;
+        }
+
+        public function loadVertices(vertices:XMLList):void
+        {
+            this.clear();
+
             for each(var vertex:XML in vertices.vertex)
             {
                 this.addVertex({id:vertex.@id, x:vertex.x, y:vertex.y});

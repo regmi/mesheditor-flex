@@ -12,7 +12,7 @@
     <mx:HBox width="100%" height="100%">
         <mx:VBox height="100%" width="100%" horizontalAlign="center">
             <mx:Label text="Available Vertices"/>
-            <mx:DataGrid id="gridAvailableVertices" width="100%" height="100%">
+            <mx:DataGrid id="gridAvailableVertices" doubleClickEnabled="true" width="100%" height="100%">
                 <mx:columns>
                     <mx:DataGridColumn dataField="@id" headerText="ID" width="30"/>
                     <mx:DataGridColumn dataField="x" headerText="X"/>
@@ -26,7 +26,7 @@
             <mx:Button id="btnDeselectVertex" label="R"/>
         </mx:VBox>
 
-        <mx:VBox id="vboxRight" height="100%" width="100%" verticalAlign="middle" horizontalAlign="center">
+        <mx:VBox id="vboxRight" height="100%" width="100%" doubleClickEnabled="true" verticalAlign="middle" horizontalAlign="center">
             <mx:Label text="Selected Vertices"/>
             <mx:DataGrid width="100%" id="gridSelectedVertices" rowCount="5">
                 <mx:columns>

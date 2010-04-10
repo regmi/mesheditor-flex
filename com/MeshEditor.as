@@ -4,6 +4,7 @@ package com
     import mx.events.*;
     import mx.controls.*;
     import mx.containers.*;
+    import mx.controls.dataGridClasses.*;
 
     import mx.managers.PopUpManager;
     import mx.messaging.ChannelSet;
@@ -69,7 +70,7 @@ package com
         {
             this.btnShowWindow.addEventListener(MouseEvent.CLICK, this.btnShowWindowClick);
             this.btnRemoveItem.addEventListener(MouseEvent.CLICK, this.btnRemoveItemClick);
-            this.gridVertices.addEventListener(ListEvent.ITEM_CLICK, this.gridVerticesItemClick);
+            this.gridVertices.addEventListener(ListEvent.ITEM_ROLL_OVER, this.gridVerticesItemClick);
             this.btnSaveMesh.addEventListener(MouseEvent.CLICK, this.btnSaveMeshClick);
             this.btnLoadMesh.addEventListener(MouseEvent.CLICK, this.btnLoadMeshClick);
             this.btnSubmitMesh.addEventListener(MouseEvent.CLICK, this.btnSubmitMeshClick);
@@ -93,7 +94,11 @@ package com
 
             this.gridVertices.dataProvider = this.vertexManager.vertices.vertex;
 
-            this.parseFlashVars();
+            try
+            {
+                this.parseFlashVars();
+            }
+            catch(e:Error) {}
         }
 
         private function btnShowWindowClick(evt:MouseEvent):void
@@ -118,7 +123,7 @@ package com
                     this.windowAddElement.initAvailableVertices(this.vertexManager.vertices);
                     this.windowAddElement.addEventListener(CloseEvent.CLOSE, this.windowCloseClick, false, 0, true);
                     this.windowAddElement.addEventListener(MeshEditorEvent.ELEMENT_SUBMIT, this.submitElementHandler, false, 0, true);
-                    this.windowAddElement.addEventListener(ListEvent.ITEM_CLICK, this.gridVerticesItemClick, false, 0, true);
+                    this.windowAddElement.addEventListener(ListEvent.ITEM_ROLL_OVER, this.gridVerticesItemClick, false, 0, true);
                     this.windowAddElement.addEventListener(MeshEditorEvent.ELEMENT_SELECTED, this.elementSelected, false, 0, true);
 
                     PopUpManager.addPopUp(this.windowAddElement, this, false);
@@ -144,7 +149,7 @@ package com
                     this.windowAddBoundary.initAvailableVertices(this.vertexManager.vertices);
                     this.windowAddBoundary.addEventListener(CloseEvent.CLOSE, this.windowCloseClick, false, 0, true);
                     this.windowAddBoundary.addEventListener(MeshEditorEvent.BOUNDARY_SUBMIT, this.submitBoundaryHandler, false, 0, true);
-                    this.windowAddBoundary.addEventListener(ListEvent.ITEM_CLICK, this.gridVerticesItemClick, false, 0, true);
+                    this.windowAddBoundary.addEventListener(ListEvent.ITEM_ROLL_OVER, this.gridVerticesItemClick, false, 0, true);
                     this.windowAddBoundary.addEventListener(MeshEditorEvent.BOUNDARY_SELECTED, this.boundarySelected, false, 0, true);
 
                     PopUpManager.addPopUp(this.windowAddBoundary, this, false);
@@ -273,17 +278,24 @@ package com
 
         private function gridVerticesItemClick(evt:ListEvent):void
         {
+            var dgir:DataGridItemRenderer=DataGridItemRenderer(evt.itemRenderer);
+            var dgirdxml:XML=XML(dgir.data);//XML
+
             if(evt.target == this.gridVertices)
-                this.drawingArea.selectVertex({id:evt.target.selectedItem.@id});
+                this.drawingArea.selectVertex({id:dgirdxml.@id});
             else
+            {
                 this.drawingArea.selectVertex({id:evt.rowIndex});
+            }
         }
 
         protected function gridElementsItemClick(evt:ListEvent):void
         {
+            var dgir:DataGridItemRenderer=DataGridItemRenderer(evt.itemRenderer);
+            var dgirdxml:XML=XML(dgir.data);//XML
+
             var vl:Array = [];
-            evt.target.selectedItem.@id
-            var element:XML = this.elementManager.getElement(evt.target.selectedItem.@id);
+            var element:XML = this.elementManager.getElement(dgirdxml.@id);
             for each(var v:XML in element.*)
             {
                 var vertex:XML = this.vertexManager.getVertex(int(v));
@@ -294,9 +306,11 @@ package com
 
         protected function gridBoundariesItemClick(evt:ListEvent):void
         {
+            var dgir:DataGridItemRenderer=DataGridItemRenderer(evt.itemRenderer);
+            var dgirdxml:XML=XML(dgir.data);//XML
+
             var vl:Array = [];
-            evt.target.selectedItem.@id
-            var element:XML = this.boundaryManager.getBoundary(evt.target.selectedItem.@id);
+            var element:XML = this.boundaryManager.getBoundary(dgirdxml.@id);
             
             var vertex:XML = this.vertexManager.getVertex(int(element.v1));
             vl.push({id:vertex.@id, x:vertex.x, y:vertex.y});
@@ -474,6 +488,8 @@ package com
 
         private function parseFlashVars():void
         {
+            //ExternalInterface.call("alert", "hi");
+
             //Parse and add vertices
             var vertex_list:String = Application.application.parameters['nodes'];
             if(vertex_list != "")

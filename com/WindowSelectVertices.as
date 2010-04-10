@@ -5,6 +5,7 @@ package com
     import mx.controls.*;
     import flash.events.*;
     import mx.containers.*;
+    import mx.controls.dataGridClasses.*;
 
     import com.WindowSelectVertices_LAYOUT
 
@@ -31,8 +32,11 @@ package com
             this.btnSelectVertex.addEventListener(MouseEvent.CLICK, this.btnSelectVertexClick, false, 0, true);
             this.btnDeselectVertex.addEventListener(MouseEvent.CLICK, this.btnDeselectVertexClick, false, 0, true);
 
-            this.gridAvailableVertices.addEventListener(ListEvent.ITEM_CLICK, this.gridAvailableVerticesItemClick, false, 0, true);
-            this.gridSelectedVertices.addEventListener(ListEvent.ITEM_CLICK, this.gridAvailableVerticesItemClick, false, 0, true);
+            this.gridAvailableVertices.addEventListener(ListEvent.ITEM_ROLL_OVER, this.gridAvailableVerticesItemClick, false, 0, true);
+            this.gridSelectedVertices.addEventListener(ListEvent.ITEM_ROLL_OVER, this.gridAvailableVerticesItemClick, false, 0, true);
+
+            this.gridSelectedVertices.addEventListener(ListEvent.ITEM_DOUBLE_CLICK, this.gridSelectedVerticesItemDoubleClick, false, 0, true);
+            this.gridAvailableVertices.addEventListener(ListEvent.ITEM_DOUBLE_CLICK, this.gridAvailableVerticesItemDoubleClick, false, 0, true);
 
             if(this.xmlAvailableVertices != null)
                 this.gridAvailableVertices.dataProvider = this.xmlAvailableVertices.vertex;
@@ -76,7 +80,12 @@ package com
 
         protected function gridAvailableVerticesItemClick(evt:ListEvent):void
         {
-            evt.rowIndex = int(evt.target.selectedItem.@id);
+            var dgir:DataGridItemRenderer = DataGridItemRenderer(evt.itemRenderer);
+            var dgirdxml:XML=XML(dgir.data);//XML
+
+            trace(dgirdxml);
+
+            evt.rowIndex = int(dgirdxml.@id);
             this.dispatchEvent(evt);
         }
 
@@ -113,5 +122,14 @@ package com
         protected function btnDeselectVertexClick(evt:MouseEvent):void {}
 
         protected function btnAddClick(evt:MouseEvent):void {}
+        private function gridSelectedVerticesItemDoubleClick(evt:ListEvent):void
+        {
+            this.btnDeselectVertexClick(null);
+        }
+
+        private function gridAvailableVerticesItemDoubleClick(evt:ListEvent):void
+        {
+            this.btnSelectVertexClick(null);
+        }
     }
 }

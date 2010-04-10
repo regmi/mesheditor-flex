@@ -12,13 +12,13 @@
             private function gridBoundariesCreationComplete(evt:FlexEvent):void
             {
                 this.gridBoundaries.dataProvider = this.boundaryManager.boundaries.boundary;
-                this.gridBoundaries.addEventListener(ListEvent.ITEM_CLICK, this.gridBoundariesItemClick, false, 0, true);
+                this.gridBoundaries.addEventListener(ListEvent.ITEM_ROLL_OVER, this.gridBoundariesItemClick, false, 0, true);
             }
 
             private function gridElementsCreationComplete(evt:FlexEvent):void
             {
                 this.gridElements.dataProvider = this.elementManager.elements.element;
-                this.gridElements.addEventListener(ListEvent.ITEM_CLICK, this.gridElementsItemClick, false, 0, true);
+                this.gridElements.addEventListener(ListEvent.ITEM_ROLL_OVER, this.gridElementsItemClick, false, 0, true);
             }
         ]]>
     </mx:Script>
