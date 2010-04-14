@@ -602,7 +602,7 @@ package com
 
                 str += "[" + i1 + "," + i2 + "," + b.marker +"],";
             }
-            str += "],[])";
+            str += "],[]";
 
             return str;
         }
