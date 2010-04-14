@@ -176,5 +176,16 @@ package com
                 this.addElement(data);
             }
         }
+
+        public function getElementsWithVertex(id:int):XML
+        {
+            var
+            for each( var e in this.xmlElements.element)
+            {
+                
+            }
+            var xl:XMLList = this.elements.element.((*.length() == 3 && (v1 == id || v2 == id || v3 == id)) || (*.length() == 4 && v4 == id));
+            return xl;
+        }
     }
 }

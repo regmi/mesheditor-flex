@@ -60,7 +60,6 @@ package com
 
             if(this.xmlBoundaries.*.length() == 0)
                 this.nextId = 1;
-            trace("-b-")
         }
 
         private function editBoundary(evt:Object):void

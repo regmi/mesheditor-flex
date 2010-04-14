@@ -18,6 +18,7 @@ package com
     import flash.net.*;
     import flash.events.*;
     import flash.external.*;
+    import flash.geom.*;
 
     import com.WindowAddVertex;
     import com.WindowAddElement;
@@ -70,12 +71,17 @@ package com
         {
             this.btnShowWindow.addEventListener(MouseEvent.CLICK, this.btnShowWindowClick);
             this.btnRemoveItem.addEventListener(MouseEvent.CLICK, this.btnRemoveItemClick);
+
             this.gridVertices.addEventListener(ListEvent.ITEM_ROLL_OVER, this.gridVerticesItemClick);
+            this.gridVertices.addEventListener(ListEvent.CHANGE, this.gridVerticesItemClick);
+            this.gridVertices.addEventListener(DataGridEvent.ITEM_EDIT_END, this.gridVerticesItemEditEnd);
+
             this.btnSaveMesh.addEventListener(MouseEvent.CLICK, this.btnSaveMeshClick);
             this.btnLoadMesh.addEventListener(MouseEvent.CLICK, this.btnLoadMeshClick);
             this.btnSubmitMesh.addEventListener(MouseEvent.CLICK, this.btnSubmitMeshClick);
 
             this.drawingArea = new DrawingArea(600, 500);
+            this.drawingArea.addEventListener(MouseEvent.CLICK, this.drawingAreaClick);
             this.drawingArea.x = 10;
             this.drawingArea.y = 30;
             this.addChild(this.drawingArea);
@@ -286,6 +292,48 @@ package com
             else
             {
                 this.drawingArea.selectVertex({id:evt.rowIndex});
+            }
+        }
+
+        private function gridVerticesItemEditEnd(evt:DataGridEvent):void
+        {
+            // Check the reason for the event.
+            if (evt.reason == DataGridEventReason.CANCELLED)
+            {
+                // Do not update cell.
+                return;
+            }            
+
+            // Get the new data value from the editor.
+            var newData:String = TextInput(evt.currentTarget.itemEditorInstance).text;
+
+            // Determine if the new value is an empty String.
+            if(newData == "" || parseFloat(newData) == NaN)
+            {
+                // Prevent the user from removing focus, 
+                // and leave the cell editor open.
+                evt.preventDefault();
+                // Write a message to the errorString property. 
+                // This message appears when the user 
+                // mouses over the editor.
+                TextInput(evt.currentTarget.itemEditorInstance).errorString = "Enter a valid Number.";
+                return;
+            }
+            else
+            {
+                var dgir:DataGridItemRenderer=DataGridItemRenderer(evt.itemRenderer);
+                var dgirdxml:XML=XML(dgir.data);
+
+                if(evt.dataField == "x")
+                {
+                    this.drawingArea.editVertex({id:dgirdxml.@id, x:newData, y:dgirdxml.y});
+                }
+                else
+                {
+                    this.drawingArea.editVertex({id:dgirdxml.@id, x:dgirdxml.x, y:newData});
+                }
+                var xm:XMLList = this.elementManager.getElementsWithVertex(int(dgirdxml.@id));
+                
             }
         }
 
@@ -567,6 +615,15 @@ package com
                         this.boundaryManager.addBoundary(obj)
                     }
                 }
+            }
+        }
+
+        private function drawingAreaClick(evt:MouseEvent):void
+        {
+            if(evt.ctrlKey)
+            {
+                var p:Point = this.drawingArea.getClickedPoint();
+                this.vertexManager.addVertex({x:p.x, y:-p.y});
             }
         }
     }

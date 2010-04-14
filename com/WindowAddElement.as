@@ -23,7 +23,6 @@ package com
 
         protected override function btnSelectVertexClick(evt:MouseEvent):void
         {
-            trace("-c-");
             if(this.gridAvailableVertices.selectedItem != null && this.xmlSelectedVertices.*.length() < 4)
             {
                 this.addToSelected();

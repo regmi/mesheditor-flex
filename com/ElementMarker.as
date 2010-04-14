@@ -17,7 +17,6 @@ package com
 
             var customContextMenu:ContextMenu = new ContextMenu();
 
-
             //hide the Flash menu
             //customContextMenu.hideBuiltInItems();
             customContextMenu.customItems.push(menuItem);
@@ -29,7 +28,7 @@ package com
         public function drawBorder(vertexList:Array):void
         {
             this.x = vertexList[0].x;
-            this.y = vertexList[0].y;
+            this.y = -vertexList[0].y;
 
             this.graphics.clear();
             this.graphics.lineStyle(1, 0x0033FF);
@@ -37,14 +36,13 @@ package com
 
             for(var i:int=1;i<vertexList.length;i++)
             {   
-                var gp:Point = this.parent.localToGlobal(new Point(vertexList[i].x, vertexList[i].y));
+                var gp:Point = this.parent.localToGlobal(new Point(vertexList[i].x, -vertexList[i].y));
                 var lp:Point = this.globalToLocal(gp);
                 this.graphics.lineTo(lp.x, lp.y);
             }
 
             this.graphics.lineTo(0,0);
             this.graphics.endFill();
-            trace("-a-");
         }
     }
 }

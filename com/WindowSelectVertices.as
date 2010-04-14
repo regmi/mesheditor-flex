@@ -83,8 +83,6 @@ package com
             var dgir:DataGridItemRenderer = DataGridItemRenderer(evt.itemRenderer);
             var dgirdxml:XML=XML(dgir.data);//XML
 
-            trace(dgirdxml);
-
             evt.rowIndex = int(dgirdxml.@id);
             this.dispatchEvent(evt);
         }
@@ -122,6 +120,7 @@ package com
         protected function btnDeselectVertexClick(evt:MouseEvent):void {}
 
         protected function btnAddClick(evt:MouseEvent):void {}
+
         private function gridSelectedVerticesItemDoubleClick(evt:ListEvent):void
         {
             this.btnDeselectVertexClick(null);

@@ -11,8 +11,8 @@
     </mx:Script>
     
     <mx:Array id="numValidator">
-        <mx:NumberValidator source="{txtX}" property="text" minValue="0" maxValue="600"/>
-        <mx:NumberValidator source="{txtY}" property="text" minValue="0" maxValue="500"/>
+        <mx:NumberValidator source="{txtX}" property="text" minValue="-300" maxValue="300"/>
+        <mx:NumberValidator source="{txtY}" property="text" minValue="-250" maxValue="250"/>
     </mx:Array>
     
     <mx:HBox width="100%" horizontalAlign="center">

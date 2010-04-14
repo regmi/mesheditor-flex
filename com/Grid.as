@@ -5,26 +5,22 @@ package com
     
     public class Grid extends Sprite
     {
-        private var width:int;
-        private var height:int;
-        priavte var divison:int;
+        private var divison:int;
         
-        public function Grid(width:int, height:int):void
+        public function Grid(width:int=600, height:int=500):void
         {
-            this.width = width;
-            this.height = height;
         }
         
-        priavte function drawGrid():viod
+        public function drawGrid():void
         {
             this.graphics.clear();
-            this.graphics.drawRect(0,0,this.width,this.height);
-            
-            for(var i:int=0;i<;i++)
-            {
-                this.graphics.moveTo(x,y);
-                this.graphics.lineTo(x,y);
-            }
+            this.graphics.lineStyle(1, 0xA49F9F);
+
+            this.graphics.moveTo(0,250);
+            this.graphics.lineTo(0,-250);
+
+            this.graphics.moveTo(-300,0);
+            this.graphics.lineTo(300,0);
         }
         
     }
