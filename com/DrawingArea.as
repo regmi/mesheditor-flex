@@ -2,12 +2,11 @@ package com
 {
     import flash.display.*;
     import flash.events.*;
+    import flash.geom.*;
     import flash.utils.*;
     import flash.filters.*;
-    import flash.geom.*;
     import mx.core.*;
     import com.VertexMarker;
-    import com.Grid;
 
     public class DrawingArea extends UIComponent
     {
@@ -20,6 +19,7 @@ package com
         private var vertexSelectMarker:VertexSelectMarker;
         private var elementSelectMarker:ElementSelectMarker;
         private var boundarySelectMarker:BoundarySelectMarker;
+        public var scaleFactor:Number;
 
         public function DrawingArea(w:int, h:int):void
         {
@@ -27,6 +27,7 @@ package com
 
             this.width = w;
             this.height = h;
+            this.scaleFactor = 200;
 
             this.vertexContainer = new Sprite();
             this.vertexContainer.x = this.width/2;
@@ -36,19 +37,19 @@ package com
             this.elementContainer.x = this.width/2;
             this.elementContainer.y = this.height/2;
 
+            this.graphics.beginFill(0xFFFFFF);
+            this.graphics.drawRect(0,0,600,500);
+            this.graphics.endFill();
+
             var g:Grid = new Grid();
             g.x = this.width/2;
             g.y = this.height/2;
             g.drawGrid();
 
-            this.graphics.beginFill(0xFFFFFF);
-            this.graphics.drawRect(0,0,w,h);
-            this.graphics.endFill();
-
             this.addChild(g);
             this.addChild(this.elementContainer);
             this.addChild(this.vertexContainer);
-            
+
             this.dictVertexMarker = new Dictionary();
             this.dictElementMarker = new Dictionary();
 
@@ -59,26 +60,25 @@ package com
 
         public function addVertex(data:Object):void
         {
-            var vm:VertexMarker = new VertexMarker();            
+            var vm:VertexMarker = new VertexMarker();
+            vm.x = this.scaleFactor*data.x;
+            vm.y = -this.scaleFactor*data.y;
 
-            vm.x = data.x;
-            vm.y = Number(data.y)*-1;
-
-            this.dictVertexMarker[int(data.id)] = vm;
+            this.dictVertexMarker[data.id] = vm;
             this.vertexContainer.addChild(vm);
         }
 
-        public function editVertex(data:Object):void
+        public function updateVertex(data:Object):void
         {
-            var vm:VertexMarker = this.dictVertexMarker[int(data.id)];
-            vm.x = data.x;
-            vm.y = -data.y;
+            var vm:VertexMarker = this.dictVertexMarker[data.id];
+            vm.x = this.scaleFactor*data.x;
+            vm.y = -this.scaleFactor*data.y;
         }
 
         public function removeVertex(data:Object):void
         {
-            this.vertexContainer.removeChild(this.dictVertexMarker[parseInt(data.id)]);
-            delete this.dictVertexMarker[parseInt(data.id)];
+            this.vertexContainer.removeChild(this.dictVertexMarker[data.id]);
+            delete this.dictVertexMarker[data.id];
 
             this.vertexSelectMarker.timeOut(null);
         }
@@ -95,22 +95,22 @@ package com
         public function addElement(data:Object):void
         {
             var em:ElementMarker = new ElementMarker();
-            this.dictElementMarker[int(data.id)] = em;
+            this.dictElementMarker[data.id] = em;
             this.elementContainer.addChild(em);
 
-            em.drawBorder(data.vertexList);
+            em.drawBorder(data, this.scaleFactor);
         }
 
-        public function editElement(data:Object):void
+        public function updateElement(data:Object):void
         {
-            var em:ElementMarker = this.dictElementMarker[int(data.id)];
-            em.drawBorder(data.vertexList);
+            var em:Object = this.dictElementMarker[data.id] ;
+            em.drawBorder(data, this.scaleFactor);
         }
 
         public function removeElement(data:Object):void
         {
-            this.elementContainer.removeChild(this.dictElementMarker[parseInt(data.id)]);
-            delete this.dictElementMarker[parseInt(data.id)];
+            this.elementContainer.removeChild(this.dictElementMarker[data.id]);
+            delete this.dictElementMarker[data.id];
 
             this.elementSelectMarker.timeOut(null);
         }
@@ -118,7 +118,7 @@ package com
         public function selectElement(data:Object):void
         {
             this.elementContainer.addChild(this.elementSelectMarker);
-            this.elementSelectMarker.drawBorder(data.vertexList);
+            this.elementSelectMarker.drawBorder(data, this.scaleFactor);
 
             this.elementSelectMarker.setTimeOut();
         }
@@ -126,7 +126,7 @@ package com
         public function selectBoundary(data:Object):void
         {
             this.elementContainer.addChild(this.elementSelectMarker);
-            this.elementSelectMarker.drawBorder(data.vertexList);
+            this.elementSelectMarker.drawBorder(data, this.scaleFactor);
 
             this.elementSelectMarker.setTimeOut();
         }
@@ -151,8 +151,8 @@ package com
         public function getClickedPoint():Point
         {
             var p:Point = new Point();
-            p.x = this.elementContainer.mouseX;
-            p.y = this.elementContainer.mouseY;
+            p.x = this.elementContainer.mouseX/this.scaleFactor;
+            p.y = this.elementContainer.mouseY/this.scaleFactor;
             return p;
         }
     }

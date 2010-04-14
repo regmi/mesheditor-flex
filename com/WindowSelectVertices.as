@@ -3,6 +3,7 @@ package com
     import mx.core.*;
     import mx.events.*;
     import mx.controls.*;
+    import mx.collections.*;
     import flash.events.*;
     import mx.containers.*;
     import mx.controls.dataGridClasses.*;
@@ -12,16 +13,16 @@ package com
     public class WindowSelectVertices extends WindowSelectVertices_LAYOUT
     {
         [Bindable]
-        protected var xmlAvailableVertices:XML;
+        protected var availableVertices:ArrayCollection;
 
         [Bindable]
-        protected var xmlSelectedVertices:XML; 
+        protected var selectedVertices:ArrayCollection; 
 
         public function WindowSelectVertices():void
         {
             super();
-            this.xmlAvailableVertices = null;
-            this.xmlSelectedVertices = null;
+            this.availableVertices = new ArrayCollection();
+            this.selectedVertices = new ArrayCollection();
 
             this.addEventListener(FlexEvent.CREATION_COMPLETE, this.creationComplete, false, 0, true);
         }
@@ -32,87 +33,83 @@ package com
             this.btnSelectVertex.addEventListener(MouseEvent.CLICK, this.btnSelectVertexClick, false, 0, true);
             this.btnDeselectVertex.addEventListener(MouseEvent.CLICK, this.btnDeselectVertexClick, false, 0, true);
 
-            this.gridAvailableVertices.addEventListener(ListEvent.ITEM_ROLL_OVER, this.gridAvailableVerticesItemClick, false, 0, true);
-            this.gridSelectedVertices.addEventListener(ListEvent.ITEM_ROLL_OVER, this.gridAvailableVerticesItemClick, false, 0, true);
+            this.gridAvailableVertices.addEventListener(ListEvent.ITEM_ROLL_OVER, this.gridAvailableVerticesItemRollOver, false, 0, true);
+            this.gridSelectedVertices.addEventListener(ListEvent.ITEM_ROLL_OVER, this.gridAvailableVerticesItemRollOver, false, 0, true);
 
             this.gridSelectedVertices.addEventListener(ListEvent.ITEM_DOUBLE_CLICK, this.gridSelectedVerticesItemDoubleClick, false, 0, true);
             this.gridAvailableVertices.addEventListener(ListEvent.ITEM_DOUBLE_CLICK, this.gridAvailableVerticesItemDoubleClick, false, 0, true);
 
-            if(this.xmlAvailableVertices != null)
-                this.gridAvailableVertices.dataProvider = this.xmlAvailableVertices.vertex;
+            this.gridAvailableVertices.dataProvider = this.availableVertices;
+            this.gridSelectedVertices.dataProvider = this.selectedVertices;
         }
 
-        public function initAvailableVertices(aV:XML):void
+        public function initAvailableVertices(aV:ArrayCollection):void
         {
-            this.xmlAvailableVertices = aV.copy();
-
-            if(this.xmlSelectedVertices == null)
+            for(var i:int=0;i<aV.length;i++)
             {
-                this.xmlSelectedVertices = new XML("<vertices></vertices>");
+                this.availableVertices.addItem(aV[i]);
             }
         }
 
         public function addAvailableVertex(data:Object):void
         {
-            this.appendVertexToXML(this.xmlAvailableVertices, data);
-            this.gridAvailableVertices.dataProvider = this.xmlAvailableVertices.vertex;
+            this.availableVertices.addItem(data);
         }
 
         public function removeAvailableVertex(data:Object):void
         {
-            this.removeVertexFromXML(this.xmlAvailableVertices, data);
-            this.removeVertexFromXML(this.xmlSelectedVertices, data);
+            for(var i:int=0;i<this.availableVertices.length;i++)
+            {
+                if(this.availableVertices[i].id == data.id)
+                {
+                    this.availableVertices.removeItemAt(i);
+                    break;
+                }
+            }
 
-            this.gridAvailableVertices.dataProvider = this.xmlAvailableVertices.vertex;
-            this.gridSelectedVertices.dataProvider = this.xmlSelectedVertices.vertex;
+            for(var j:int=0;j<this.selectedVertices.length;j++)
+            {
+                if(this.selectedVertices[j].id == data.id)
+                {
+                    this.selectedVertices.removeItemAt(j);
+                    break;
+                }
+            }
         }
 
-        protected function appendVertexToXML(destXml:XML, data:Object):void
-        {
-            var xmlStr:String = "<vertex id='" + data.id + "'><x>" + data.x + "</x><y>" + data.y + "</y></vertex>";
-            destXml.appendChild(new XML(xmlStr));
-        }
-
-        protected function removeVertexFromXML(srcXml:XML, data:Object):void
-        {
-            delete srcXml.vertex.(@id == data.id)[0];
-        }
-
-        protected function gridAvailableVerticesItemClick(evt:ListEvent):void
+        protected function gridAvailableVerticesItemRollOver(evt:ListEvent):void
         {
             var dgir:DataGridItemRenderer = DataGridItemRenderer(evt.itemRenderer);
-            var dgirdxml:XML=XML(dgir.data);//XML
+            var dgirData:Object = Object(dgir.data);
 
-            evt.rowIndex = int(dgirdxml.@id);
+            evt.rowIndex = dgirData.id;
             this.dispatchEvent(evt);
         }
 
         protected function addToSelected():void
         {
-            var sv:Object = new Object();
-            sv.id = this.gridAvailableVertices.selectedItem.@id;
-            sv.x = this.gridAvailableVertices.selectedItem.x;
-            sv.y = this.gridAvailableVertices.selectedItem.y;
-
-            this.removeVertexFromXML(this.xmlAvailableVertices, sv);
-            this.appendVertexToXML(this.xmlSelectedVertices, sv);
-
-            this.gridAvailableVertices.dataProvider = this.xmlAvailableVertices.vertex;
-            this.gridSelectedVertices.dataProvider = this.xmlSelectedVertices.vertex;        
+            for(var i:int=0;i<this.availableVertices.length;i++)
+            {
+                if(this.availableVertices[i].id == this.gridAvailableVertices.selectedItem.id)
+                {
+                    this.selectedVertices.addItem(this.availableVertices[i]);
+                    this.availableVertices.removeItemAt(i);
+                    break;
+                }
+            }
         }
 
         protected function removeFromSelected():void
         {
-            var sv:Object = new Object();
-            sv.id = this.gridSelectedVertices.selectedItem.@id;
-            sv.x = this.gridSelectedVertices.selectedItem.x;
-            sv.y = this.gridSelectedVertices.selectedItem.y;
-
-            this.removeVertexFromXML(this.xmlSelectedVertices, sv);
-            this.appendVertexToXML(this.xmlAvailableVertices, sv);
-
-            this.gridAvailableVertices.dataProvider = this.xmlAvailableVertices.vertex;
-            this.gridSelectedVertices.dataProvider = this.xmlSelectedVertices.vertex;
+            for(var i:int=0;i<this.selectedVertices.length;i++)
+            {
+                if(this.selectedVertices[i].id == this.gridSelectedVertices.selectedItem.id)
+                {
+                    this.availableVertices.addItem(this.selectedVertices[i]);
+                    this.selectedVertices.removeItemAt(i);
+                    break;
+                }
+            }
         }
 
         protected function btnSelectVertexClick(evt:MouseEvent):void {}

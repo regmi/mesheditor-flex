@@ -47,21 +47,17 @@ package com
 
         protected override function btnSelectVertexClick(evt:MouseEvent):void
         {
-            if(this.gridAvailableVertices.selectedItem != null && this.xmlSelectedVertices.*.length() < 2)
+            if(this.gridAvailableVertices.selectedItem != null && this.selectedVertices.length < 2)
             {
                 this.addToSelected();
 
-                if(this.xmlSelectedVertices.*.length() == 2)
+                if(this.selectedVertices.length == 2)
                 {
-                    var vl:Array = [];
-                    for each(var v:XML in this.xmlSelectedVertices.vertex)
-                    {
-                        vl.push({id:v.@id, x:v.x, y:v.y});
-                    }
-                    
                     var e:MeshEditorEvent = new MeshEditorEvent(MeshEditorEvent.BOUNDARY_SELECTED);
                     e.data = new Object();
-                    e.data.vertexList = vl;
+                    e.data.v1 = this.selectedVertices[0];
+                    e.data.v2 = this.selectedVertices[1];
+
                     this.dispatchEvent(e);
                 }
             }
@@ -80,18 +76,15 @@ package com
             var vArray:Array = [this.numberValidator];
             var errors:Array = Validator.validateAll(vArray);
 
-            if(this.xmlSelectedVertices.*.length() == 2 && errors.length == 0)
+            if(this.selectedVertices.length == 2 && errors.length == 0)
             {
-                var meEvt:MeshEditorEvent = new MeshEditorEvent(MeshEditorEvent.BOUNDARY_SUBMIT);
+                var meEvt:MeshEditorEvent = new MeshEditorEvent(MeshEditorEvent.BOUNDARY_SUBMITTED);
                 var dta:Object = new Object();
-                dta.vertexList = [];
-                dta.marker = this.txtMarker.text;
 
-                for each(var v:XML in this.xmlSelectedVertices.vertex)
-                {
-                    dta.vertexList.push({id:v.@id, x:v.x, y:v.y});
-                }
-                meEvt.data = dta;
+                meEvt.data.v1 = this.selectedVertices[0];
+                meEvt.data.v2 = this.selectedVertices[1];
+                meEvt.data.marker = this.txtMarker.text;
+
                 this.dispatchEvent(meEvt);
 
                 var closeEvt:CloseEvent = new CloseEvent(CloseEvent.CLOSE);

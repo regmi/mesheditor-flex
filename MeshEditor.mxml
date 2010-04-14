@@ -8,19 +8,17 @@
         <![CDATA[
             import mx.managers.*;
             import mx.events.*;
-
+            
             private function gridBoundariesCreationComplete(evt:FlexEvent):void
             {
-                this.gridBoundaries.dataProvider = this.boundaryManager.boundaries.boundary;
-                this.gridBoundaries.addEventListener(ListEvent.ITEM_ROLL_OVER, this.gridBoundariesItemClick, false, 0, true);
-                this.gridBoundaries.addEventListener(ListEvent.CHANGE, this.gridBoundariesItemClick, false, 0, true);
+                this.gridBoundaries.dataProvider = this.meshManager.boundaries;
+                this.gridBoundaries.addEventListener(ListEvent.ITEM_ROLL_OVER, this.gridBoundariesItemRollOver, false, 0, true);
             }
 
             private function gridElementsCreationComplete(evt:FlexEvent):void
             {
-                this.gridElements.dataProvider = this.elementManager.elements.element;
-                this.gridElements.addEventListener(ListEvent.ITEM_ROLL_OVER, this.gridElementsItemClick, false, 0, true);
-                this.gridElements.addEventListener(ListEvent.CHANGE, this.gridElementsItemClick, false, 0, true);
+                this.gridElements.dataProvider = this.meshManager.elements;
+                this.gridElements.addEventListener(ListEvent.ITEM_ROLL_OVER, this.gridElementsItemRollOver, false, 0, true);
             }
         ]]>
     </mx:Script>
@@ -34,7 +32,7 @@
             <mx:Canvas label="Vertices" width="100%" height="100%">
                 <mx:DataGrid id="gridVertices" width="100%" height="100%" editable="true" allowMultipleSelection="true">
                     <mx:columns>
-                        <mx:DataGridColumn dataField="@id" headerText="ID" width="30" editable="false"/>
+                        <mx:DataGridColumn dataField="id" editable="false" headerText="ID" width="30"/>
                         <mx:DataGridColumn dataField="x" headerText="X"/>
                         <mx:DataGridColumn dataField="y" headerText="Y"/>
                     </mx:columns>
@@ -44,11 +42,11 @@
             <mx:Canvas label="Elements" width="100%" height="100%">
                 <mx:DataGrid id="gridElements" width="100%" height="100%" allowMultipleSelection="true" creationComplete="gridElementsCreationComplete(event)">
                     <mx:columns>
-                        <mx:DataGridColumn dataField="@id" headerText="ID" width="30"/>
-                        <mx:DataGridColumn dataField="v1" headerText="V1"/>
-                        <mx:DataGridColumn dataField="v2" headerText="V2"/>
-                        <mx:DataGridColumn dataField="v3" headerText="V3"/>
-                        <mx:DataGridColumn dataField="v4" headerText="V4"/>
+                        <mx:DataGridColumn dataField="id" headerText="ID" width="30"/>
+                        <mx:DataGridColumn dataField="v1.id" headerText="V1"/>
+                        <mx:DataGridColumn dataField="v2.id" headerText="V2"/>
+                        <mx:DataGridColumn dataField="v3.id" headerText="V3"/>
+                        <mx:DataGridColumn dataField="v4.id" headerText="V4"/>
                     </mx:columns>
                 </mx:DataGrid>
             </mx:Canvas>
@@ -59,9 +57,9 @@
             <mx:Canvas label="Boundaries" width="100%" height="100%">
                 <mx:DataGrid id="gridBoundaries" width="100%" height="100%" allowMultipleSelection="true" creationComplete="gridBoundariesCreationComplete(event)">
                     <mx:columns>
-                        <mx:DataGridColumn dataField="@id" headerText="ID" width="30"/>
-                        <mx:DataGridColumn dataField="v1" headerText="V1"/>
-                        <mx:DataGridColumn dataField="v2" headerText="V2"/>
+                        <mx:DataGridColumn dataField="id" headerText="ID" width="30"/>
+                        <mx:DataGridColumn dataField="v1.id" headerText="V1"/>
+                        <mx:DataGridColumn dataField="v2.id" headerText="V2"/>
                         <mx:DataGridColumn dataField="marker" headerText="Marker"/>
                     </mx:columns>
                 </mx:DataGrid>
@@ -73,6 +71,8 @@
             <mx:Button id="btnRemoveItem" label="-"/>
         </mx:HBox>
     </mx:VBox>
+
+    <mx:NumericStepper bottom="35" left="10" id="numStepper" minimum="1" maximum="200" stepSize="5" value="200" width="45"/>
 
     <mx:HBox bottom="10" left="10">
         <mx:Button id="btnSaveMesh" label="Save" toolTip="Save Mesh Locally"/>

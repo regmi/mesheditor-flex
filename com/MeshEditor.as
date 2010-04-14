@@ -7,31 +7,25 @@ package com
     import mx.controls.dataGridClasses.*;
 
     import mx.managers.PopUpManager;
-    import mx.messaging.ChannelSet;
-    import mx.messaging.channels.AMFChannel;
-    import mx.rpc.AbstractOperation;
-    import mx.rpc.events.FaultEvent;
-    import mx.rpc.events.ResultEvent;
-    import mx.rpc.remoting.mxml.RemoteObject;
-    import mx.rpc.http.HTTPService;
 
     import flash.net.*;
+    import flash.geom.*;
     import flash.events.*;
     import flash.external.*;
-    import flash.geom.*;
 
     import com.WindowAddVertex;
     import com.WindowAddElement;
     import com.WindowAddCurve;
+    import com.WindowAddBoundary;
 
     import com.MeshEditorEvent;
-    import com.VertexManager;
-    import com.ElementManager;
+    import com.MeshManager;
     import com.DrawingArea;
 
     public class MeshEditor extends Application
     {
         // Components in MXML
+        public var numStepper:NumericStepper;
         public var btnShowWindow:Button;
         public var btnRemoveItem:Button;
         public var gridVertices:DataGrid;
@@ -47,12 +41,9 @@ package com
         private var windowAddBoundary:WindowAddBoundary;
         private var windowAddCurve:WindowAddCurve;
 
-        private var vertexManager:VertexManager;
-        protected var elementManager:ElementManager;
-        protected var boundaryManager:BoundaryManager;
+        public var meshManager:MeshManager;
         private var drawingArea:DrawingArea;
         private var meshfile:FileReference;
-        private var httpService:HTTPService;
 
         public function MeshEditor()
         {
@@ -61,9 +52,6 @@ package com
             this.windowAddBoundary = null;
             this.windowAddCurve = null;
 
-            this.httpService = new HTTPService();
-            this.httpService.addEventListener(ResultEvent.RESULT, this.saveMeshResult);
-
             this.addEventListener(FlexEvent.CREATION_COMPLETE, this.creationComplete);
         }
 
@@ -71,14 +59,13 @@ package com
         {
             this.btnShowWindow.addEventListener(MouseEvent.CLICK, this.btnShowWindowClick);
             this.btnRemoveItem.addEventListener(MouseEvent.CLICK, this.btnRemoveItemClick);
-
-            this.gridVertices.addEventListener(ListEvent.ITEM_ROLL_OVER, this.gridVerticesItemClick);
-            this.gridVertices.addEventListener(ListEvent.CHANGE, this.gridVerticesItemClick);
-            this.gridVertices.addEventListener(DataGridEvent.ITEM_EDIT_END, this.gridVerticesItemEditEnd);
-
             this.btnSaveMesh.addEventListener(MouseEvent.CLICK, this.btnSaveMeshClick);
             this.btnLoadMesh.addEventListener(MouseEvent.CLICK, this.btnLoadMeshClick);
             this.btnSubmitMesh.addEventListener(MouseEvent.CLICK, this.btnSubmitMeshClick);
+
+            this.gridVertices.addEventListener(ListEvent.ITEM_ROLL_OVER, this.gridVerticesItemRollOver);
+            this.gridVertices.addEventListener(ListEvent.CHANGE, this.gridVerticesItemRollOver);
+            this.gridVertices.addEventListener(DataGridEvent.ITEM_EDIT_END, this.gridVerticesItemEditEnd);
 
             this.drawingArea = new DrawingArea(600, 500);
             this.drawingArea.addEventListener(MouseEvent.CLICK, this.drawingAreaClick);
@@ -86,25 +73,40 @@ package com
             this.drawingArea.y = 30;
             this.addChild(this.drawingArea);
 
-            this.vertexManager = new VertexManager();
-            this.vertexManager.addEventListener(MeshEditorEvent.VERTEX_ADDED, this.vertexAddedHandler);
-            this.vertexManager.addEventListener(MeshEditorEvent.VERTEX_REMOVED, this.vertexRemovedHandler);
+            this.numStepper.addEventListener(NumericStepperEvent.CHANGE, this.numStepperChange);
 
-            this.elementManager = new ElementManager();
-            this.elementManager.addEventListener(MeshEditorEvent.ELEMENT_ADDED, this.elementAddedHandler);
-            this.elementManager.addEventListener(MeshEditorEvent.ELEMENT_REMOVED, this.elementRemovedHandler);
+            this.meshManager = new MeshManager();
+            this.meshManager.addEventListener(MeshEditorEvent.VERTEX_ADDED, this.meshManagerVertexAdded);
+            this.meshManager.addEventListener(MeshEditorEvent.VERTEX_REMOVED, this.meshManagerVertexRemoved);
+            this.meshManager.addEventListener(MeshEditorEvent.VERTEX_UPDATED, this.meshManagerVertexUpdated);
+            this.meshManager.addEventListener(MeshEditorEvent.ELEMENT_ADDED, this.meshManagerElementAdded);
+            this.meshManager.addEventListener(MeshEditorEvent.ELEMENT_REMOVED, this.meshManagerElementRemoved);
+            this.meshManager.addEventListener(MeshEditorEvent.ELEMENT_UPDATED, this.meshManagerElementUpdated);
+            this.meshManager.addEventListener(MeshEditorEvent.BOUNDARY_ADDED, this.meshManagerBoundaryAdded);
+            this.meshManager.addEventListener(MeshEditorEvent.BOUNDARY_REMOVED, this.meshManagerBoundaryRemoved);
 
-            this.boundaryManager = new BoundaryManager();
-            this.boundaryManager.addEventListener(MeshEditorEvent.BOUNDARY_ADDED, this.boundaryAddedHandler);
-            this.boundaryManager.addEventListener(MeshEditorEvent.BOUNDARY_REMOVED, this.boundaryRemovedHandler);
-
-            this.gridVertices.dataProvider = this.vertexManager.vertices.vertex;
+            this.gridVertices.dataProvider = this.meshManager.vertices;
 
             try
             {
                 this.parseFlashVars();
             }
             catch(e:Error) {}
+        }
+
+        private function numStepperChange(evt:NumericStepperEvent):void
+        {
+            this.drawingArea.scaleFactor = Number(evt.value);
+
+            for each(var v:Object in this.meshManager.vertices)
+            {
+                this.drawingArea.updateVertex(v);
+            }
+
+            for each(var e:Object in this.meshManager.elements)
+            {
+                this.drawingArea.updateElement(e);
+            }
         }
 
         private function btnShowWindowClick(evt:MouseEvent):void
@@ -115,7 +117,7 @@ package com
                 {
                     this.windowAddVertex = new WindowAddVertex();
                     this.windowAddVertex.addEventListener(CloseEvent.CLOSE, this.windowCloseClick, false, 0, true);
-                    this.windowAddVertex.addEventListener(MeshEditorEvent.VERTEX_SUBMIT, this.submitVertexHandler, false, 0, true);
+                    this.windowAddVertex.addEventListener(MeshEditorEvent.VERTEX_SUBMITTED, this.vertexSubmitted, false, 0, true);
 
                     PopUpManager.addPopUp(this.windowAddVertex, this, false);
                     PopUpManager.centerPopUp(this.windowAddVertex);
@@ -126,10 +128,10 @@ package com
                 if(this.windowAddElement == null)
                 {
                     this.windowAddElement = new WindowAddElement();
-                    this.windowAddElement.initAvailableVertices(this.vertexManager.vertices);
+                    this.windowAddElement.initAvailableVertices(this.meshManager.vertices);
                     this.windowAddElement.addEventListener(CloseEvent.CLOSE, this.windowCloseClick, false, 0, true);
-                    this.windowAddElement.addEventListener(MeshEditorEvent.ELEMENT_SUBMIT, this.submitElementHandler, false, 0, true);
-                    this.windowAddElement.addEventListener(ListEvent.ITEM_ROLL_OVER, this.gridVerticesItemClick, false, 0, true);
+                    this.windowAddElement.addEventListener(MeshEditorEvent.ELEMENT_SUBMITTED, this.elementSubmitted, false, 0, true);
+                    this.windowAddElement.addEventListener(ListEvent.ITEM_ROLL_OVER, this.gridVerticesItemRollOver, false, 0, true);
                     this.windowAddElement.addEventListener(MeshEditorEvent.ELEMENT_SELECTED, this.elementSelected, false, 0, true);
 
                     PopUpManager.addPopUp(this.windowAddElement, this, false);
@@ -152,10 +154,10 @@ package com
                 if(this.windowAddBoundary == null)
                 {
                     this.windowAddBoundary = new WindowAddBoundary();
-                    this.windowAddBoundary.initAvailableVertices(this.vertexManager.vertices);
+                    this.windowAddBoundary.initAvailableVertices(this.meshManager.vertices);
                     this.windowAddBoundary.addEventListener(CloseEvent.CLOSE, this.windowCloseClick, false, 0, true);
-                    this.windowAddBoundary.addEventListener(MeshEditorEvent.BOUNDARY_SUBMIT, this.submitBoundaryHandler, false, 0, true);
-                    this.windowAddBoundary.addEventListener(ListEvent.ITEM_ROLL_OVER, this.gridVerticesItemClick, false, 0, true);
+                    this.windowAddBoundary.addEventListener(MeshEditorEvent.BOUNDARY_SUBMITTED, this.boundarySubmitted, false, 0, true);
+                    this.windowAddBoundary.addEventListener(ListEvent.ITEM_ROLL_OVER, this.gridVerticesItemRollOver, false, 0, true);
                     this.windowAddBoundary.addEventListener(MeshEditorEvent.BOUNDARY_SELECTED, this.boundarySelected, false, 0, true);
 
                     PopUpManager.addPopUp(this.windowAddBoundary, this, false);
@@ -172,14 +174,14 @@ package com
             {
                 for each (itm in this.gridVertices.selectedItems)
                 {
-                    this.vertexManager.removeVertex({id:itm.@id, x:itm.x, y:itm.y});
+                    this.meshManager.removeVertex(itm);
                 }
             }
             else if(this.accordion.selectedIndex == 1)
             {
                 for each (itm in this.gridElements.selectedItems)
                 {
-                    this.elementManager.removeElement({id:itm.@id});
+                    this.meshManager.removeElement(itm);
                 }
             }
             else if(this.accordion.selectedIndex == 2)
@@ -190,7 +192,7 @@ package com
             {
                 for each (itm in this.gridBoundaries.selectedItems)
                 {
-                    this.boundaryManager.removeBoundary({id:itm.@id});
+                    this.meshManager.removeBoundary(itm);
                 }
             }
         }
@@ -219,76 +221,71 @@ package com
             }
         }
 
-        private function submitVertexHandler(evt:MeshEditorEvent):void
+        private function vertexSubmitted(evt:MeshEditorEvent):void
         {
-            this.vertexManager.addVertex(evt.data);
+            this.meshManager.addVertex(evt.data);
         }
 
-        private function submitElementHandler(evt:MeshEditorEvent):void
+        private function elementSubmitted(evt:MeshEditorEvent):void
         {
-            this.elementManager.addElement(evt.data);
+            this.meshManager.addElement(evt.data);
         }
 
-        private function submitBoundaryHandler(evt:MeshEditorEvent):void
+        private function boundarySubmitted(evt:MeshEditorEvent):void
         {
-            this.boundaryManager.addBoundary(evt.data);
+            this.meshManager.addBoundary(evt.data);
         }
 
-        private function vertexAddedHandler(evt:MeshEditorEvent):void
+        private function meshManagerVertexAdded(evt:MeshEditorEvent):void
         {
-            this.gridVertices.dataProvider = evt.target.vertices.vertex;
-
             if(this.windowAddElement != null)
                 this.windowAddElement.addAvailableVertex(evt.data);
 
             this.drawingArea.addVertex(evt.data);
         }
 
-        private function vertexRemovedHandler(evt:MeshEditorEvent):void
+        private function meshManagerVertexRemoved(evt:MeshEditorEvent):void
         {
-            this.gridVertices.dataProvider = evt.target.vertices.vertex;
-
-            if(this.windowAddElement != null)
-                this.windowAddElement.removeAvailableVertex(evt.data);
-
             this.drawingArea.removeVertex(evt.data);
-            this.elementManager.removeElementWithVertex(evt.data);
-            this.boundaryManager.removeBoundaryWithVertex(evt.data);
         }
 
-        private function elementAddedHandler(evt:MeshEditorEvent):void
+        private function meshManagerVertexUpdated(evt:MeshEditorEvent):void
         {
-            if(this.gridElements != null)
-                this.gridElements.dataProvider = this.elementManager.elements.element;
+            this.drawingArea.updateVertex(evt.data);
+        }
 
+        private function meshManagerElementAdded(evt:MeshEditorEvent):void
+        {
             this.drawingArea.addElement(evt.data);
         }
 
-        private function boundaryAddedHandler(evt:MeshEditorEvent):void
+        private function meshManagerBoundaryAdded(evt:MeshEditorEvent):void
         {
-            if(this.gridBoundaries != null)
-                this.gridBoundaries.dataProvider = evt.target.boundaries.boundary;
+
         }
 
-        private function elementRemovedHandler(evt:MeshEditorEvent):void
+        private function meshManagerElementRemoved(evt:MeshEditorEvent):void
         {
-            if(this.gridElements != null)
-                this.gridElements.dataProvider = evt.target.elements.element;
             this.drawingArea.removeElement(evt.data);
         }
 
-        private function boundaryRemovedHandler(evt:MeshEditorEvent):void
+        private function meshManagerElementUpdated(evt:MeshEditorEvent):void
         {
-            this.gridBoundaries.dataProvider = evt.target.boundaries.boundary;
+            this.drawingArea.updateElement(evt.data);
         }
 
-        private function gridVerticesItemClick(evt:ListEvent):void
+        private function meshManagerBoundaryRemoved(evt:MeshEditorEvent):void
         {
-            var dgir:DataGridItemRenderer=DataGridItemRenderer(evt.itemRenderer);
-            var dgirdxml:XML=XML(dgir.data);//XML
+            this.gridBoundaries.dataProvider = this.meshManager.boundaries;
+        }
+
+        private function gridVerticesItemRollOver(evt:ListEvent):void
+        {
+            var dgir:DataGridItemRenderer = DataGridItemRenderer(evt.itemRenderer);
+            var dgirData:Object = Object(dgir.data);
 
             if(evt.target == this.gridVertices)
-                this.drawingArea.selectVertex({id:dgirdxml.@id});
+                this.drawingArea.selectVertex(dgirData);
             else
             {
                 this.drawingArea.selectVertex({id:evt.rowIndex});
@@ -297,76 +294,39 @@ package com
 
         private function gridVerticesItemEditEnd(evt:DataGridEvent):void
         {
-            // Check the reason for the event.
             if (evt.reason == DataGridEventReason.CANCELLED)
             {
-                // Do not update cell.
                 return;
-            }            
+            }
 
-            // Get the new data value from the editor.
             var newData:String = TextInput(evt.currentTarget.itemEditorInstance).text;
 
-            // Determine if the new value is an empty String.
             if(newData == "" || parseFloat(newData) == NaN)
             {
-                // Prevent the user from removing focus, 
-                // and leave the cell editor open.
                 evt.preventDefault();
-                // Write a message to the errorString property. 
-                // This message appears when the user 
-                // mouses over the editor.
                 TextInput(evt.currentTarget.itemEditorInstance).errorString = "Enter a valid Number.";
                 return;
             }
             else
             {
-                var dgir:DataGridItemRenderer=DataGridItemRenderer(evt.itemRenderer);
-                var dgirdxml:XML=XML(dgir.data);
-
-                if(evt.dataField == "x")
-                {
-                    this.drawingArea.editVertex({id:dgirdxml.@id, x:newData, y:dgirdxml.y});
-                }
-                else
-                {
-                    this.drawingArea.editVertex({id:dgirdxml.@id, x:dgirdxml.x, y:newData});
-                }
-                var xm:XMLList = this.elementManager.getElementsWithVertex(int(dgirdxml.@id));
-                
+                this.meshManager.updatedVertex = this.gridVertices.selectedItem;
             }
         }
 
-        protected function gridElementsItemClick(evt:ListEvent):void
+        protected function gridElementsItemRollOver(evt:ListEvent):void
         {
-            var dgir:DataGridItemRenderer=DataGridItemRenderer(evt.itemRenderer);
-            var dgirdxml:XML=XML(dgir.data);//XML
+            var dgir:DataGridItemRenderer = DataGridItemRenderer(evt.itemRenderer);
+            var dgirData:Object = Object(dgir.data);
 
-            var vl:Array = [];
-            var element:XML = this.elementManager.getElement(dgirdxml.@id);
-            for each(var v:XML in element.*)
-            {
-                var vertex:XML = this.vertexManager.getVertex(int(v));
-                vl.push({id:vertex.@id, x:vertex.x, y:vertex.y});
-            }
-            this.drawingArea.selectElement({vertexList:vl});
+            this.drawingArea.selectElement(dgirData);
         }
 
-        protected function gridBoundariesItemClick(evt:ListEvent):void
+        protected function gridBoundariesItemRollOver(evt:ListEvent):void
         {
-            var dgir:DataGridItemRenderer=DataGridItemRenderer(evt.itemRenderer);
-            var dgirdxml:XML=XML(dgir.data);//XML
+            var dgir:DataGridItemRenderer = DataGridItemRenderer(evt.itemRenderer);
+            var dgirData:Object = Object(dgir.data);
 
-            var vl:Array = [];
-            var element:XML = this.boundaryManager.getBoundary(dgirdxml.@id);
-            
-            var vertex:XML = this.vertexManager.getVertex(int(element.v1));
-            vl.push({id:vertex.@id, x:vertex.x, y:vertex.y});
-
-            vertex = this.vertexManager.getVertex(int(element.v2));
-            vl.push({id:vertex.@id, x:vertex.x, y:vertex.y});
-
-            this.drawingArea.selectBoundary({vertexList:vl});
+            this.drawingArea.selectBoundary(dgirData);
         }
 
         private function elementSelected(evt:MeshEditorEvent):void
@@ -382,42 +342,22 @@ package com
         private function btnSaveMeshClick(evt:MouseEvent):void
         {
             this.meshfile = new FileReference();
-            
-            var data:XML = new XML("<mesheditor></mesheditor>");
-            data.appendChild(this.vertexManager.vertices);
-            data.appendChild(this.elementManager.elements);
-            data.appendChild(this.boundaryManager.boundaries);
+
+            var data:XML = new XML( this.meshManager.getMeshXML() );
             this.meshfile.save(data, "meshfile.xml")
         }
 
         private function btnSubmitMeshClick(evt:MouseEvent):void
         {
-            /*
-            var data:XML = new XML("<mesheditor></mesheditor>");
-            data.appendChild(this.vertexManager.vertices);
-            data.appendChild(this.elementManager.elements);
-            data.appendChild(this.boundaryManager.boundaries);
-
-            //Using Remote Object
-            var ro:RemoteObject = this.initService("mesh", "http://134.197.8.118:8000");
-            var operation:AbstractOperation = ro.getOperation('saveMesh');
-            operation.addEventListener(ResultEvent.RESULT, this.saveMeshResult);
-            operation.send(data.toXMLString());
-
-            //Using POST/GET
-            this.httpService.url = "http://localhost:8000/upload/";
-            this.httpService.method = "POST";
-            this.httpService.send({meshXML:data.toXMLString()});
-            */
-
-            var arg:String = this.convertData();
+            var var_name:String = Application.application.parameters['var_name'] == null ? 'domain' : Application.application.parameters['var_name'];
+            var arg:String = var_name + " = Domain(" + this.meshManager.getMeshCSV() + ")";
             trace(arg)
 
             if(ExternalInterface.available)
             {
                 var jsFunction1:String = "$('#cell_input_" + Application.application.parameters['output_cell'] + "').val";
                 ExternalInterface.call(jsFunction1, arg);
-                
+
                 var jsFunction2:String = "evaluate_cell";
                 ExternalInterface.call(jsFunction2, Application.application.parameters['output_cell']);
             }
@@ -435,45 +375,11 @@ package com
             this.meshfile.browse([new FileFilter("meshfile", "*.xml")]);
         }
 
-        private function initService(serviceName:String, url:String):RemoteObject
-        {
-            var channel:AMFChannel = new AMFChannel("pyamf-channel", url);
-            var channels:ChannelSet = new ChannelSet();
-            channels.addChannel(channel);
-
-            var remoteObject:RemoteObject = new RemoteObject(serviceName);  
-            remoteObject.showBusyCursor = true;
-            remoteObject.channelSet = channels;
-            remoteObject.addEventListener(FaultEvent.FAULT, this.remoteServiceFault, false, 0, true);
-            remoteObject.addEventListener(SecurityErrorEvent.SECURITY_ERROR, this.remoteServiceSecurityError, false, 0, true);
-
-            return remoteObject;
-        }
-
-        private function saveMeshResult(evt:ResultEvent):void
-        {
-            //Using POST/GET
-            for(var key:* in evt.result)
-            {
-                trace(evt.result[key]);
-            }
-
-            /*
-            // Using pyAMF
-            if(evt.result)
-            {
-                Alert.show("Mesh saved in server !", "Saved");
-            }
-            */
-        }
-
         private function meshfileLoadComplete(evt:Event):void
         {
             var xml:XML = new XML(this.meshfile.data);
             this.drawingArea.clear();
-            this.vertexManager.loadVertices(xml.vertices);
-            this.elementManager.loadElements(xml.elements, xml.vertices);
-            this.boundaryManager.loadBoundaries(xml.boundaries, xml.vertices);
+            this.meshManager.loadXmlData(xml);
         }
 
         private function meshfileSelect(evt:Event):void
@@ -481,63 +387,17 @@ package com
             this.meshfile.load();
         }
 
-        private function remoteServiceFault(event:FaultEvent):void
+        private function drawingAreaClick(evt:MouseEvent):void
         {
-            var errorMsg:String = "Service error:\n" + event.fault.faultCode;
-            Alert.show(event.fault.faultDetail, errorMsg);
-        }
-
-        private function remoteServiceSecurityError(event:SecurityErrorEvent):void
-        {
-            var errorMsg:String = "Service security error";
-            Alert.show(event.text, errorMsg);
-        }
-
-        private function convertData():String
-        {
-            var var_name:String = Application.application.parameters['var_name'] == null ? 'domain' : Application.application.parameters['var_name'];
-            var str:String = var_name + " = Domain([";
-
-            for each (var v:XML in this.vertexManager.vertices.vertex)
+            if(evt.ctrlKey)
             {
-                str += "[" + v.x + "," + v.y + "],";
+                var p:Point = this.drawingArea.getClickedPoint();
+                this.meshManager.addVertex({x:p.x, y:-p.y});
             }
-            str += "],[";
-
-            for each (var el:XML in this.elementManager.elements.element)
-            {
-                var i1:int = this.vertexManager.getIndex(el.v1);
-                var i2:int = this.vertexManager.getIndex(el.v2);
-                var i3:int = this.vertexManager.getIndex(el.v3);
-
-                var i4:int = this.vertexManager.getIndex(el.v4);
-                if(i4 == -1)
-                {
-                    str += "[" + i1 + "," + i2 + "," + i3 + "," + i1 + "],";
-                }
-                else
-                {
-                    str += "[" + i1 + "," + i2 + "," + i3 + "," + i4 + "," + i1 + "],";
-                }
-            }
-            str += "],[";
-
-            for each (var b:XML in this.boundaryManager.boundaries.boundary)
-            {
-                i1 = this.vertexManager.getIndex(b.v1);
-                i2 = this.vertexManager.getIndex(b.v2);
-
-                str += "[" + i1 + "," + i2 + "," + b.marker +"],";
-            }
-            str += "],[])";
-
-            return str;
         }
 
         private function parseFlashVars():void
         {
-            //ExternalInterface.call("alert", "hi");
-
             //Parse and add vertices
             var vertex_list:String = Application.application.parameters['nodes'];
             if(vertex_list != "")
@@ -548,7 +408,7 @@ package com
                     var xy:Array = v.split(" ");
 
                     if(xy[0] != null && xy[1] != null)
-                        this.vertexManager.addVertex({x:xy[0], y:xy[1]})
+                        this.meshManager.addVertex({x:xy[0], y:xy[1]})
                 }
             }
 
@@ -564,31 +424,23 @@ package com
                 {
                     var vertex:Array = e.split(" ");
                     obj = new Object();
-                    obj.vertexList = [];
 
                     if(vertex.length == 4 && vertex[0] != null && vertex[1] != null && vertex[2] != null && vertex[3] != null)
                     {
-                        v1 = this.vertexManager.getVertex(int(vertex[0])+1);
-                        obj.vertexList.push({id:v1.@id,x:v1.x,y:v1.y});
-                        v2 = this.vertexManager.getVertex(int(vertex[1])+1);
-                        obj.vertexList.push({id:v2.@id,x:v2.x,y:v2.y});
-                        v3 = this.vertexManager.getVertex(int(vertex[2])+1);
-                        obj.vertexList.push({id:v3.@id,x:v3.x,y:v3.y});
+                        obj.v1 = this.meshManager.getVertex(int(vertex[0]));
+                        obj.v2 = this.meshManager.getVertex(int(vertex[1]));
+                        obj.v3 = this.meshManager.getVertex(int(vertex[2]));
 
-                        this.elementManager.addElement(obj);
+                        this.meshManager.addElement(obj);
                     }
                     else if(vertex.length == 5 && vertex[0] != null && vertex[1] != null && vertex[2] != null && vertex[3] != null && vertex[4] != null)
                     {
-                        v1 = this.vertexManager.getVertex(int(vertex[0])+1);
-                        obj.vertexList.push({id:v1.@id,x:v1.x,y:v1.y});
-                        v2 = this.vertexManager.getVertex(int(vertex[1])+1);
-                        obj.vertexList.push({id:v2.@id,x:v2.x,y:v2.y});
-                        v3 = this.vertexManager.getVertex(int(vertex[2])+1);
-                        obj.vertexList.push({id:v3.@id,x:v3.x,y:v3.y});
-                        v4 = this.vertexManager.getVertex(int(vertex[3])+1);
-                        obj.vertexList.push({id:v4.@id,x:v4.x,y:v4.y});
+                        obj.v1 = this.meshManager.getVertex(int(vertex[0]));
+                        obj.v2 = this.meshManager.getVertex(int(vertex[1]));
+                        obj.v3 = this.meshManager.getVertex(int(vertex[2]));
+                        obj.v4 = this.meshManager.getVertex(int(vertex[3]));
 
-                        this.elementManager.addElement(obj);
+                        this.meshManager.addElement(obj);
                     }
                 }
             }
@@ -602,28 +454,16 @@ package com
                 {
                     var vertex_marker:Array = b.split(" ");
                     obj = new Object()
-                    obj.vertexList = [];
 
                     if(vertex_marker[0] != null && vertex_marker[1] != null && vertex_marker[2] != null)
                     {
-                        v1 = this.vertexManager.getVertex(int(vertex_marker[0])+1);
-                        obj.vertexList.push({id:v1.@id,x:v1.x,y:v1.y});
-                        v2 = this.vertexManager.getVertex(int(vertex_marker[1])+1);
-                        obj.vertexList.push({id:v2.@id,x:v2.x,y:v2.y});
+                        obj.v1 = this.meshManager.getVertex(int(vertex[0]));
+                        obj.v2 = this.meshManager.getVertex(int(vertex[1]));
                         obj.marker = vertex_marker[2];
 
-                        this.boundaryManager.addBoundary(obj)
+                        this.meshManager.addBoundary(obj)
                     }
                 }
-            }
-        }
-
-        private function drawingAreaClick(evt:MouseEvent):void
-        {
-            if(evt.ctrlKey)
-            {
-                var p:Point = this.drawingArea.getClickedPoint();
-                this.vertexManager.addVertex({x:p.x, y:-p.y});
             }
         }
     }

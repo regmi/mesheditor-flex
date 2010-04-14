@@ -29,21 +29,34 @@ package com
         }
 
         //It should be called only after ElementMarker is placed in the display list
-        public function drawBorder(vertexList:Array):void
+        public function drawBorder(data:Object, scaleFactor:Number):void
         {
-            this.x = vertexList[0].x;
-            this.y = -vertexList[0].y;
+            this.x = scaleFactor*data.v1.x;
+            this.y = -scaleFactor*data.v1.y;
 
             this.graphics.clear();
             this.graphics.lineStyle(2, 0xAA0000);
-
             this.graphics.beginFill(0x3399CC, 0.5);
-            for(var i:int=1;i<vertexList.length;i++)
+
+            var gp:Point = this.parent.localToGlobal(new Point(scaleFactor*data.v2.x, -scaleFactor*data.v2.y));
+            var lp:Point = this.globalToLocal(gp);
+            this.graphics.lineTo(lp.x, lp.y);
+
+            try
             {
-                var gp:Point = this.parent.localToGlobal(new Point(vertexList[i].x, -vertexList[i].y));
-                var lp:Point = this.globalToLocal(gp);
+                gp = this.parent.localToGlobal(new Point(scaleFactor*data.v3.x, -scaleFactor*data.v3.y));
+                lp = this.globalToLocal(gp);
                 this.graphics.lineTo(lp.x, lp.y);
             }
+            catch(e:Error) { }
+
+            try
+            {
+                gp = this.parent.localToGlobal(new Point(scaleFactor*data.v4.x, -scaleFactor*data.v4.y));
+                lp = this.globalToLocal(gp);
+                this.graphics.lineTo(lp.x, lp.y);
+            }
+            catch(e:Error) { }
 
             this.graphics.lineTo(0,0);
             this.graphics.endFill();

@@ -27,7 +27,7 @@ package com
             var errors:Array = Validator.validateAll(this.numValidator);
             if (errors.length == 0)
             {
-                var meEvt:MeshEditorEvent = new MeshEditorEvent(MeshEditorEvent.VERTEX_SUBMIT);
+                var meEvt:MeshEditorEvent = new MeshEditorEvent(MeshEditorEvent.VERTEX_SUBMITTED);
                 meEvt.data = new Object()
                 meEvt.data.x = this.txtX.text;
                 meEvt.data.y = this.txtY.text;
