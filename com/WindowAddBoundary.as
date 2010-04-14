@@ -79,12 +79,11 @@ package com
             if(this.selectedVertices.length == 2 && errors.length == 0)
             {
                 var meEvt:MeshEditorEvent = new MeshEditorEvent(MeshEditorEvent.BOUNDARY_SUBMITTED);
-                var dta:Object = new Object();
+                meEvt.data = new Object();
 
                 meEvt.data.v1 = this.selectedVertices[0];
                 meEvt.data.v2 = this.selectedVertices[1];
                 meEvt.data.marker = this.txtMarker.text;
-
                 this.dispatchEvent(meEvt);
 
                 var closeEvt:CloseEvent = new CloseEvent(CloseEvent.CLOSE);

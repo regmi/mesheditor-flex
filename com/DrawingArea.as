@@ -27,7 +27,7 @@ package com
 
             this.width = w;
             this.height = h;
-            this.scaleFactor = 200;
+            this.scaleFactor = 240;
 
             this.vertexContainer = new Sprite();
             this.vertexContainer.x = this.width/2;

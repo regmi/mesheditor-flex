@@ -72,7 +72,7 @@
         </mx:HBox>
     </mx:VBox>
 
-    <mx:NumericStepper bottom="35" left="10" id="numStepper" minimum="1" maximum="200" stepSize="5" value="200" width="45"/>
+    <mx:NumericStepper bottom="35" left="10" id="numStepper" minimum="1" maximum="240" stepSize="5" value="240" width="45"/>
 
     <mx:HBox bottom="10" left="10">
         <mx:Button id="btnSaveMesh" label="Save" toolTip="Save Mesh Locally"/>

@@ -261,7 +261,7 @@ package com
 
         private function meshManagerBoundaryAdded(evt:MeshEditorEvent):void
         {
-
+            this.drawingArea.selectBoundary(evt.data);
         }
 
         private function meshManagerElementRemoved(evt:MeshEditorEvent):void
@@ -276,7 +276,7 @@ package com
 
         private function meshManagerBoundaryRemoved(evt:MeshEditorEvent):void
         {
-            this.gridBoundaries.dataProvider = this.meshManager.boundaries;
+
         }
 
         private function gridVerticesItemRollOver(evt:ListEvent):void
@@ -457,10 +457,11 @@ package com
 
                     if(vertex_marker[0] != null && vertex_marker[1] != null && vertex_marker[2] != null)
                     {
-                        obj.v1 = this.meshManager.getVertex(int(vertex[0]));
-                        obj.v2 = this.meshManager.getVertex(int(vertex[1]));
+                        obj.v1 = this.meshManager.getVertex(int(vertex_marker[0]));
+                        obj.v2 = this.meshManager.getVertex(int(vertex_marker[1]));
                         obj.marker = vertex_marker[2];
 
+                        //ExternalInterface.call("alert", obj.v1.id + " " + obj.v1.id + " " + obj.marker);
                         this.meshManager.addBoundary(obj)
                     }
                 }
