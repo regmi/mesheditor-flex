@@ -350,7 +350,7 @@ package com
         private function btnSubmitMeshClick(evt:MouseEvent):void
         {
             var var_name:String = Application.application.parameters['var_name'] == null ? 'domain' : Application.application.parameters['var_name'];
-            var arg:String = var_name + " = Domain(" + this.meshManager.getMeshCSV() + ")";
+            var arg:String = var_name + " = Mesh(" + this.meshManager.getMeshCSV() + ")";
             trace(arg)
 
             if(ExternalInterface.available)
