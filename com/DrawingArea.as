@@ -30,25 +30,31 @@ package com
             this.scaleFactor = 240;
 
             this.vertexContainer = new Sprite();
-            this.vertexContainer.x = this.width/2;
-            this.vertexContainer.y = this.height/2;
-
             this.elementContainer = new Sprite();
-            this.elementContainer.x = this.width/2;
-            this.elementContainer.y = this.height/2;
 
             this.graphics.beginFill(0xFFFFFF);
-            this.graphics.drawRect(0,0,600,500);
+            this.graphics.drawRect(0,0,w,h);
             this.graphics.endFill();
 
             var g:Grid = new Grid();
-            g.x = this.width/2;
-            g.y = this.height/2;
             g.drawGrid();
 
-            this.addChild(g);
-            this.addChild(this.elementContainer);
-            this.addChild(this.vertexContainer);
+            var mask:Sprite = new Sprite();
+            mask.graphics.beginFill(0xFFFFFF);
+            mask.graphics.drawRect(0,0,w,h);
+            mask.graphics.endFill();
+
+            var c:Sprite = new Sprite();
+            c.addChild(g);
+            c.addChild(this.elementContainer);
+            c.addChild(this.vertexContainer);
+            c.x = this.width/2;
+            c.y = this.height/2;
+
+            this.addChild(c);
+            this.addChild(mask);
+
+            c.mask = mask;
 
             this.dictVertexMarker = new Dictionary();
             this.dictElementMarker = new Dictionary();
