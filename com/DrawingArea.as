@@ -19,6 +19,7 @@ package com
         private var vertexSelectMarker:VertexSelectMarker;
         private var elementSelectMarker:ElementSelectMarker;
         private var boundarySelectMarker:BoundarySelectMarker;
+        private var canvas:Sprite
         public var scaleFactor:Number;
 
         public function DrawingArea(w:int, h:int):void
@@ -44,17 +45,17 @@ package com
             mask.graphics.drawRect(0,0,w,h);
             mask.graphics.endFill();
 
-            var c:Sprite = new Sprite();
-            c.addChild(g);
-            c.addChild(this.elementContainer);
-            c.addChild(this.vertexContainer);
-            c.x = this.width/2;
-            c.y = this.height/2;
+            this.canvas = new Sprite();
+            this.canvas.addChild(g);
+            this.canvas.addChild(this.elementContainer);
+            this.canvas.addChild(this.vertexContainer);
+            this.canvas.x = this.width/2;
+            this.canvas.y = this.height/2;
 
-            this.addChild(c);
+            this.addChild(this.canvas);
             this.addChild(mask);
 
-            c.mask = mask;
+            this.canvas.mask = mask;
 
             this.dictVertexMarker = new Dictionary();
             this.dictElementMarker = new Dictionary();
@@ -160,6 +161,16 @@ package com
             p.x = this.elementContainer.mouseX/this.scaleFactor;
             p.y = this.elementContainer.mouseY/this.scaleFactor;
             return p;
+        }
+
+        public function stopDragCanvas():void
+        {
+            this.canvas.stopDrag();
+        }
+
+        public function startDragCanvas():void
+        {
+            this.canvas.startDrag();
         }
     }
 }

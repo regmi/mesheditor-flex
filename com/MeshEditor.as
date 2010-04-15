@@ -68,7 +68,8 @@ package com
             this.gridVertices.addEventListener(DataGridEvent.ITEM_EDIT_END, this.gridVerticesItemEditEnd);
 
             this.drawingArea = new DrawingArea(600, 500);
-            this.drawingArea.addEventListener(MouseEvent.CLICK, this.drawingAreaClick);
+            this.drawingArea.addEventListener(MouseEvent.MOUSE_DOWN, this.drawingAreaMouseDown);
+            this.drawingArea.addEventListener(MouseEvent.MOUSE_UP, this.drawingAreaMouseUp);
             this.drawingArea.x = 10;
             this.drawingArea.y = 30;
             this.addChild(this.drawingArea);
@@ -383,13 +384,23 @@ package com
             this.meshfile.load();
         }
 
-        private function drawingAreaClick(evt:MouseEvent):void
+        private function drawingAreaMouseDown(evt:MouseEvent):void
+        {
+            if(evt.shiftKey)
+            {
+                this.drawingArea.startDragCanvas();
+            }
+        }
+
+        private function drawingAreaMouseUp(evt:MouseEvent):void
         {
             if(evt.ctrlKey)
             {
                 var p:Point = this.drawingArea.getClickedPoint();
                 this.meshManager.addVertex({x:p.x, y:-p.y});
             }
+
+            this.drawingArea.stopDragCanvas();
         }
 
         private function parseFlashVars():void
