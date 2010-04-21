@@ -36,6 +36,7 @@ package com
         public var btnLoadMesh:Button;
         public var btnSubmitMesh:Button;
         public var chkBoxShowElement:CheckBox;
+        public var chkBoxShowBoundary:CheckBox;
 
         private var windowAddVertex:WindowAddVertex;
         private var windowAddElement:WindowAddElement;
@@ -59,6 +60,7 @@ package com
         private function creationComplete(evt:FlexEvent):void
         {
             this.chkBoxShowElement.addEventListener(Event.CHANGE, this.chkBoxShowElementChange);
+            this.chkBoxShowBoundary.addEventListener(Event.CHANGE, this.chkBoxShowBoundaryChange);
             this.btnShowWindow.addEventListener(MouseEvent.CLICK, this.btnShowWindowClick);
             this.btnRemoveItem.addEventListener(MouseEvent.CLICK, this.btnRemoveItemClick);
             this.btnSaveMesh.addEventListener(MouseEvent.CLICK, this.btnSaveMeshClick);
@@ -70,12 +72,13 @@ package com
             this.gridVertices.addEventListener(DataGridEvent.ITEM_EDIT_END, this.gridVerticesItemEditEnd);
 
             this.drawingArea = new DrawingArea(600, 500);
-            this.drawingArea.addEventListener(MeshEditorEvent.VERTEX_UPDATED, this.drawingAreaVertexUpdated);
-            this.drawingArea.addEventListener(MeshEditorEvent.BOUNDARY_ADDED, this.drawingAreaBoundaryAdded);
-            this.drawingArea.addEventListener(MeshEditorEvent.ELEMENT_ADDED, this.drawingAreaElementAdded);
             this.drawingArea.addEventListener(MeshEditorEvent.VERTEX_ADDED, this.drawingAreaVertexAdded);
             this.drawingArea.addEventListener(MeshEditorEvent.VERTEX_REMOVED, this.drawingAreaVertexRemoved);
+            this.drawingArea.addEventListener(MeshEditorEvent.VERTEX_UPDATED, this.drawingAreaVertexUpdated);
+            this.drawingArea.addEventListener(MeshEditorEvent.ELEMENT_ADDED, this.drawingAreaElementAdded);
             this.drawingArea.addEventListener(MeshEditorEvent.ELEMENT_REMOVED, this.drawingAreaElementRemoved);
+            this.drawingArea.addEventListener(MeshEditorEvent.BOUNDARY_ADDED, this.drawingAreaBoundaryAdded);
+            this.drawingArea.addEventListener(MeshEditorEvent.BOUNDARY_REMOVED, this.drawingAreaBoundaryRemoved);
             this.drawingArea.x = 10;
             this.drawingArea.y = 30;
             this.addChild(this.drawingArea);
@@ -107,6 +110,7 @@ package com
         private function numStepperChange(evt:NumericStepperEvent):void
         {
             this.drawingArea.scaleFactor = Number(evt.value);
+            this.drawingArea.updateGrid();
 
             for each(var v:Object in this.meshManager.vertices)
             {
@@ -435,6 +439,11 @@ package com
             this.drawingArea.showHideElement();
         }
 
+        private function chkBoxShowBoundaryChange(evt:Event):void
+        {
+            this.drawingArea.showHideBoundary();
+        }
+
         private function drawingAreaVertexUpdated(evt:MeshEditorEvent):void
         {
             this.gridVertices.dataProvider  = this.meshManager.vertices;
@@ -455,6 +464,11 @@ package com
         private function drawingAreaBoundaryAdded(evt:MeshEditorEvent):void
         {
             this.meshManager.addBoundary(evt.data);
+        }
+
+        private function drawingAreaBoundaryRemoved(evt:MeshEditorEvent):void
+        {
+            this.meshManager.removeBoundary(evt.data);
         }
 
         private function drawingAreaElementAdded(evt:MeshEditorEvent):void

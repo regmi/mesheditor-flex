@@ -21,14 +21,21 @@ package com
 
         private var vertexSelectMarker:VertexSelectMarker;
         private var elementSelectMarker:ElementSelectMarker;
+        private var boundarySelectMarker:BoundarySelectMarker;
+
+        private var canvas:Sprite;
+        private var grid:Grid;
+        private var selectionLine:Sprite;
         
-        private var canvas:Sprite
         public var scaleFactor:Number;
-        private var timerUpdateVertex:Timer;
         private var vertexDragged:VertexMarker;
+
+        private var timerUpdateVertex:Timer;
+        private var timerUpdateSelectionLine:Timer;
 
         private const ADD_ELEMENT:int = 1;
         private const ADD_BOUNDARY:int = 3;
+
         private var readyToAdd:int;
         private var selectedVertexQueue:Array;
 
@@ -48,18 +55,20 @@ package com
             this.graphics.drawRect(0,0,w,h);
             this.graphics.endFill();
 
-            var g:Grid = new Grid();
-            g.drawGrid();
+            this.grid = new Grid();
+            this.grid.drawGrid(this.scaleFactor);
 
             var mask:Sprite = new Sprite();
             mask.graphics.beginFill(0xFFFFFF);
             mask.graphics.drawRect(0,0,w,h);
             mask.graphics.endFill();
 
+            this.selectionLine = new Sprite();
+
             this.canvas = new Sprite();
-            this.canvas.addChild(g);
-            this.canvas.addChild(this.boundaryContainer);
+            this.canvas.addChild(this.grid);
             this.canvas.addChild(this.elementContainer);
+            this.canvas.addChild(this.boundaryContainer);
             this.canvas.addChild(this.vertexContainer);
             this.canvas.x = this.width/2;
             this.canvas.y = this.height/2;
@@ -79,9 +88,13 @@ package com
 
             this.vertexSelectMarker = new VertexSelectMarker();
             this.elementSelectMarker = new ElementSelectMarker();
+            this.boundarySelectMarker = new BoundarySelectMarker();
 
             this.timerUpdateVertex = new Timer(100);
             this.timerUpdateVertex.addEventListener(TimerEvent.TIMER, this.timerUpdateVertexTimer);
+
+            this.timerUpdateSelectionLine = new Timer(250);
+            this.timerUpdateSelectionLine.addEventListener(TimerEvent.TIMER, this.timerUpdateSelectionLineTimer);
 
             this.vertexDragged = null;
             this.readyToAdd = 0;
@@ -134,7 +147,7 @@ package com
 
         public function updateElement(data:Object):void
         {
-            var em:Object = this.dictElementMarker[data.id] ;
+            var em:ElementMarker = this.dictElementMarker[data.id] ;
             em.drawBorder(data, this.scaleFactor);
         }
 
@@ -156,17 +169,17 @@ package com
 
         public function addBoundary(data:Object):void
         {
-            var em:ElementMarker = new ElementMarker(data);
-            this.dictBoundaryMarker[data.id] = em;
-            this.boundaryContainer.addChild(em);
+            var bm:BoundaryMarker = new BoundaryMarker(data);
+            this.dictBoundaryMarker[data.id] = bm;
+            this.boundaryContainer.addChild(bm);
 
-            em.drawBorder(data, this.scaleFactor);
+            bm.drawBorder(data, this.scaleFactor);
         }
 
         public function updateBoundary(data:Object):void
         {
-            var em:Object = this.dictBoundaryMarker[data.id] ;
-            em.drawBorder(data, this.scaleFactor);
+            var bm:BoundaryMarker = this.dictBoundaryMarker[data.id] ;
+            bm.drawBorder(data, this.scaleFactor);
         }
 
         public function removeBoundary(data:Object):void
@@ -179,13 +192,10 @@ package com
 
         public function selectBoundary(data:Object):void
         {
-            if(this.elementContainer.visible == true)
-                this.elementContainer.addChild(this.elementSelectMarker);
-            else
-                this.boundaryContainer.addChild(this.elementSelectMarker);
+            this.boundaryContainer.addChild(this.boundarySelectMarker);
 
-            this.elementSelectMarker.drawBorder(data, this.scaleFactor);
-            this.elementSelectMarker.setTimeOut();
+            this.boundarySelectMarker.drawBorder(data, this.scaleFactor);
+            this.boundarySelectMarker.setTimeOut();
         }
 
         public function clear():void
@@ -221,6 +231,20 @@ package com
             e.data = this.vertexDragged.dataProvider;
 
             this.dispatchEvent(e);
+        }
+
+        private function timerUpdateSelectionLineTimer(evt:TimerEvent):void
+        {
+            this.selectionLine.graphics.clear();
+            this.selectionLine.graphics.lineStyle(1, 0xFF00FF);
+            this.selectionLine.graphics.moveTo(this.selectedVertexQueue[0].dataProvider.x*this.scaleFactor, -this.selectedVertexQueue[0].dataProvider.y*this.scaleFactor);
+
+            for(var i:int=1;i<this.selectedVertexQueue.length;i++)
+            {
+                this.selectionLine.graphics.lineTo(this.selectedVertexQueue[i].dataProvider.x*this.scaleFactor, -this.selectedVertexQueue[i].dataProvider.y*this.scaleFactor);
+            }
+
+            this.selectionLine.graphics.lineTo(this.selectionLine.mouseX-10, (this.selectionLine.mouseY-10));
         }
 
         private function canvasMouseUp(evt:MouseEvent):void
@@ -259,7 +283,12 @@ package com
                 e.data = (evt.target as ElementMarker).dataProvider;
                 this.dispatchEvent(e);
             }
-            trace("-DC-", evt.target);
+            else if(evt.target is BoundaryMarker)
+            {
+                e = new MeshEditorEvent(MeshEditorEvent.BOUNDARY_REMOVED);
+                e.data = (evt.target as BoundaryMarker).dataProvider;
+                this.dispatchEvent(e);
+            }
         }
 
         private function canvasMouseClick(evt:MouseEvent):void
@@ -272,48 +301,63 @@ package com
                 this.addToSelectedVertexQueue(evt.target as VertexMarker);
                 (evt.target as VertexMarker).toggleSelect(true);
 
-                if(this.readyToAdd == this.ADD_BOUNDARY)
+                if(this.selectedVertexQueue.length == 1)
                 {
-                    if(this.selectedVertexQueue.length >= 2)
+                    if(this.readyToAdd == this.ADD_ELEMENT)
                     {
-                        v1 = selectedVertexQueue.pop();
-                        v1.toggleSelect(false);
-
-                        v2 = selectedVertexQueue.pop();
-                        v2.toggleSelect(false);
-
-                        e = new MeshEditorEvent(MeshEditorEvent.BOUNDARY_ADDED);
-                        e.data = {v1:v1.dataProvider, v2:v2.dataProvider, marker:1};
-                        this.dispatchEvent(e);
+                        this.elementContainer.addChild(this.selectionLine);
                     }
+                    else if(this.readyToAdd == this.ADD_BOUNDARY)
+                    {
+                        this.boundaryContainer.addChild(this.selectionLine);
+                    }
+
+                    this.timerUpdateSelectionLine.start();
                 }
-                else if(this.readyToAdd == this.ADD_ELEMENT)
+
+                if(this.readyToAdd == this.ADD_BOUNDARY && this.selectedVertexQueue.length >= 2)
                 {
-                    if(this.selectedVertexQueue.length == 4 )
-                    {
-                        v1 = selectedVertexQueue.pop();
-                        v1.toggleSelect(false);
+                    this.timerUpdateSelectionLine.stop();
+                    this.selectionLine.graphics.clear();
+                    this.boundaryContainer.removeChild(this.selectionLine);
 
-                        v2 = selectedVertexQueue.pop();
-                        v2.toggleSelect(false);
+                    v1 = selectedVertexQueue.pop();
+                    v1.toggleSelect(false);
 
-                        v3 = selectedVertexQueue.pop();
-                        v3.toggleSelect(false);
+                    v2 = selectedVertexQueue.pop();
+                    v2.toggleSelect(false);
 
-                        v4 = selectedVertexQueue.pop();
-                        v4.toggleSelect(false);
-
-                        e = new MeshEditorEvent(MeshEditorEvent.ELEMENT_ADDED);
-
-                        if(v1 == v4)
-                            e.data = {v1:v1.dataProvider, v2:v2.dataProvider, v3:v3.dataProvider};
-                        else
-                            e.data = {v1:v1.dataProvider, v2:v2.dataProvider, v3:v3.dataProvider, v4:v4.dataProvider};
-                        
-                        this.dispatchEvent(e);
-                    }
+                    e = new MeshEditorEvent(MeshEditorEvent.BOUNDARY_ADDED);
+                    e.data = {v1:v1.dataProvider, v2:v2.dataProvider, marker:1};
+                    this.dispatchEvent(e);
                 }
-                trace("-C-")
+                else if(this.readyToAdd == this.ADD_ELEMENT && this.selectedVertexQueue.length == 4)
+                {
+                    this.timerUpdateSelectionLine.stop();
+                    this.selectionLine.graphics.clear();
+                    this.elementContainer.removeChild(this.selectionLine);
+
+                    v1 = selectedVertexQueue.pop();
+                    v1.toggleSelect(false);
+
+                    v2 = selectedVertexQueue.pop();
+                    v2.toggleSelect(false);
+
+                    v3 = selectedVertexQueue.pop();
+                    v3.toggleSelect(false);
+
+                    v4 = selectedVertexQueue.pop();
+                    v4.toggleSelect(false);
+
+                    e = new MeshEditorEvent(MeshEditorEvent.ELEMENT_ADDED);
+
+                    if(v1 == v4)
+                        e.data = {v1:v1.dataProvider, v2:v2.dataProvider, v3:v3.dataProvider};
+                    else
+                        e.data = {v1:v1.dataProvider, v2:v2.dataProvider, v3:v3.dataProvider, v4:v4.dataProvider};
+                    
+                    this.dispatchEvent(e);
+                }
             }
         }
 
@@ -344,7 +388,19 @@ package com
             }
 
             this.selectedVertexQueue.splice(0,this.selectedVertexQueue.length);
-            trace("selectedVertexQueue cleared");
+
+            this.timerUpdateSelectionLine.stop();
+            this.selectionLine.graphics.clear();
+
+            try
+            {
+                this.elementContainer.removeChild(this.selectionLine);
+            }catch(e:Error){}
+
+            try
+            {
+                this.boundaryContainer.removeChild(this.selectionLine);
+            }catch(e:Error){}
         }
 
         private function drawingAreaMouseDown(evt:MouseEvent):void
@@ -394,9 +450,19 @@ package com
             }
         }
 
+        public function updateGrid():void
+        {
+            this.grid.drawGrid(this.scaleFactor);
+        }
+
         public function showHideElement():void
         {
             this.elementContainer.visible = !this.elementContainer.visible;
+        }
+
+        public function showHideBoundary():void
+        {
+            this.boundaryContainer.visible = !this.boundaryContainer.visible;
         }
     }
 }

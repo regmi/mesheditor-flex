@@ -76,6 +76,7 @@
     </mx:VBox>
 
     <mx:NumericStepper bottom="35" left="10" id="numStepper" minimum="1" maximum="240" stepSize="5" value="240" width="45"/>
+    <mx:CheckBox id="chkBoxShowBoundary" bottom="35" left="350" label="Show Boundaries" selected="true"/>
     <mx:CheckBox id="chkBoxShowElement" bottom="35" left="500" label="Show Elements" selected="true"/>
 
     <mx:HBox bottom="10" left="10">
