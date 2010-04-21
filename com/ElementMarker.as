@@ -8,25 +8,32 @@ package com
 
     public class ElementMarker extends Sprite
     {
-        public function ElementMarker()
+        public var dataProvider:Object;
+
+        public function ElementMarker(data:Object)
         {
             super();
+            this.dataProvider = data;
+            this.doubleClickEnabled = true;
 
+            /*
             var menuItem:ContextMenuItem = new ContextMenuItem("Change Color");
             //menuItem.addEventListener(ContextMenuEvent.MENU_ITEM_SELECT,changeColor);
 
             var customContextMenu:ContextMenu = new ContextMenu();
 
-
             //hide the Flash menu
             //customContextMenu.hideBuiltInItems();
             customContextMenu.customItems.push(menuItem);
-
             this.contextMenu = customContextMenu;
+            */
+
+            //this.buttonMode = true;
+            //this.useHandCursor = true;
         }
 
         //It should be called only after ElementMarker is placed in the display list
-        public function drawBorder(data:Object,scaleFactor:Number):void
+        public function drawBorder(data:Object, scaleFactor:Number):void
         {
             this.x = scaleFactor*data.v1.x;
             this.y = -scaleFactor*data.v1.y;
@@ -39,9 +46,13 @@ package com
             var lp:Point = this.globalToLocal(gp);
             this.graphics.lineTo(lp.x, lp.y);
 
-            gp = this.parent.localToGlobal(new Point(scaleFactor*data.v3.x, -scaleFactor*data.v3.y));
-            lp = this.globalToLocal(gp);
-            this.graphics.lineTo(lp.x, lp.y);
+            try
+            {
+                gp = this.parent.localToGlobal(new Point(scaleFactor*data.v3.x, -scaleFactor*data.v3.y));
+                lp = this.globalToLocal(gp);
+                this.graphics.lineTo(lp.x, lp.y);
+            }
+            catch(e:Error) { }
 
             try
             {
@@ -49,7 +60,7 @@ package com
                 lp = this.globalToLocal(gp);
                 this.graphics.lineTo(lp.x, lp.y);
             }
-            catch(e:Error) {}
+            catch(e:Error) { }
 
             this.graphics.lineTo(0,0);
             this.graphics.endFill();

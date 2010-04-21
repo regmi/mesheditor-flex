@@ -15,7 +15,7 @@ package com
             this.timer = null;
 
             this.graphics.lineStyle(1);
-            this.graphics.drawCircle(0, 0, 5);
+            this.graphics.drawCircle(0, 0, 6);
             
             var gFltr:GlowFilter = new GlowFilter(0xFF0000, 1.0, 6.0, 6.0, 2, 1, false, false);
             this.filters = [gFltr];

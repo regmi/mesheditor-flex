@@ -35,6 +35,7 @@ package com
         public var btnSaveMesh:Button;
         public var btnLoadMesh:Button;
         public var btnSubmitMesh:Button;
+        public var chkBoxShowElement:CheckBox;
 
         private var windowAddVertex:WindowAddVertex;
         private var windowAddElement:WindowAddElement;
@@ -57,6 +58,7 @@ package com
 
         private function creationComplete(evt:FlexEvent):void
         {
+            this.chkBoxShowElement.addEventListener(Event.CHANGE, this.chkBoxShowElementChange);
             this.btnShowWindow.addEventListener(MouseEvent.CLICK, this.btnShowWindowClick);
             this.btnRemoveItem.addEventListener(MouseEvent.CLICK, this.btnRemoveItemClick);
             this.btnSaveMesh.addEventListener(MouseEvent.CLICK, this.btnSaveMeshClick);
@@ -68,8 +70,12 @@ package com
             this.gridVertices.addEventListener(DataGridEvent.ITEM_EDIT_END, this.gridVerticesItemEditEnd);
 
             this.drawingArea = new DrawingArea(600, 500);
-            this.drawingArea.addEventListener(MouseEvent.MOUSE_DOWN, this.drawingAreaMouseDown);
-            this.drawingArea.addEventListener(MouseEvent.MOUSE_UP, this.drawingAreaMouseUp);
+            this.drawingArea.addEventListener(MeshEditorEvent.VERTEX_UPDATED, this.drawingAreaVertexUpdated);
+            this.drawingArea.addEventListener(MeshEditorEvent.BOUNDARY_ADDED, this.drawingAreaBoundaryAdded);
+            this.drawingArea.addEventListener(MeshEditorEvent.ELEMENT_ADDED, this.drawingAreaElementAdded);
+            this.drawingArea.addEventListener(MeshEditorEvent.VERTEX_ADDED, this.drawingAreaVertexAdded);
+            this.drawingArea.addEventListener(MeshEditorEvent.VERTEX_REMOVED, this.drawingAreaVertexRemoved);
+            this.drawingArea.addEventListener(MeshEditorEvent.ELEMENT_REMOVED, this.drawingAreaElementRemoved);
             this.drawingArea.x = 10;
             this.drawingArea.y = 30;
             this.addChild(this.drawingArea);
@@ -85,6 +91,9 @@ package com
             this.meshManager.addEventListener(MeshEditorEvent.ELEMENT_UPDATED, this.meshManagerElementUpdated);
             this.meshManager.addEventListener(MeshEditorEvent.BOUNDARY_ADDED, this.meshManagerBoundaryAdded);
             this.meshManager.addEventListener(MeshEditorEvent.BOUNDARY_REMOVED, this.meshManagerBoundaryRemoved);
+            this.meshManager.addEventListener(MeshEditorEvent.BOUNDARY_UPDATED, this.meshManagerBoundaryUpdated);
+
+            this.accordion.addEventListener(IndexChangedEvent.CHANGE, this.accordionChange);
 
             this.gridVertices.dataProvider = this.meshManager.vertices;
 
@@ -107,6 +116,11 @@ package com
             for each(var e:Object in this.meshManager.elements)
             {
                 this.drawingArea.updateElement(e);
+            }
+
+            for each(var b:Object in this.meshManager.boundaries)
+            {
+                this.drawingArea.updateBoundary(b);
             }
         }
 
@@ -262,7 +276,7 @@ package com
 
         private function meshManagerBoundaryAdded(evt:MeshEditorEvent):void
         {
-            this.drawingArea.selectBoundary(evt.data);
+            this.drawingArea.addBoundary(evt.data);
         }
 
         private function meshManagerElementRemoved(evt:MeshEditorEvent):void
@@ -277,7 +291,12 @@ package com
 
         private function meshManagerBoundaryRemoved(evt:MeshEditorEvent):void
         {
+            this.drawingArea.removeBoundary(evt.data);
+        }
 
+        private function meshManagerBoundaryUpdated(evt:MeshEditorEvent):void
+        {
+            this.drawingArea.updateBoundary(evt.data);
         }
 
         private function gridVerticesItemRollOver(evt:ListEvent):void
@@ -312,6 +331,28 @@ package com
             {
                 this.meshManager.updatedVertex = this.gridVertices.selectedItem;
             }
+        }
+
+        protected function gridBoundariesItemEditEnd(evt:DataGridEvent):void
+        {
+            if (evt.reason == DataGridEventReason.CANCELLED)
+            {
+                return;
+            }
+
+            var newData:String = TextInput(evt.currentTarget.itemEditorInstance).text;
+
+            if(newData == "" || parseFloat(newData) == NaN)
+            {
+                evt.preventDefault();
+                TextInput(evt.currentTarget.itemEditorInstance).errorString = "Enter a valid Number.";
+                return;
+            }
+            /*
+            else
+            {
+                this.meshManager.updatedBoundary = this.gridVertices.selectedItem;
+            }*/
         }
 
         protected function gridElementsItemRollOver(evt:ListEvent):void
@@ -384,23 +425,46 @@ package com
             this.meshfile.load();
         }
 
-        private function drawingAreaMouseDown(evt:MouseEvent):void
+        private function accordionChange(evt:IndexChangedEvent):void
         {
-            if(evt.shiftKey)
-            {
-                this.drawingArea.startDragCanvas();
-            }
+            this.drawingArea.changeMode(this.accordion.selectedIndex)
         }
 
-        private function drawingAreaMouseUp(evt:MouseEvent):void
+        private function chkBoxShowElementChange(evt:Event):void
         {
-            if(evt.ctrlKey)
-            {
-                var p:Point = this.drawingArea.getClickedPoint();
-                this.meshManager.addVertex({x:p.x, y:-p.y});
-            }
+            this.drawingArea.showHideElement();
+        }
 
-            this.drawingArea.stopDragCanvas();
+        private function drawingAreaVertexUpdated(evt:MeshEditorEvent):void
+        {
+            this.gridVertices.dataProvider  = this.meshManager.vertices;
+            this.meshManager.updateElementWithVertex(evt.data);
+            this.meshManager.updateBoundaryWithVertex(evt.data);
+        }
+
+        private function drawingAreaVertexAdded(evt:MeshEditorEvent):void
+        {
+            this.meshManager.addVertex(evt.data);
+        }
+
+        private function drawingAreaVertexRemoved(evt:MeshEditorEvent):void
+        {
+            this.meshManager.removeVertex(evt.data);
+        }
+
+        private function drawingAreaBoundaryAdded(evt:MeshEditorEvent):void
+        {
+            this.meshManager.addBoundary(evt.data);
+        }
+
+        private function drawingAreaElementAdded(evt:MeshEditorEvent):void
+        {
+            this.meshManager.addElement(evt.data);
+        }
+
+        private function drawingAreaElementRemoved(evt:MeshEditorEvent):void
+        {
+            this.meshManager.removeElement(evt.data);
         }
 
         private function parseFlashVars():void

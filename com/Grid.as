@@ -16,11 +16,11 @@ package com
             this.graphics.clear();
             this.graphics.lineStyle(1, 0xA49F9F);
 
-            this.graphics.moveTo(0,250);
-            this.graphics.lineTo(0,-250);
+            this.graphics.moveTo(0,500);
+            this.graphics.lineTo(0,-500);
 
-            this.graphics.moveTo(-300,0);
-            this.graphics.lineTo(300,0);
+            this.graphics.moveTo(-600,0);
+            this.graphics.lineTo(600,0);
         }
         
     }

@@ -27,6 +27,7 @@ package com
         private var nextCurveId:int;
 
         public var updatedVertex:Object;
+        //public var updatedBoundary:Object;
 
         public function MeshManager():void
         {
@@ -36,8 +37,10 @@ package com
             this.vertices.addEventListener(CollectionEvent.COLLECTION_CHANGE,this.verticesChange);
 
             this.elements = new ArrayCollection();
-            this.boundaries = new ArrayCollection();
             this.curves = new ArrayCollection();
+
+            this.boundaries = new ArrayCollection();
+            //this.boundaries.addEventListener(CollectionEvent.COLLECTION_CHANGE,this.boundariesChange);
 
             this.nextVertexId = 0;
             this.nextElementId = 0;
@@ -204,7 +207,30 @@ package com
 
                 this.dispatchEvent(e);
             }
-            trace("-eu-")
+        }
+
+        public function updateBoundaryWithVertex(data:Object):void
+        {
+            var btu:Array = [];
+
+            for(var i:int=0;i<this.boundaries.length;i++)
+            {
+                if(this.boundaries[i].v1.id == data.id)
+                    btu.push(this.boundaries[i]);
+                else
+                {
+                    if(this.boundaries[i].v2.id == data.id)
+                        btu.push(this.boundaries[i]);
+                }
+            }
+
+            for(i=0;i<btu.length;i++)
+            {
+                var e:MeshEditorEvent = new MeshEditorEvent(MeshEditorEvent.BOUNDARY_UPDATED);
+                e.data = btu[i];
+
+                this.dispatchEvent(e);
+            }
         }
 
         public function addBoundary(data:Object):void
@@ -430,6 +456,18 @@ package com
                 this.updateElementWithVertex(this.updatedVertex);
             }
         }
+
+        /*
+        private function boundariesChange(evt:):void
+        {
+            if(evt.kind == CollectionEventKind.UPDATE)
+            {
+                var e:MeshEditorEvent = new MeshEditorEvent(MeshEditorEvent.BOUNDARY_UPDATED);
+                e.data = this.updatedVertex;
+
+                this.dispatchEvent(e);
+            }
+        }*/
 
         private function elementsChange(evt:CollectionEvent):void
         {
