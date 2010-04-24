@@ -90,10 +90,10 @@ package com
             this.elementSelectMarker = new ElementSelectMarker();
             this.boundarySelectMarker = new BoundarySelectMarker();
 
-            this.timerUpdateVertex = new Timer(100);
+            this.timerUpdateVertex = new Timer(50);
             this.timerUpdateVertex.addEventListener(TimerEvent.TIMER, this.timerUpdateVertexTimer);
 
-            this.timerUpdateSelectionLine = new Timer(250);
+            this.timerUpdateSelectionLine = new Timer(100);
             this.timerUpdateSelectionLine.addEventListener(TimerEvent.TIMER, this.timerUpdateSelectionLineTimer);
 
             this.vertexDragged = null;
@@ -244,7 +244,7 @@ package com
                 this.selectionLine.graphics.lineTo(this.selectedVertexQueue[i].dataProvider.x*this.scaleFactor, -this.selectedVertexQueue[i].dataProvider.y*this.scaleFactor);
             }
 
-            this.selectionLine.graphics.lineTo(this.selectionLine.mouseX-10, (this.selectionLine.mouseY-10));
+            this.selectionLine.graphics.lineTo(this.selectionLine.mouseX-3, (this.selectionLine.mouseY-3));
         }
 
         private function canvasMouseUp(evt:MouseEvent):void
