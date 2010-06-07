@@ -454,6 +454,7 @@ package com
                 this.dispatchEvent(e);
 
                 this.updateElementWithVertex(this.updatedVertex);
+                this.updateBoundaryWithVertex(this.updatedVertex);
             }
         }
 
@@ -540,6 +541,221 @@ package com
             this.loadXmlElements(data.elements);
             this.loadXmlBoundaries(data.boundaries);
             this.loadXmlCurves(data.curves);
+        }
+
+        public function loadHermesData(data:String):void
+        {
+            this.clear();
+
+            //read vertices
+            var i:int = data.indexOf("vertices");
+            var start_section:Boolean = false;
+            var start_data:Boolean = false;
+            var tmp_value:String = "";
+            var x:Number = 0;
+            var y:Number = 0;
+
+            while(true)
+            {
+                if(data.charAt(i) == "{")
+                {
+                    if(start_section)
+                    {
+                        start_data = true;
+                        trace("-SD-");
+                    }
+                    else
+                    {
+                        start_section = true;
+                        trace("-SS-");
+                    }
+                }
+                else if(data.charAt(i) == "}")
+                {
+                    if(start_data)
+                    {
+                        trace("-ED-");
+                        start_data = false;
+                        y = parseFloat(tmp_value);
+                        tmp_value = "";
+
+                        this.addVertex({x:x, y:y});
+                    }
+                    else
+                    {
+                        trace("-ES-");
+                        start_section = false;
+                        break;
+                    }
+                }
+                else
+                {
+                    if(start_section && start_data)
+                    {
+                        if(data.charAt(i) == ",")
+                        {
+                            x = parseFloat(tmp_value);
+                            tmp_value = "";
+                        }
+                        else
+                            tmp_value += data.charAt(i);
+                    }
+                }
+                i++;
+            }
+
+            //read elements
+            i = data.indexOf("elements");
+            trace("-elements-");
+            start_section = false;
+            start_data = false;
+            tmp_value = "";
+
+            var v1:Object = null;
+            var v2:Object = null;
+            var v3:Object = null;
+            var v4:Object = null;
+            var material:int = -1;
+
+            while(true)
+            {
+                if(data.charAt(i) == "{")
+                {
+                    if(start_section)
+                    {
+                        start_data = true;
+                        trace("-SD-");
+                    }
+                    else
+                    {
+                        start_section = true;
+                        trace("-SS-");
+                    }
+                }
+                else if(data.charAt(i) == "}")
+                {
+                    if(start_data)
+                    {
+                        trace("-ED-");
+                        start_data = false;
+
+                        material = parseInt(tmp_value);
+
+                        tmp_value = "";
+
+                        if(v4 == -1)
+                        {
+                            this.addElement({v1:v1, v2:v2, v3:v3, material:material});
+                        }
+                        else
+                        {
+                            this.addElement({v1:v1, v2:v2, v3:v3, v4:v4, material:material});
+                        }
+                        v1 = null;
+                        v2 = null;
+                        v3 = null;
+                        v4 = null;
+                        material = -1;
+                    }
+                    else
+                    {
+                        trace("-ES-");
+                        start_section = false;
+                        break;
+                    }
+                }
+                else
+                {
+                    if(start_section && start_data)
+                    {
+                        if(data.charAt(i) == ",")
+                        {
+                            if(v1 == null)
+                                v1 = this.getVertex(parseInt(tmp_value));
+                            else if(v2 == null)
+                                v2 = this.getVertex(parseInt(tmp_value));
+                            else if(v3 == null)
+                                v3 = this.getVertex(parseInt(tmp_value));
+                            else if(v4 == null)
+                                v4 = this.getVertex(parseInt(tmp_value));
+
+                            tmp_value = "";
+                        }
+                        else
+                            tmp_value += data.charAt(i);
+                    }
+                }
+                i++;
+            }
+
+            //read boundaries
+            i = data.indexOf("boundaries");
+            trace("-boundaries-");
+            start_section = false;
+            start_data = false;
+            tmp_value = "";
+
+            v1 = null;
+            v2 = null;
+            var marker:int = -1;
+
+            while(true)
+            {
+                if(data.charAt(i) == "{")
+                {
+                    if(start_section)
+                    {
+                        start_data = true;
+                        trace("-SD-");
+                    }
+                    else
+                    {
+                        start_section = true;
+                        trace("-SS-");
+                    }
+                }
+                else if(data.charAt(i) == "}")
+                {
+                    if(start_data)
+                    {
+                        trace("-ED-");
+                        start_data = false;
+
+                        marker = parseInt(tmp_value);
+                        tmp_value = "";
+
+                        this.addBoundary({v1:v1, v2:v2, marker:marker});
+
+                        v1 = null;
+                        v2 = null;
+                        marker = -1;
+                    }
+                    else
+                    {
+                        trace("-ES-");
+                        start_section = false;
+                        break;
+                    }
+                }
+                else
+                {
+                    if(start_section && start_data)
+                    {
+                        if(data.charAt(i) == ",")
+                        {
+                            if(v1 == null)
+                                v1 = this.getVertex(parseInt(tmp_value));
+                            else if(v2 == null)
+                                v2 = this.getVertex(parseInt(tmp_value));
+
+                            tmp_value = "";
+                        }
+                        else
+                            tmp_value += data.charAt(i);
+                    }
+                }
+                i++;
+            }
         }
 
         public function getMeshXML():String
@@ -641,6 +857,53 @@ package com
                 str += "[" + i1 + "," + i2 + "," + b.marker +"],";
             }
             str += "],[]";
+
+            return str;
+        }
+
+        public function getMeshHermes():String
+        {
+            var str:String = "vertices = \n{\n";
+
+            for each (var v:Object in this.vertices)
+            {
+                str += "    {" + v.x + "," + v.y + "},\n";
+            }
+            str += "}\n\nelements = \n{\n";
+
+            for each( var el:Object in this.elements)
+            {
+                var i1:int = this.vertices.getItemIndex(el.v1);
+                var i2:int = this.vertices.getItemIndex(el.v2);
+                var i3:int = this.vertices.getItemIndex(el.v3);
+                var material:int = el.material;
+
+                try
+                {
+                    var i4:int = -1;
+                    i4 = this.vertices.getItemIndex(el.v4);
+                }
+                catch(e:Error) {}
+                
+                if(i4 == -1)
+                {
+                    str += "    {" + i1 + "," + i2 + "," + i3 + "," + material + "},\n";
+                }
+                else
+                {
+                    str += "    {" + i1 + "," + i2 + "," + i3 + "," + i4 + "," + material + "},\n";
+                }
+            }
+            str += "}\n\nboundaries = \n{\n";
+
+            for each (var b:Object in this.boundaries)
+            {
+                i1 = this.vertices.getItemIndex(b.v1);
+                i2 = this.vertices.getItemIndex(b.v2);
+
+                str += "    {" + i1 + "," + i2 + "," + b.marker +"},\n";
+            }
+            str += "}\n";
 
             return str;
         }

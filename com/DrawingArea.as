@@ -34,7 +34,7 @@ package com
         private var timerUpdateSelectionLine:Timer;
 
         private const ADD_ELEMENT:int = 1;
-        private const ADD_BOUNDARY:int = 3;
+        private const ADD_BOUNDARY:int = 2;
 
         private var readyToAdd:int;
         private var selectedVertexQueue:Array;

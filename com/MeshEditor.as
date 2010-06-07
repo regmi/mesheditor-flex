@@ -159,17 +159,6 @@ package com
             }
             else if(this.accordion.selectedIndex == 2)
             {
-                if(this.windowAddCurve == null)
-                {
-                    this.windowAddCurve = new WindowAddCurve();
-                    this.windowAddCurve.addEventListener(CloseEvent.CLOSE, this.windowCloseClick, false, 0, true);
-
-                    PopUpManager.addPopUp(this.windowAddCurve, this, false);
-                    PopUpManager.centerPopUp(this.windowAddCurve);
-                }
-            }
-            else if(this.accordion.selectedIndex == 3)
-            {
                 if(this.windowAddBoundary == null)
                 {
                     this.windowAddBoundary = new WindowAddBoundary();
@@ -181,6 +170,17 @@ package com
 
                     PopUpManager.addPopUp(this.windowAddBoundary, this, false);
                     PopUpManager.centerPopUp(this.windowAddBoundary);
+                }
+            }
+            else if(this.accordion.selectedIndex == 3)
+            {
+                if(this.windowAddCurve == null)
+                {
+                    this.windowAddCurve = new WindowAddCurve();
+                    this.windowAddCurve.addEventListener(CloseEvent.CLOSE, this.windowCloseClick, false, 0, true);
+
+                    PopUpManager.addPopUp(this.windowAddCurve, this, false);
+                    PopUpManager.centerPopUp(this.windowAddCurve);
                 }
             }
         }
@@ -389,8 +389,10 @@ package com
         {
             this.meshfile = new FileReference();
 
-            var data:XML = new XML( this.meshManager.getMeshXML() );
-            this.meshfile.save(data, "meshfile.xml")
+            //var data:XML = new XML( this.meshManager.getMeshXML() );
+            var data:String = this.meshManager.getMeshHermes();
+
+            this.meshfile.save(data, "domain.mesh")
         }
 
         private function btnSubmitMeshClick(evt:MouseEvent):void
@@ -414,14 +416,17 @@ package com
             this.meshfile = new FileReference();
             this.meshfile.addEventListener(Event.COMPLETE, this.meshfileLoadComplete, false, 0, true);
             this.meshfile.addEventListener(Event.SELECT, this.meshfileSelect, false, 0, true);
-            this.meshfile.browse([new FileFilter("meshfile", "*.xml")]);
+            this.meshfile.browse([new FileFilter("domain", "*.mesh")]);
         }
 
         private function meshfileLoadComplete(evt:Event):void
         {
-            var xml:XML = new XML(this.meshfile.data);
             this.drawingArea.clear();
-            this.meshManager.loadXmlData(xml);
+
+            //var xml:XML = new XML(this.meshfile.data);
+            //this.meshManager.loadXmlData(xml);
+
+            this.meshManager.loadHermesData(String(this.meshfile.data));
         }
 
         private function meshfileSelect(evt:Event):void
