@@ -35,6 +35,7 @@ package com
         public var btnSaveMesh:Button;
         public var btnLoadMesh:Button;
         public var btnSubmitMesh:Button;
+		public var btnClear:Button;
         public var chkBoxShowElement:CheckBox;
         public var chkBoxShowBoundary:CheckBox;
 
@@ -66,6 +67,7 @@ package com
             this.btnSaveMesh.addEventListener(MouseEvent.CLICK, this.btnSaveMeshClick);
             this.btnLoadMesh.addEventListener(MouseEvent.CLICK, this.btnLoadMeshClick);
             this.btnSubmitMesh.addEventListener(MouseEvent.CLICK, this.btnSubmitMeshClick);
+			this.btnClear.addEventListener(MouseEvent.CLICK, this.btnClearClick);
 
             this.gridVertices.addEventListener(ListEvent.ITEM_ROLL_OVER, this.gridVerticesItemRollOver);
             this.gridVertices.addEventListener(ListEvent.CHANGE, this.gridVerticesItemRollOver);
@@ -410,6 +412,12 @@ package com
                 trace("-No External Interface-");
             }
         }
+
+		private function btnClearClick(evt:MouseEvent):void
+		{
+			this.drawingArea.clear();
+			this.meshManager.clear();
+		}
 
         private function btnLoadMeshClick(evt:MouseEvent):void
         {

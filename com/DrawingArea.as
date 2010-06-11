@@ -205,13 +205,19 @@ package com
             for(key in this.dictVertexMarker)
             {
                 this.vertexContainer.removeChild(this.dictVertexMarker[key]);
-                this.dictVertexMarker[key] = null;
+                delete this.dictVertexMarker[key];
             }
 
             for(key in this.dictElementMarker)
             {
                 this.elementContainer.removeChild(this.dictElementMarker[key]);
-                this.dictElementMarker[key] = null;
+                delete this.dictElementMarker[key];
+            }
+
+            for(key in this.dictBoundaryMarker)
+            {
+                this.boundaryContainer.removeChild(this.dictBoundaryMarker[key]);
+                delete this.dictBoundaryMarker[key];
             }
         }
 

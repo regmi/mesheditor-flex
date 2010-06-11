@@ -83,6 +83,7 @@
         <mx:Button id="btnSaveMesh" label="Save" toolTip="Save Mesh Locally"/>
         <mx:Button id="btnLoadMesh" label="Load" toolTip="Load local Mesh"/>
         <mx:Button id="btnSubmitMesh" label="Submit" toolTip="Submit mesh to the server"/>
+        <mx:Button id="btnClear" label="Clear" toolTip="Clear Drawing"/>
     </mx:HBox>
 
 </custom:MeshEditor>

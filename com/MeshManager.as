@@ -442,6 +442,7 @@ package com
             this.nextElementId = 0;
             this.nextBoundaryId = 0;
             this.nextCurveId = 0;
+            this.updatedVertex = null;
         }
 
         private function verticesChange(evt:CollectionEvent):void
@@ -851,8 +852,8 @@ package com
 
             for each (var b:Object in this.boundaries)
             {
-                i1 = this.vertices.getItemIndex(el.v1);
-                i2 = this.vertices.getItemIndex(el.v2);
+                i1 = this.vertices.getItemIndex(b.v1);
+                i2 = this.vertices.getItemIndex(b.v2);
 
                 str += "[" + i1 + "," + i2 + "," + b.marker +"],";
             }
