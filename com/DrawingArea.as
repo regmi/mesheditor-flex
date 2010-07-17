@@ -38,6 +38,7 @@ package com
 
         private var readyToAdd:int;
         private var selectedVertexQueue:Array;
+        private var pointBeforeDrag:Point;
 
         public function DrawingArea(w:int, h:int):void
         {
@@ -97,6 +98,8 @@ package com
             this.timerUpdateSelectionLine.addEventListener(TimerEvent.TIMER, this.timerUpdateSelectionLineTimer);
 
             this.vertexDragged = null;
+            this.pointBeforeDrag = new Point();
+
             this.readyToAdd = 0;
             this.selectedVertexQueue = [];
 
@@ -259,7 +262,15 @@ package com
             {
                 evt.target.stopDrag();
                 this.timerUpdateVertex.stop();
+
+                var e:MeshEditorEvent = new MeshEditorEvent(MeshEditorEvent.VERTEX_DRAG_END);
+                e.data = this.vertexDragged.dataProvider;
+                e.data2 = this.pointBeforeDrag;
+
+                this.dispatchEvent(e);
+
                 this.vertexDragged = null;
+                //pointBeforeDrag = null;
             }
         }
 
@@ -269,6 +280,12 @@ package com
             {
                 this.vertexDragged = VertexMarker(evt.target);
                 evt.target.startDrag();
+
+                //pointBeforeDrag = new Point();
+
+                pointBeforeDrag.x = this.vertexDragged.dataProvider.x;
+                pointBeforeDrag.y = this.vertexDragged.dataProvider.y;
+
                 this.timerUpdateVertex.start();
             }
         }
@@ -380,10 +397,10 @@ package com
             }
 
             //trace queue
-            var str:String = ""
-            for each(var v:VertexMarker in this.selectedVertexQueue)
-                str += v.dataProvider.id + ", ";
-            trace(str);
+            //var str:String = ""
+            //for each(var v:VertexMarker in this.selectedVertexQueue)
+            //    str += v.dataProvider.id + ", ";
+            //trace(str);
         }
 
         public function clearSelectedVertexQueue():void

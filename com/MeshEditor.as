@@ -77,6 +77,7 @@ package com
             this.drawingArea.addEventListener(MeshEditorEvent.VERTEX_ADDED, this.drawingAreaVertexAdded);
             this.drawingArea.addEventListener(MeshEditorEvent.VERTEX_REMOVED, this.drawingAreaVertexRemoved);
             this.drawingArea.addEventListener(MeshEditorEvent.VERTEX_UPDATED, this.drawingAreaVertexUpdated);
+            this.drawingArea.addEventListener(MeshEditorEvent.VERTEX_DRAG_END, this.drawingAreaVertexDragEnd);
             this.drawingArea.addEventListener(MeshEditorEvent.ELEMENT_ADDED, this.drawingAreaElementAdded);
             this.drawingArea.addEventListener(MeshEditorEvent.ELEMENT_REMOVED, this.drawingAreaElementRemoved);
             this.drawingArea.addEventListener(MeshEditorEvent.BOUNDARY_ADDED, this.drawingAreaBoundaryAdded);
@@ -327,7 +328,7 @@ package com
 
             var newData:String = TextInput(evt.currentTarget.itemEditorInstance).text;
 
-            if(newData == "" || parseFloat(newData) == NaN)
+            if(newData == "" || isNaN(parseFloat(newData)))
             {
                 evt.preventDefault();
                 TextInput(evt.currentTarget.itemEditorInstance).errorString = "Enter a valid Number.";
@@ -348,7 +349,7 @@ package com
 
             var newData:String = TextInput(evt.currentTarget.itemEditorInstance).text;
 
-            if(newData == "" || parseFloat(newData) == NaN)
+            if(newData == "" || isNaN(parseFloat(newData)))
             {
                 evt.preventDefault();
                 TextInput(evt.currentTarget.itemEditorInstance).errorString = "Enter a valid Number.";
@@ -413,11 +414,11 @@ package com
             }
         }
 
-		private function btnClearClick(evt:MouseEvent):void
-		{
-			this.drawingArea.clear();
-			this.meshManager.clear();
-		}
+        private function btnClearClick(evt:MouseEvent):void
+        {
+            this.drawingArea.clear();
+            this.meshManager.clear();
+        }
 
         private function btnLoadMeshClick(evt:MouseEvent):void
         {
@@ -460,6 +461,20 @@ package com
         private function drawingAreaVertexUpdated(evt:MeshEditorEvent):void
         {
             this.gridVertices.dataProvider  = this.meshManager.vertices;
+            this.meshManager.updateElementWithVertex(evt.data);
+            this.meshManager.updateBoundaryWithVertex(evt.data);
+        }
+
+        private function drawingAreaVertexDragEnd(evt:MeshEditorEvent):void
+        {
+            if(this.meshManager.isVertexInsideOtherElement(evt.data))
+            {
+                evt.data.x = evt.data2.x;
+                evt.data.y = evt.data2.y;
+            }
+
+            this.gridVertices.dataProvider  = this.meshManager.vertices;
+            this.drawingArea.updateVertex(evt.data);
             this.meshManager.updateElementWithVertex(evt.data);
             this.meshManager.updateBoundaryWithVertex(evt.data);
         }

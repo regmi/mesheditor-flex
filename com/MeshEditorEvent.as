@@ -8,6 +8,7 @@ package com
         public static const VERTEX_REMOVED:String = "vertexRemoved";
         public static const VERTEX_SUBMITTED:String = "vertexSubmitted";
         public static const VERTEX_UPDATED:String = "vertexUpdated";
+        public static const VERTEX_DRAG_END:String = "vertexDragEnd";
 
         public static const ELEMENT_ADDED:String = "elementAdded";
         public static const ELEMENT_REMOVED:String = "elementRemoved";
@@ -22,6 +23,7 @@ package com
         public static const BOUNDARY_UPDATED:String = "boundaryUpdated";
 
         public var data:Object;
+        public var data2:Object;
 
         public function MeshEditorEvent(eventName:String)
         {

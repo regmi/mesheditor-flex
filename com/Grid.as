@@ -23,7 +23,7 @@ package com
                 this.graphics.lineTo(j*scaleFactor,-50*scaleFactor);
             }
 
-            for(var j:int=1;j<=50;j++)
+            for(j=1;j<=50;j++)
             {
                 this.graphics.moveTo(-50*scaleFactor,j*scaleFactor);
                 this.graphics.lineTo(50*scaleFactor,j*scaleFactor);

@@ -6,6 +6,7 @@ package com
     import mx.events.*;
     import flash.events.*;
     import flash.utils.*;
+    import flash.geom.*;
 
     public class MeshManager extends EventDispatcher
     {
@@ -50,7 +51,7 @@ package com
 
         public function addVertex(data:Object):void
         {
-            if (! this.checkDuplicateVertex(data))
+            if (! this.checkDuplicateVertex(data) && ! this.isVertexInsideOtherElement(data))
             {
                 var evt:MeshEditorEvent = new MeshEditorEvent(MeshEditorEvent.VERTEX_ADDED);
                 evt.data = data;
@@ -170,6 +171,54 @@ package com
             {
                 this.removeElement(etr[i]);
             }
+        }
+
+        public function getElementWithVertex(data:Object, _with:Boolean = true):Array 
+        {
+            var ewv:Array = [];
+            var ewov:Array = [];
+
+            var triangel_element:int;
+
+            for(var i:int=0;i<this.elements.length;i++)
+            {
+                triangel_element = -1;
+
+                if(this.elements[i].v1.id == data.id)
+                    ewv.push(this.elements[i]);
+                else
+                {
+                    if(this.elements[i].v2.id == data.id)
+                        ewv.push(this.elements[i]);
+                    else
+                    {
+                        if(this.elements[i].v3.id == data.id)
+                            ewv.push(this.elements[i]);
+                        else
+                        {
+                            try
+                            {
+                                if(this.elements[i].v4.id == data.id)
+                                    ewv.push(this.elements[i]);
+                                else
+                                    ewov.push(this.elements[i]);
+
+                            }catch(e:Error)
+                            {
+                                triangel_element = 1;
+                            }
+
+                            if(triangel_element == 1)
+                                ewov.push(this.elements[i]);
+                        }
+                    }
+                }
+            }
+
+            if(_with == true)
+                return ewv;
+            else
+                return ewov;
         }
 
         public function updateElementWithVertex(data:Object):void
@@ -318,6 +367,121 @@ package com
             {
                 if(this.vertices[i].x == data.x && this.vertices[i].y == data.y)
                     return true;
+            }
+
+            return false;
+        }
+
+        public function isVertexInsideElement(data:Object, element:Object):Boolean
+        {
+            /*
+            var poly:Array = [];
+
+            poly.push(new Point(element.v1.x, element.v1.y));
+            poly.push(new Point(element.v2.x, element.v2.y));
+            poly.push(new Point(element.v3.x, element.v3.y));
+
+            try
+            {
+                poly.push(new Point(element.v4.x, element.v4.y));
+            }catch(e:Error){}
+
+            var pnt:Point = new Point(data.x, data.y);
+
+            var j:int = poly.length - 1;
+            var oddNodes:Boolean = false;
+
+            for (var i:int=0; i <poly.length; i++)
+            {
+                if (poly[i].y < pnt.y && poly[j].y >= pnt.y ||  poly[j].y < pnt.y && poly[i].y >= pnt.y)
+                {
+                    if (poly[i].x + (pnt.y - poly[i].y) / (poly[j].y - poly[i].y) * (poly[j].x - poly[i].x) < pnt.x)
+                    {
+                        oddNodes = !oddNodes;
+                    }
+                }
+                j = i;
+            }
+
+            return oddNodes;
+            */
+            var pointList:Array = [];
+
+            pointList.push(new Point(element.v1.x, element.v1.y));
+            pointList.push(new Point(element.v2.x, element.v2.y));
+            pointList.push(new Point(element.v3.x, element.v3.y));
+
+            try
+            {
+                pointList.push(new Point(element.v4.x, element.v4.y));
+            }catch(e:Error){}
+
+            var p:Point = new Point(data.x, data.y);
+
+            var counter:int = 0;
+            var i:int;
+            var xinters:Number;
+            var p1:Point;
+            var p2:Point;
+
+            p1 = pointList[0];
+
+            for (i = 1; i <= pointList.length; i++)
+            {
+                p2 = pointList[i % pointList.length];
+                if (p.y > Math.min(p1.y, p2.y))
+                {
+                    if (p.y <= Math.max(p1.y, p2.y))
+                    {
+                        if (p.x <= Math.max(p1.x, p2.x))
+                        {
+                            if (p1.y != p2.y)
+                            {
+                                xinters = (p.y - p1.y) * (p2.x - p1.x) / (p2.y - p1.y) + p1.x;
+                                if (p1.x == p2.x || p.x <= xinters)
+                                    counter++;
+                            }
+                        }
+                    }
+                }
+                p1 = p2;
+            }
+
+            if (counter % 2 == 0)
+            {
+                return false;
+            }
+            else
+            {
+                return true;
+            }
+
+            return false;
+        }
+
+        public function isVertexInsideOtherElement(data:Object):Boolean
+        {
+            var count:int = 0;
+            var ewov:Array;
+
+            ewov = this.getElementWithVertex(data, false);
+
+            for each(var element:Object in ewov)
+            {
+                if(this.isVertexInsideElement(data, element))
+                {
+                    count += 1;
+                    break;
+                }
+            }
+
+            if(count == 0)
+            {
+                return false;
+            }
+            else
+            {
+                return true;
             }
 
             return false;
@@ -563,19 +727,16 @@ package com
                     if(start_section)
                     {
                         start_data = true;
-                        trace("-SD-");
                     }
                     else
                     {
                         start_section = true;
-                        trace("-SS-");
                     }
                 }
                 else if(data.charAt(i) == "}")
                 {
                     if(start_data)
                     {
-                        trace("-ED-");
                         start_data = false;
                         y = parseFloat(tmp_value);
                         tmp_value = "";
@@ -584,7 +745,6 @@ package com
                     }
                     else
                     {
-                        trace("-ES-");
                         start_section = false;
                         break;
                     }
@@ -607,7 +767,6 @@ package com
 
             //read elements
             i = data.indexOf("elements");
-            trace("-elements-");
             start_section = false;
             start_data = false;
             tmp_value = "";
@@ -625,19 +784,16 @@ package com
                     if(start_section)
                     {
                         start_data = true;
-                        trace("-SD-");
                     }
                     else
                     {
                         start_section = true;
-                        trace("-SS-");
                     }
                 }
                 else if(data.charAt(i) == "}")
                 {
                     if(start_data)
                     {
-                        trace("-ED-");
                         start_data = false;
 
                         material = parseInt(tmp_value);
@@ -660,7 +816,6 @@ package com
                     }
                     else
                     {
-                        trace("-ES-");
                         start_section = false;
                         break;
                     }
@@ -691,7 +846,6 @@ package com
 
             //read boundaries
             i = data.indexOf("boundaries");
-            trace("-boundaries-");
             start_section = false;
             start_data = false;
             tmp_value = "";
@@ -707,19 +861,16 @@ package com
                     if(start_section)
                     {
                         start_data = true;
-                        trace("-SD-");
                     }
                     else
                     {
                         start_section = true;
-                        trace("-SS-");
                     }
                 }
                 else if(data.charAt(i) == "}")
                 {
                     if(start_data)
                     {
-                        trace("-ED-");
                         start_data = false;
 
                         marker = parseInt(tmp_value);
@@ -733,7 +884,6 @@ package com
                     }
                     else
                     {
-                        trace("-ES-");
                         start_section = false;
                         break;
                     }
