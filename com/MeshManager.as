@@ -51,7 +51,7 @@ package com
 
         public function addVertex(data:Object):void
         {
-            if (! this.checkDuplicateVertex(data) && ! this.isVertexInsideOtherElement(data))
+            if (!this.checkDuplicateVertex(data) && !this.isVertexInsideOtherElement(data))
             {
                 var evt:MeshEditorEvent = new MeshEditorEvent(MeshEditorEvent.VERTEX_ADDED);
                 evt.data = data;
@@ -98,7 +98,7 @@ package com
 
         public function addElement(data:Object):void
         {
-            if (!this.checkDuplicateElement(data))
+            if (!this.checkDuplicateElement(data) && !this.isElementEncloseOtherVertex(data))
             {
                 var evt:MeshEditorEvent = new MeshEditorEvent(MeshEditorEvent.ELEMENT_ADDED);
                 evt.data = data;
@@ -171,6 +171,35 @@ package com
             {
                 this.removeElement(etr[i]);
             }
+        }
+
+        public function getVertexNotInElement(data:Object):Array
+        {
+            var vertices:Array = [];
+
+            for each(var vertex:Object in this.vertices)
+            {
+                var quad:Boolean = false;
+
+                if(data.v1.id == vertex.id || data.v2.id == vertex.id || data.v3.id == vertex.id)
+                {
+                    continue;
+                }
+                else
+                {
+                    try
+                    {
+                        if(data.v4.id == vertex.id)
+                        {
+                            continue;
+                        }
+                    }
+                    catch(e:Error){}
+
+                    vertices.push(vertex);
+                }
+            }
+            return vertices;
         }
 
         public function getElementWithVertex(data:Object, _with:Boolean = true):Array 
@@ -484,6 +513,18 @@ package com
                 return true;
             }
 
+            return false;
+        }
+
+        public function isElementEncloseOtherVertex(data:Object):Boolean
+        {
+            var vnie:Array = this.getVertexNotInElement(data);
+
+            for each(var vertex:Object in vnie)
+            {
+                if(this.isVertexInsideElement(vertex, data))
+                    return true;
+            }
             return false;
         }
 
