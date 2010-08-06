@@ -3,7 +3,9 @@ package com
     import mx.core.*;
     import mx.events.*;
     import mx.controls.*;
+    import mx.rpc.http.*;
     import mx.containers.*;
+    import mx.rpc.events.*;
     import mx.controls.dataGridClasses.*;
 
     import mx.managers.PopUpManager;
@@ -35,7 +37,8 @@ package com
         public var btnSaveMesh:Button;
         public var btnLoadMesh:Button;
         public var btnSubmitMesh:Button;
-		public var btnClear:Button;
+        public var btnTriangulateMesh:Button;
+        public var btnClear:Button;
         public var chkBoxShowElement:CheckBox;
         public var chkBoxShowBoundary:CheckBox;
 
@@ -67,6 +70,7 @@ package com
             this.btnSaveMesh.addEventListener(MouseEvent.CLICK, this.btnSaveMeshClick);
             this.btnLoadMesh.addEventListener(MouseEvent.CLICK, this.btnLoadMeshClick);
             this.btnSubmitMesh.addEventListener(MouseEvent.CLICK, this.btnSubmitMeshClick);
+            this.btnTriangulateMesh.addEventListener(MouseEvent.CLICK, this.btnTriangulateMeshClick);
 			this.btnClear.addEventListener(MouseEvent.CLICK, this.btnClearClick);
 
             this.gridVertices.addEventListener(ListEvent.ITEM_ROLL_OVER, this.gridVerticesItemRollOver);
@@ -414,6 +418,27 @@ package com
             }
         }
 
+        private function btnTriangulateMeshClick(evt:MouseEvent):void
+        {
+            var httpTriangulationService:HTTPService = new HTTPService();
+            httpTriangulationService.addEventListener(ResultEvent.RESULT, this.httpTriangulationServiceResultHandler);
+            httpTriangulationService.url = "http://hpfem.org/~aayush/cgi-bin/generate_mesh.py";
+            httpTriangulationService.method = "POST";
+            httpTriangulationService.resultFormat = "xml"
+            httpTriangulationService.request = this.meshManager.getDomainForTriangulation();
+            httpTriangulationService.send();
+        }
+
+        private function httpTriangulationServiceResultHandler(evt:ResultEvent):void
+        {
+            var res:XML = XML(String(evt.result));
+
+            trace(res);
+
+            this.btnClearClick(null);
+            this.meshManager.loadXmlData(res);
+        }
+
         private function btnClearClick(evt:MouseEvent):void
         {
             this.drawingArea.clear();
@@ -430,7 +455,7 @@ package com
 
         private function meshfileLoadComplete(evt:Event):void
         {
-            this.drawingArea.clear();
+            this.btnClearClick(null);
 
             //var xml:XML = new XML(this.meshfile.data);
             //this.meshManager.loadXmlData(xml);

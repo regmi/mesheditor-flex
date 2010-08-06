@@ -741,8 +741,6 @@ package com
 
         public function loadXmlData(data:XML):void
         {
-            this.clear();
-
             this.loadXmlVertices(data.vertices);
             this.loadXmlElements(data.elements);
             this.loadXmlBoundaries(data.boundaries);
@@ -751,8 +749,6 @@ package com
 
         public function loadHermesData(data:String):void
         {
-            this.clear();
-
             //read vertices
             var i:int = data.indexOf("vertices");
             var start_section:Boolean = false;
@@ -1098,6 +1094,31 @@ package com
             str += "}\n";
 
             return str;
+        }
+
+        public function getDomainForTriangulation():Object
+        {
+            var nodes:String = ""
+            var boundaries:String = "";
+
+            for each(var v:Object in this.vertices)
+            {
+                nodes += (v.x + " " + v.y + ",");
+            }
+
+            //trace("NODES: ", nodes);
+
+            for each (var b:Object in this.boundaries)
+            {
+                var i1:int = this.vertices.getItemIndex(b.v1);
+                var i2:int = this.vertices.getItemIndex(b.v2);
+
+                boundaries += (i1 + " " + i2 + " " + b.marker +",");
+            }
+
+            //trace("BOUNMDARIES: ", boundaries);
+
+            return {"nodes":nodes, "boundaries":boundaries};
         }
     }
 }
