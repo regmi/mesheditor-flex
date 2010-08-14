@@ -8,7 +8,7 @@
         <![CDATA[
             import mx.managers.*;
             import mx.events.*;
-            
+
             private function gridBoundariesCreationComplete(evt:FlexEvent):void
             {
                 this.gridBoundaries.dataProvider = this.meshManager.boundaries;

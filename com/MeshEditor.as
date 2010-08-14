@@ -59,6 +59,13 @@ package com
             this.windowAddCurve = null;
 
             this.addEventListener(FlexEvent.CREATION_COMPLETE, this.creationComplete);
+            this.addEventListener(FlexEvent.APPLICATION_COMPLETE, this.applicationComplete);
+        }
+
+        private function applicationComplete(evt:FlexEvent):void
+        {
+            this.stage.focus = this;
+            this.stage.addEventListener(KeyboardEvent.KEY_DOWN, this.handleKeyDown);
         }
 
         private function creationComplete(evt:FlexEvent):void
@@ -71,7 +78,7 @@ package com
             this.btnLoadMesh.addEventListener(MouseEvent.CLICK, this.btnLoadMeshClick);
             this.btnSubmitMesh.addEventListener(MouseEvent.CLICK, this.btnSubmitMeshClick);
             this.btnTriangulateMesh.addEventListener(MouseEvent.CLICK, this.btnTriangulateMeshClick);
-			this.btnClear.addEventListener(MouseEvent.CLICK, this.btnClearClick);
+            this.btnClear.addEventListener(MouseEvent.CLICK, this.btnClearClick);
 
             this.gridVertices.addEventListener(ListEvent.ITEM_ROLL_OVER, this.gridVerticesItemRollOver);
             this.gridVertices.addEventListener(ListEvent.CHANGE, this.gridVerticesItemRollOver);
@@ -132,6 +139,36 @@ package com
             for each(var b:Object in this.meshManager.boundaries)
             {
                 this.drawingArea.updateBoundary(b);
+            }
+        }
+
+        private function handleKeyDown(evt:KeyboardEvent):void
+        {
+            trace(evt.charCode)
+
+            if(evt.ctrlKey && evt.charCode == 127)
+            {
+                this.btnRemoveItemClick(null);
+            }
+            else if(evt.charCode == 115)//save
+            {
+                this.btnSaveMeshClick(null);
+            }
+            else if(evt.charCode == 108)//load
+            {
+                this.btnLoadMeshClick(null);
+            }
+            else if(evt.charCode == 13)//submit
+            {
+                this.btnSubmitMeshClick(null);
+            }
+            else if(evt.charCode == 116)//triangulate
+            {
+                this.btnTriangulateMeshClick(null);
+            }
+            else if(evt.charCode == 99)//clear
+            {
+                this.btnClearClick(null);
             }
         }
 
@@ -212,14 +249,14 @@ package com
             }
             else if(this.accordion.selectedIndex == 2)
             {
-
-            }
-            else if(this.accordion.selectedIndex == 3)
-            {
                 for each (itm in this.gridBoundaries.selectedItems)
                 {
                     this.meshManager.removeBoundary(itm);
                 }
+            }
+            else if(this.accordion.selectedIndex == 3)
+            {
+
             }
         }
 
@@ -422,7 +459,7 @@ package com
         {
             var httpTriangulationService:HTTPService = new HTTPService();
             httpTriangulationService.addEventListener(ResultEvent.RESULT, this.httpTriangulationServiceResultHandler);
-            httpTriangulationService.url = "http://hpfem.org/~aayush/cgi-bin/generate_mesh.py";
+            httpTriangulationService.url = "http://localhost/~aayush/cgi-bin/generate_mesh.py";
             httpTriangulationService.method = "POST";
             httpTriangulationService.resultFormat = "xml"
             httpTriangulationService.request = this.meshManager.getDomainForTriangulation();
