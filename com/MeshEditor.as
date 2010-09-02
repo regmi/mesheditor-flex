@@ -19,10 +19,12 @@ package com
     import com.WindowAddElement;
     import com.WindowAddCurve;
     import com.WindowAddBoundary;
+    import com.WindowShowHelp;
 
     import com.MeshEditorEvent;
     import com.MeshManager;
     import com.DrawingArea;
+    import com.Geometry;
 
     public class MeshEditor extends Application
     {
@@ -39,6 +41,7 @@ package com
         public var btnSubmitMesh:Button;
         public var btnTriangulateMesh:Button;
         public var btnClear:Button;
+        public var btnHelp:Button;
         public var chkBoxShowElement:CheckBox;
         public var chkBoxShowBoundary:CheckBox;
 
@@ -46,6 +49,7 @@ package com
         private var windowAddElement:WindowAddElement;
         private var windowAddBoundary:WindowAddBoundary;
         private var windowAddCurve:WindowAddCurve;
+        private var windowShowHelp:WindowShowHelp;
 
         public var meshManager:MeshManager;
         private var drawingArea:DrawingArea;
@@ -79,12 +83,13 @@ package com
             this.btnSubmitMesh.addEventListener(MouseEvent.CLICK, this.btnSubmitMeshClick);
             this.btnTriangulateMesh.addEventListener(MouseEvent.CLICK, this.btnTriangulateMeshClick);
             this.btnClear.addEventListener(MouseEvent.CLICK, this.btnClearClick);
+            this.btnHelp.addEventListener(MouseEvent.CLICK, this.btnHelpClick);
 
             this.gridVertices.addEventListener(ListEvent.ITEM_ROLL_OVER, this.gridVerticesItemRollOver);
             this.gridVertices.addEventListener(ListEvent.CHANGE, this.gridVerticesItemRollOver);
             this.gridVertices.addEventListener(DataGridEvent.ITEM_EDIT_END, this.gridVerticesItemEditEnd);
 
-            this.drawingArea = new DrawingArea(600, 500);
+            this.drawingArea = new DrawingArea(600, 515);
             this.drawingArea.addEventListener(MeshEditorEvent.VERTEX_ADDED, this.drawingAreaVertexAdded);
             this.drawingArea.addEventListener(MeshEditorEvent.VERTEX_REMOVED, this.drawingAreaVertexRemoved);
             this.drawingArea.addEventListener(MeshEditorEvent.VERTEX_UPDATED, this.drawingAreaVertexUpdated);
@@ -123,7 +128,12 @@ package com
 
         private function numStepperChange(evt:NumericStepperEvent):void
         {
-            this.drawingArea.scaleFactor = Number(evt.value);
+            this.zoomInOut(evt.value);
+        }
+
+        private function zoomInOut(scaleFactor:Number):void
+        {
+            this.drawingArea.scaleFactor = scaleFactor;
             this.drawingArea.updateGrid();
 
             for each(var v:Object in this.meshManager.vertices)
@@ -144,11 +154,15 @@ package com
 
         private function handleKeyDown(evt:KeyboardEvent):void
         {
-            trace(evt.charCode)
+            //trace(evt.charCode);
 
             if(evt.ctrlKey && evt.charCode == 127)
             {
                 this.btnRemoveItemClick(null);
+            }
+            if(evt.ctrlKey && evt.keyCode == 112)//f1
+            {
+                navigateToURL(new URLRequest("http://femhub.org/doc/src/intromesh.html#mesheditor-based-on-flex"), "_blank")
             }
             else if(evt.charCode == 115)//save
             {
@@ -166,9 +180,44 @@ package com
             {
                 this.btnTriangulateMeshClick(null);
             }
+            else if(evt.charCode == 118)//vertex mode
+            {
+                this.accordion.selectedIndex = 0;
+                this.accordionChange(null);
+            }
+            else if(evt.charCode == 101)//element mode
+            {
+                this.accordion.selectedIndex = 1;
+                this.accordionChange(null);
+            }
+            else if(evt.charCode == 98)//boundary mode
+            {
+                this.accordion.selectedIndex = 2;
+                this.accordionChange(null);
+            }
             else if(evt.charCode == 99)//clear
             {
                 this.btnClearClick(null);
+            }
+            else if(evt.charCode == 104)//help
+            {
+                this.btnHelpClick(null);
+            }
+            else if(evt.charCode == 45)//zoom out
+            {
+                if(this.numStepper.value > 10)
+                {
+                    this.numStepper.value -= 5;
+                    this.zoomInOut(this.numStepper.value);
+                }
+            }
+            else if(evt.charCode == 61)//zoom in
+            {
+                if(this.numStepper.value < 270)
+                {
+                    this.numStepper.value += 5;
+                    this.zoomInOut(this.numStepper.value);
+                }
             }
         }
 
@@ -281,6 +330,11 @@ package com
             {
                 PopUpManager.removePopUp(this.windowAddBoundary);
                 this.windowAddBoundary = null;
+            }
+            else if(evt.target is WindowShowHelp)
+            {
+                PopUpManager.removePopUp(this.windowShowHelp);
+                this.windowShowHelp = null;
             }
         }
 
@@ -459,7 +513,10 @@ package com
         {
             var httpTriangulationService:HTTPService = new HTTPService();
             httpTriangulationService.addEventListener(ResultEvent.RESULT, this.httpTriangulationServiceResultHandler);
-            httpTriangulationService.url = "http://localhost/~aayush/cgi-bin/generate_mesh.py";
+
+            //httpTriangulationService.url = "http://localhost/~aayush/cgi-bin/generate_mesh.py";
+            httpTriangulationService.url = "http://hpfem.org/~aayush/cgi-bin/generate_mesh.py";
+            
             httpTriangulationService.method = "POST";
             httpTriangulationService.resultFormat = "xml"
             httpTriangulationService.request = this.meshManager.getDomainForTriangulation();
@@ -469,8 +526,6 @@ package com
         private function httpTriangulationServiceResultHandler(evt:ResultEvent):void
         {
             var res:XML = XML(String(evt.result));
-
-            trace(res);
 
             this.btnClearClick(null);
             this.meshManager.loadXmlData(res);
@@ -482,10 +537,23 @@ package com
             this.meshManager.clear();
         }
 
+        private function btnHelpClick(evt:MouseEvent):void
+        {
+            if(this.windowShowHelp == null)
+            {
+                this.windowShowHelp = new WindowShowHelp();
+                this.windowShowHelp.addEventListener(CloseEvent.CLOSE, this.windowCloseClick, false, 0, true);
+
+                PopUpManager.addPopUp(this.windowShowHelp, this, false);
+                PopUpManager.centerPopUp(this.windowShowHelp);
+            }
+        }
+
         private function btnLoadMeshClick(evt:MouseEvent):void
         {
             this.meshfile = new FileReference();
             this.meshfile.addEventListener(Event.COMPLETE, this.meshfileLoadComplete, false, 0, true);
+            this.meshfile.addEventListener(Event.CANCEL, this.meshfileCancle, false, 0, true);
             this.meshfile.addEventListener(Event.SELECT, this.meshfileSelect, false, 0, true);
             this.meshfile.browse([new FileFilter("domain", "*.mesh")]);
         }
@@ -498,6 +566,12 @@ package com
             //this.meshManager.loadXmlData(xml);
 
             this.meshManager.loadHermesData(String(this.meshfile.data));
+        }
+
+        private function meshfileCancle(evt:Event):void
+        {
+            trace("-c12-");
+            this.stage.focus = this;
         }
 
         private function meshfileSelect(evt:Event):void
@@ -529,7 +603,7 @@ package com
 
         private function drawingAreaVertexDragEnd(evt:MeshEditorEvent):void
         {
-            if(this.meshManager.isVertexInsideOtherElement(evt.data))
+            if(this.meshManager.isVertexInsideOtherElement(evt.data) || this.meshManager.isEdgeIntersectingEdge())
             {
                 evt.data.x = evt.data2.x;
                 evt.data.y = evt.data2.y;

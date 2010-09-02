@@ -1,5 +1,6 @@
 package com
 {
+    import com.Geometry
     import com.MeshEditorEvent;
 
     import mx.collections.*;
@@ -98,7 +99,7 @@ package com
 
         public function addElement(data:Object):void
         {
-            if (!this.checkDuplicateElement(data) && !this.isElementEncloseOtherVertex(data))
+            if(!this.checkDuplicateElement(data) && !this.isElementEncloseOtherVertex(data) && !this.isNewElementIntersectingOtherEdge(data))
             {
                 var evt:MeshEditorEvent = new MeshEditorEvent(MeshEditorEvent.ELEMENT_ADDED);
                 evt.data = data;
@@ -313,7 +314,7 @@ package com
 
         public function addBoundary(data:Object):void
         {
-            if (! this.checkDuplicateBoundary(data))
+            if (!this.checkDuplicateBoundary(data) && !this.isNewBoundaryIntersectingOtherEdge(data) && !this.isMoreThenTwoBoundariesFromSameVertex(data))
             {
                 var evt:MeshEditorEvent = new MeshEditorEvent(MeshEditorEvent.BOUNDARY_ADDED);
                 evt.data = data;
@@ -514,6 +515,157 @@ package com
             }
 
             return false;
+        }
+
+        public function isNewBoundaryIntersectingOtherEdge(b:Object):Boolean
+        {
+            var _edges:Array = this.getArrayEdges();
+            _edges.push([int(b.v1.id), int(b.v2.id)]);
+
+            var edges:Array = this.getArrayUniqueEdges(_edges);
+
+            return Geometry.any_edges_intersect(this.getArrayNodes(),edges);
+        }
+
+        public function isNewElementIntersectingOtherEdge(e:Object):Boolean
+        {
+            var _edges:Array = this.getArrayEdges();
+            _edges.push([int(e.v1.id), int(e.v2.id)]);
+            _edges.push([int(e.v2.id), int(e.v3.id)]);
+
+            if(e.v4 == undefined)
+            {
+                _edges.push([int(e.v3.id),int(e.v1.id)]);
+            }
+            else
+            {
+                _edges.push([int(e.v3.id), int(e.v4.id)]);
+                _edges.push([int(e.v4.id), int(e.v1.id)]);
+            }
+
+            var edges:Array = this.getArrayUniqueEdges(_edges);
+
+            return Geometry.any_edges_intersect(this.getArrayNodes(),edges);
+        }
+
+        public function isEdgeIntersectingEdge():Boolean
+        {
+            return Geometry.any_edges_intersect(this.getArrayNodes(), this.getArrayEdges());
+        }
+
+        public function isMoreThenTwoBoundariesFromSameVertex(data:Object):Boolean
+        {
+            var boundary_count:Dictionary = new Dictionary(); //boundary_count[ vertex_id ] = count
+
+            for each(var b:Object in this.boundaries)
+            {
+                if(boundary_count[int(b.v1.id)] == undefined)
+                {
+                    trace("-ud:v1-")
+                    boundary_count[int(b.v1.id)] = 1;
+                }
+                else
+                {
+                    trace("-d:v1-")
+                    boundary_count[int(b.v1.id)] += 1;
+                }
+
+                if(boundary_count[int(b.v2.id)] == undefined)
+                {
+                    trace("-ud:v2-")
+                    boundary_count[int(b.v2.id)] = 1;
+                }
+                else
+                {
+                    trace("-d:v2-")
+                    boundary_count[int(b.v2.id)] += 1;
+                }
+            }
+
+            trace(boundary_count[int(data.v1.id)], boundary_count[int(data.v2.id)])
+
+            if(boundary_count[int(data.v1.id)] == undefined)
+            {
+                boundary_count[int(data.v1.id)] = 1;
+            }
+            else
+            {
+                boundary_count[int(data.v1.id)] += 1;
+            }
+
+            if(boundary_count[int(data.v2.id)] == undefined)
+            {
+                boundary_count[int(data.v2.id)] = 1;
+            }
+            else
+            {
+                boundary_count[int(data.v2.id)] += 1;
+            }
+
+            if(boundary_count[int(data.v1.id)] <= 2 && boundary_count[int(data.v2.id)] <= 2)
+                return false;
+
+            return true;
+        }
+
+        public function getArrayNodes():Array
+        {
+            var nodes:Array = [];
+  
+            for each(var v:Object in this.vertices)
+            {
+                nodes.push([Number(v.x),Number(v.y)]);
+            }
+
+            return nodes;
+        }
+
+        public function getArrayEdges():Array
+        {
+            var _edges:Array = [];
+
+            for each(var e:Object in this.elements)
+            {
+                _edges.push([int(e.v1.id),int(e.v2.id)]);
+                _edges.push([int(e.v2.id),int(e.v3.id)]);
+
+                if(e.v4 == undefined)
+                {
+                    _edges.push([int(e.v3.id),int(e.v1.id)]);
+                }
+                else
+                {
+                    _edges.push([int(e.v3.id),int(e.v4.id)]);
+                    _edges.push([int(e.v4.id),int(e.v1.id)]);
+                }
+            }
+
+            var edges:Array = this.getArrayUniqueEdges(_edges);
+            return edges;
+        }
+
+        public function getArrayUniqueEdges(_edges:Array):Array
+        {
+            var dup:Array = [];
+            for(var i:int=0;i<_edges.length;i++)
+            {
+                for(var j:int=i+1;j<_edges.length;j++)
+                {
+                    if( (_edges[i][0] == _edges[j][0] && _edges[i][1] == _edges[j][1]) || (_edges[i][0] == _edges[j][1] && _edges[i][1] == _edges[j][0]))
+                        dup.push(j);
+                }
+            }
+
+            var uniqueEdges:Array = [];
+            for(i=0;i<_edges.length;i++)
+            {
+                if(dup.indexOf(i) == -1)
+                {
+                    uniqueEdges.push([_edges[i][0],_edges[i][1]]);
+                }
+            }
+
+            return uniqueEdges;
         }
 
         public function isElementEncloseOtherVertex(data:Object):Boolean

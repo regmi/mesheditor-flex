@@ -2,13 +2,49 @@ package com
 {
     import flash.display.*;
     import flash.events.*;
-    
+    import flash.text.*;
+
     public class Grid extends Sprite
     {
+        private var xNegUnitLabel:Array = [];
+        private var xPosUnitLabel:Array = [];
+        private var yNegUnitLabel:Array = [];
+        private var yPosUnitLabel:Array = [];
+
         public function Grid(width:int=600, height:int=500):void
         {
+            var tf:TextField;
+            for(var i:int=1;i<=50;i++)
+            {
+                tf = new TextField();
+                tf.text = String(i);
+                tf.selectable = false;
+                xPosUnitLabel.push(tf);
+                this.addChild(tf);
+
+                tf = new TextField();
+                tf.text = String(i);
+                tf.selectable = false;
+                yPosUnitLabel.push(tf);
+                this.addChild(tf);
+            }
+
+            for(i=-1;i>=-50;i--)
+            {
+                tf = new TextField();
+                tf.text = String(i);
+                tf.selectable = false;
+                xNegUnitLabel.push(tf);
+                this.addChild(tf);
+
+                tf = new TextField();
+                tf.text = String(i);
+                tf.selectable = false;
+                yNegUnitLabel.push(tf);
+                this.addChild(tf);
+            }
         }
-        
+
         public function drawGrid(scaleFactor:int):void
         {
             this.graphics.clear();
@@ -19,6 +55,12 @@ package com
                 this.graphics.moveTo(-50*scaleFactor,j*scaleFactor);
                 this.graphics.lineTo(50*scaleFactor,j*scaleFactor);
 
+                yPosUnitLabel[(-j)-1].x = 0;
+                yPosUnitLabel[(-j)-1].y = j*scaleFactor;
+
+                xNegUnitLabel[(-j)-1].x = j*scaleFactor;
+                xNegUnitLabel[(-j)-1].y = 0;
+
                 this.graphics.moveTo(j*scaleFactor,50*scaleFactor);
                 this.graphics.lineTo(j*scaleFactor,-50*scaleFactor);
             }
@@ -27,6 +69,12 @@ package com
             {
                 this.graphics.moveTo(-50*scaleFactor,j*scaleFactor);
                 this.graphics.lineTo(50*scaleFactor,j*scaleFactor);
+
+                yNegUnitLabel[j-1].x = 0;
+                yNegUnitLabel[j-1].y = j*scaleFactor;
+
+                xPosUnitLabel[j-1].x = j*scaleFactor;
+                xPosUnitLabel[j-1].y = 0;
 
                 this.graphics.moveTo(j*scaleFactor,50*scaleFactor);
                 this.graphics.lineTo(j*scaleFactor,-50*scaleFactor);

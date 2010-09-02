@@ -1,0 +1,32 @@
+<?xml version="1.0" encoding="utf-8"?>
+<mx:TitleWindow xmlns:mx="http://www.adobe.com/2006/mxml" width="400" height="200" xmlns:custom="com.*"
+    title="Help"
+    showCloseButton="true"
+>
+    <mx:Script>
+        <![CDATA[
+            import mx.managers.*;
+            import mx.events.*;
+            
+        ]]>
+    </mx:Script>
+
+    <mx:Label text="Keyboard Shortcuts" fontWeight="bold" fontSize="15" top="0" left="10"/>
+    <mx:Text text="View Documentation: ctrl + f1" fontSize="12" top="0" left="10"/>
+
+    <mx:Text text="Save mesh: s" fontSize="12" top="0" left="10"/>
+    <mx:Text text="Load mesh: l" fontSize="12" top="0" left="10"/>
+
+    <mx:Text text="Change to vertex drawing mode: v" fontSize="12" top="0" left="10"/>
+    <mx:Text text="Change to element drawing mode: e" fontSize="12" top="0" left="10"/>
+    <mx:Text text="Change to boundary drawing mode: b" fontSize="12" top="0" left="10"/>
+
+    <mx:Text text="Triangulate domain: t" fontSize="12" top="0" left="10"/>
+    <mx:Text text="Submit mesh: enter" fontSize="12" top="0" left="10"/>
+    <mx:Text text="Clear drawing area: c" fontSize="12" top="0" left="10"/>
+    <mx:Text text="Delete selected item: ctrl + delete" fontSize="12" top="0" left="10"/>
+    <mx:Text text="Scroll Drawing Area: ctrl + shift + drag_drawing_area" fontSize="12" top="0" left="10"/>
+    <mx:Text text="Zoom In: =" fontSize="12" top="0" left="10"/>
+    <mx:Text text="Zoom Out: -" fontSize="12" top="0" left="10"/>
+
+</mx:TitleWindow>
