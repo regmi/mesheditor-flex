@@ -75,11 +75,16 @@
         </mx:HBox>
     </mx:VBox>
 
+    <!--
     <mx:NumericStepper bottom="30" left="10" id="numStepper" minimum="10" maximum="270" stepSize="5" value="240" width="50"/>
-    <mx:CheckBox id="chkBoxShowBoundary" bottom="35" left="350" label="Show Boundaries" selected="true"/>
-    <mx:CheckBox id="chkBoxShowElement" bottom="35" left="500" label="Show Elements" selected="true"/>
+    -->
 
-    <mx:HBox bottom="5" left="10">
+    <mx:Button id="btnZoomIn" label="+" bottom="30" left="10" width="40" height="20" toolTip="Zoom IN"/>
+    <mx:Button id="btnZoomOut" label="-" bottom="30" left="60" width="40" height="20" toolTip="Zoom OUT"/>
+    <mx:CheckBox id="chkBoxShowBoundary" bottom="30" left="350" label="Show Boundaries" selected="true"/>
+    <mx:CheckBox id="chkBoxShowElement" bottom="30" left="500" label="Show Elements" selected="true"/>
+
+    <mx:HBox bottom="3" left="10">
         <mx:Button id="btnSaveMesh" label="Save" toolTip="Save Mesh Locally"/>
         <mx:Button id="btnLoadMesh" label="Load" toolTip="Load local Mesh"/>
         <mx:Button id="btnSubmitMesh" label="Submit" toolTip="Submit mesh to the server"/>
@@ -87,5 +92,7 @@
         <mx:Button id="btnTriangulateMesh" label="Triangulate" toolTip="Triangulate the given Domain"/>
         <mx:Button id="btnHelp" label="Help" toolTip="Display Help Dialog"/>
     </mx:HBox>
+
+    <mx:Label id="lblCordinate" text="" fontWeight="bold" fontSize="15" bottom="0" right="10"/>
 
 </custom:MeshEditor>

@@ -23,7 +23,7 @@ package com
         private var elementSelectMarker:ElementSelectMarker;
         private var boundarySelectMarker:BoundarySelectMarker;
 
-        private var canvas:Sprite;
+        public var canvas:Sprite;
         private var grid:Grid;
         private var selectionLine:Sprite;
         
@@ -164,7 +164,7 @@ package com
 
         public function selectElement(data:Object):void
         {
-            this.elementContainer.addChild(this.elementSelectMarker);
+            this.boundaryContainer.addChild(this.elementSelectMarker);
             this.elementSelectMarker.drawBorder(data, this.scaleFactor);
 
             this.elementSelectMarker.setTimeOut();

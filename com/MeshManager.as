@@ -1205,44 +1205,67 @@ package com
         {
             var str:String = "vertices = \n{\n";
 
-            for each (var v:Object in this.vertices)
+            for(var i:int=0;i<this.vertices.length;i++)
             {
-                str += "    {" + v.x + "," + v.y + "},\n";
+                if(i==this.vertices.length-1)
+                    str += "    {" + this.vertices[i].x + "," + this.vertices[i].y + "}\n";
+                else
+                    str += "    {" + this.vertices[i].x + "," + this.vertices[i].y + "},\n";
             }
+
             str += "}\n\nelements = \n{\n";
 
-            for each( var el:Object in this.elements)
+            for(i=0;i<this.elements.length;i++)
             {
-                var i1:int = this.vertices.getItemIndex(el.v1);
-                var i2:int = this.vertices.getItemIndex(el.v2);
-                var i3:int = this.vertices.getItemIndex(el.v3);
-                var material:int = el.material;
+                var i1:int = this.vertices.getItemIndex(this.elements[i].v1);
+                var i2:int = this.vertices.getItemIndex(this.elements[i].v2);
+                var i3:int = this.vertices.getItemIndex(this.elements[i].v3);
+                var material:int = this.elements[i].material;
 
                 try
                 {
                     var i4:int = -1;
-                    i4 = this.vertices.getItemIndex(el.v4);
+                    i4 = this.vertices.getItemIndex(this.elements[i].v4);
                 }
                 catch(e:Error) {}
-                
-                if(i4 == -1)
+
+                if(i==this.elements.length-1)
                 {
-                    str += "    {" + i1 + "," + i2 + "," + i3 + "," + material + "},\n";
+                    if(i4 == -1)
+                    {
+                        str += "    {" + i1 + "," + i2 + "," + i3 + "," + material + "}\n";
+                    }
+                    else
+                    {
+                        str += "    {" + i1 + "," + i2 + "," + i3 + "," + i4 + "," + material + "}\n";
+                    }
                 }
                 else
                 {
-                    str += "    {" + i1 + "," + i2 + "," + i3 + "," + i4 + "," + material + "},\n";
+                    if(i4 == -1)
+                    {
+                        str += "    {" + i1 + "," + i2 + "," + i3 + "," + material + "},\n";
+                    }
+                    else
+                    {
+                        str += "    {" + i1 + "," + i2 + "," + i3 + "," + i4 + "," + material + "},\n";
+                    }
                 }
             }
+
             str += "}\n\nboundaries = \n{\n";
 
-            for each (var b:Object in this.boundaries)
+            for(i=0;i<this.boundaries.length;i++)
             {
-                i1 = this.vertices.getItemIndex(b.v1);
-                i2 = this.vertices.getItemIndex(b.v2);
+                i1 = this.vertices.getItemIndex(this.boundaries[i].v1);
+                i2 = this.vertices.getItemIndex(this.boundaries[i].v2);
 
-                str += "    {" + i1 + "," + i2 + "," + b.marker +"},\n";
+                if(i==this.boundaries.length-1)
+                    str += "    {" + i1 + "," + i2 + "," + this.boundaries[i].marker +"}\n";
+                else
+                    str += "    {" + i1 + "," + i2 + "," + this.boundaries[i].marker +"},\n";
             }
+
             str += "}\n";
 
             return str;

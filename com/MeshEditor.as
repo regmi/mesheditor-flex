@@ -29,7 +29,7 @@ package com
     public class MeshEditor extends Application
     {
         // Components in MXML
-        public var numStepper:NumericStepper;
+        //public var numStepper:NumericStepper;
         public var btnShowWindow:Button;
         public var btnRemoveItem:Button;
         public var gridVertices:DataGrid;
@@ -42,8 +42,11 @@ package com
         public var btnTriangulateMesh:Button;
         public var btnClear:Button;
         public var btnHelp:Button;
+        public var btnZoomIn:Button;
+        public var btnZoomOut:Button;
         public var chkBoxShowElement:CheckBox;
         public var chkBoxShowBoundary:CheckBox;
+        public var lblCordinate:Label;
 
         private var windowAddVertex:WindowAddVertex;
         private var windowAddElement:WindowAddElement;
@@ -84,6 +87,8 @@ package com
             this.btnTriangulateMesh.addEventListener(MouseEvent.CLICK, this.btnTriangulateMeshClick);
             this.btnClear.addEventListener(MouseEvent.CLICK, this.btnClearClick);
             this.btnHelp.addEventListener(MouseEvent.CLICK, this.btnHelpClick);
+            this.btnZoomIn.addEventListener(MouseEvent.CLICK, this.btnZoomInClick);
+            this.btnZoomOut.addEventListener(MouseEvent.CLICK, this.btnZoomOutClick);
 
             this.gridVertices.addEventListener(ListEvent.ITEM_ROLL_OVER, this.gridVerticesItemRollOver);
             this.gridVertices.addEventListener(ListEvent.CHANGE, this.gridVerticesItemRollOver);
@@ -98,11 +103,12 @@ package com
             this.drawingArea.addEventListener(MeshEditorEvent.ELEMENT_REMOVED, this.drawingAreaElementRemoved);
             this.drawingArea.addEventListener(MeshEditorEvent.BOUNDARY_ADDED, this.drawingAreaBoundaryAdded);
             this.drawingArea.addEventListener(MeshEditorEvent.BOUNDARY_REMOVED, this.drawingAreaBoundaryRemoved);
+            this.drawingArea.addEventListener(MouseEvent.MOUSE_OUT, this.drawingAreaMouseOut);
+            this.drawingArea.addEventListener(MouseEvent.MOUSE_MOVE, this.drawingAreaMouseMove);
+            this.drawingArea.scaleFactor = 240;
             this.drawingArea.x = 10;
             this.drawingArea.y = 30;
             this.addChild(this.drawingArea);
-
-            this.numStepper.addEventListener(NumericStepperEvent.CHANGE, this.numStepperChange);
 
             this.meshManager = new MeshManager();
             this.meshManager.addEventListener(MeshEditorEvent.VERTEX_ADDED, this.meshManagerVertexAdded);
@@ -126,14 +132,8 @@ package com
             catch(e:Error) {}
         }
 
-        private function numStepperChange(evt:NumericStepperEvent):void
+        private function zoomInOut():void
         {
-            this.zoomInOut(evt.value);
-        }
-
-        private function zoomInOut(scaleFactor:Number):void
-        {
-            this.drawingArea.scaleFactor = scaleFactor;
             this.drawingArea.updateGrid();
 
             for each(var v:Object in this.meshManager.vertices)
@@ -205,19 +205,11 @@ package com
             }
             else if(evt.charCode == 45)//zoom out
             {
-                if(this.numStepper.value > 10)
-                {
-                    this.numStepper.value -= 5;
-                    this.zoomInOut(this.numStepper.value);
-                }
+                this.btnZoomOutClick(null);
             }
             else if(evt.charCode == 61)//zoom in
             {
-                if(this.numStepper.value < 270)
-                {
-                    this.numStepper.value += 5;
-                    this.zoomInOut(this.numStepper.value);
-                }
+                this.btnZoomInClick(null);
             }
         }
 
@@ -537,6 +529,24 @@ package com
             this.meshManager.clear();
         }
 
+        private function btnZoomOutClick(evt:MouseEvent):void
+        {
+            if(this.drawingArea.scaleFactor > 10)
+            {
+                this.drawingArea.scaleFactor -= 5;
+                this.zoomInOut();
+            }
+        }
+
+        private function btnZoomInClick(evt:MouseEvent):void
+        {
+            if(this.drawingArea.scaleFactor < 280)
+            {
+                this.drawingArea.scaleFactor += 5;
+                this.zoomInOut();
+            }
+        }
+
         private function btnHelpClick(evt:MouseEvent):void
         {
             if(this.windowShowHelp == null)
@@ -643,6 +653,19 @@ package com
         private function drawingAreaElementRemoved(evt:MeshEditorEvent):void
         {
             this.meshManager.removeElement(evt.data);
+        }
+
+        private function drawingAreaMouseOut(evt:MouseEvent):void
+        {
+            this.lblCordinate.text = "";
+        }
+
+        private function drawingAreaMouseMove(evt:MouseEvent):void
+        {
+            var x:Number = int(this.drawingArea.canvas.mouseX / this.drawingArea.scaleFactor * 1000) / 1000;
+            var y:Number = int(-this.drawingArea.canvas.mouseY / this.drawingArea.scaleFactor * 1000) / 1000;
+
+            this.lblCordinate.text = String(x) + " , " + String(y);
         }
 
         private function parseFlashVars():void
