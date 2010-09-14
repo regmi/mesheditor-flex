@@ -449,6 +449,23 @@ package com
             }*/
         }
 
+        protected function gridElementsItemEditEnd(evt:DataGridEvent):void
+        {
+            if (evt.reason == DataGridEventReason.CANCELLED)
+            {
+                return;
+            }
+
+            var newData:String = TextInput(evt.currentTarget.itemEditorInstance).text;
+
+            if(newData == "" || isNaN(parseFloat(newData)))
+            {
+                evt.preventDefault();
+                TextInput(evt.currentTarget.itemEditorInstance).errorString = "Enter a valid Number.";
+                return;
+            }
+        }
+
         protected function gridElementsItemRollOver(evt:ListEvent):void
         {
             var dgir:DataGridItemRenderer = DataGridItemRenderer(evt.itemRenderer);
@@ -477,6 +494,54 @@ package com
 
         private function btnSaveMeshClick(evt:MouseEvent):void
         {
+            var edges:Array = this.meshManager.getArrayBoundaries();
+
+            /*
+            trace("-Save Mesh Click-")
+            for each(var v:Array in edges)
+            {
+                trace(v[0],v[1]);
+            }
+            */
+
+            //trace("-Finding loop-")
+            var loops:Array = Geometry.find_loop(edges);
+
+            if(loops == null)
+            {
+                Alert.show("There are OPEN Boundaries. Do you still want to save ?", "Warning !", 3, this, this.alertClickHandler)
+            }
+            else
+            {
+                /*
+                trace("-Printing loops-")
+                for(var i:int=0;i<loops.length;i++)
+                {
+                    trace("-loop: ", i)
+                    var loop:Array = loops[i];
+                    for(var j:int=0;j<loop.length;j++)
+                    {
+                        trace(loop[j][0],loop[j][1])
+                    }
+                }
+                */
+
+                this.writeMeshToFile();
+            }
+        }
+
+        private function alertClickHandler(event:CloseEvent):void
+        {
+            if (event.detail==Alert.YES)
+                this.writeMeshToFile();
+            else
+            {
+                //status.text="You answered No";
+            }
+        }
+
+        private function writeMeshToFile():void
+        {
             this.meshfile = new FileReference();
 
             //var data:XML = new XML( this.meshManager.getMeshXML() );
@@ -489,7 +554,6 @@ package com
         {
             var var_name:String = Application.application.parameters['var_name'] == null ? 'domain' : Application.application.parameters['var_name'];
             var arg:String = var_name + " = Mesh(" + this.meshManager.getMeshCSV() + ")";
-            trace(arg)
 
             if(ExternalInterface.available)
             {
@@ -519,6 +583,8 @@ package com
         {
             var res:XML = XML(String(evt.result));
 
+            trace(res)
+
             this.btnClearClick(null);
             this.meshManager.loadXmlData(res);
         }
@@ -540,6 +606,40 @@ package com
 
         private function btnZoomInClick(evt:MouseEvent):void
         {
+            var test_points:Array = [[-0.5,0.5],[0.5,-0.5],[0.7,0]];
+            var poly:Array = [[0,0],[-0.7,0.3],[-0.7,0.7],[-0.3,0.7],[-0.3,0.3],[-0.7,0.3],[0,0],[-1,-1],[-1,1],[1,1],[1,-1],[-1,-1],[0,0],[0.7,-0.3],[0.7,-0.7],[0.3,-0.7],[0.3,-0.3],[0.7,-0.3],[0,0]];
+
+            var edges:Array = [];
+            var loops:Array = Geometry.find_loop(edges)
+
+            if(loops != null)
+            {
+                trace("-Printing loops-")
+                for(var i:int=0;i<loops.length;i++)
+                {
+                    trace("-loop: ", i)
+                    var loop:Array = loops[i];
+                    for(var j:int=0;j<loop.length;j++)
+                    {
+                        trace(loop[j][0],loop[j][1])
+                    }
+                }
+            }
+            else
+            {
+                trace("-Open Boundaries-")
+            }
+            /*
+            for(var i:int=0;i<test_points.length;i++)
+            {
+                var test:Boolean = Geometry.point_inside_polygon(test_points[i],poly);
+                //var test:Boolean = Geometry.pointInPoly(test_points[i],poly);
+                trace(test_points[i][0],test_points[i][1], test);
+            }
+            */
+
+            //this.meshManager.isVertexOutsideBoundary();
+
             if(this.drawingArea.scaleFactor < 280)
             {
                 this.drawingArea.scaleFactor += 5;
@@ -580,7 +680,6 @@ package com
 
         private function meshfileCancle(evt:Event):void
         {
-            trace("-c12-");
             this.stage.focus = this;
         }
 

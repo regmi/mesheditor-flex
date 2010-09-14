@@ -375,9 +375,9 @@ package com
                     e = new MeshEditorEvent(MeshEditorEvent.ELEMENT_ADDED);
 
                     if(v1 == v4)
-                        e.data = {v1:v1.dataProvider, v2:v2.dataProvider, v3:v3.dataProvider};
+                        e.data = {v1:v1.dataProvider, v2:v2.dataProvider, v3:v3.dataProvider, material:0};
                     else
-                        e.data = {v1:v1.dataProvider, v2:v2.dataProvider, v3:v3.dataProvider, v4:v4.dataProvider};
+                        e.data = {v1:v1.dataProvider, v2:v2.dataProvider, v3:v3.dataProvider, v4:v4.dataProvider, material:0};
                     
                     this.dispatchEvent(e);
                 }

@@ -80,6 +80,7 @@ package com
                 meEvt.data.v1 = this.selectedVertices[0];
                 meEvt.data.v2 = this.selectedVertices[1];
                 meEvt.data.v3 = this.selectedVertices[2];
+                meEvt.data.material = 0;
 
                 if(this.selectedVertices.length == 4)
                     meEvt.data.v4 = this.selectedVertices[3];

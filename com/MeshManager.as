@@ -29,7 +29,6 @@ package com
         private var nextCurveId:int;
 
         public var updatedVertex:Object;
-        //public var updatedBoundary:Object;
 
         public function MeshManager():void
         {
@@ -42,7 +41,6 @@ package com
             this.curves = new ArrayCollection();
 
             this.boundaries = new ArrayCollection();
-            //this.boundaries.addEventListener(CollectionEvent.COLLECTION_CHANGE,this.boundariesChange);
 
             this.nextVertexId = 0;
             this.nextElementId = 0;
@@ -99,7 +97,7 @@ package com
 
         public function addElement(data:Object):void
         {
-            if(!this.checkDuplicateElement(data) && !this.isElementEncloseOtherVertex(data) && !this.isNewElementIntersectingOtherEdge(data))
+            if(!this.checkDuplicateElement(data) && !this.isElementEncloseOtherVertex(data) && !this.isNewElementIntersectingOtherEdge(data) && !this.isElementWithDuplicateVertices(data))
             {
                 var evt:MeshEditorEvent = new MeshEditorEvent(MeshEditorEvent.ELEMENT_ADDED);
                 evt.data = data;
@@ -404,89 +402,20 @@ package com
 
         public function isVertexInsideElement(data:Object, element:Object):Boolean
         {
-            /*
             var poly:Array = [];
 
-            poly.push(new Point(element.v1.x, element.v1.y));
-            poly.push(new Point(element.v2.x, element.v2.y));
-            poly.push(new Point(element.v3.x, element.v3.y));
+            poly.push([element.v1.x, element.v1.y]);
+            poly.push([element.v2.x, element.v2.y]);
+            poly.push([element.v3.x, element.v3.y]);
 
             try
             {
-                poly.push(new Point(element.v4.x, element.v4.y));
+                poly.push([element.v4.x, element.v4.y]);
             }catch(e:Error){}
 
-            var pnt:Point = new Point(data.x, data.y);
+            var check_point:Array = [data.x, data.y];
 
-            var j:int = poly.length - 1;
-            var oddNodes:Boolean = false;
-
-            for (var i:int=0; i <poly.length; i++)
-            {
-                if (poly[i].y < pnt.y && poly[j].y >= pnt.y ||  poly[j].y < pnt.y && poly[i].y >= pnt.y)
-                {
-                    if (poly[i].x + (pnt.y - poly[i].y) / (poly[j].y - poly[i].y) * (poly[j].x - poly[i].x) < pnt.x)
-                    {
-                        oddNodes = !oddNodes;
-                    }
-                }
-                j = i;
-            }
-
-            return oddNodes;
-            */
-            var pointList:Array = [];
-
-            pointList.push(new Point(element.v1.x, element.v1.y));
-            pointList.push(new Point(element.v2.x, element.v2.y));
-            pointList.push(new Point(element.v3.x, element.v3.y));
-
-            try
-            {
-                pointList.push(new Point(element.v4.x, element.v4.y));
-            }catch(e:Error){}
-
-            var p:Point = new Point(data.x, data.y);
-
-            var counter:int = 0;
-            var i:int;
-            var xinters:Number;
-            var p1:Point;
-            var p2:Point;
-
-            p1 = pointList[0];
-
-            for (i = 1; i <= pointList.length; i++)
-            {
-                p2 = pointList[i % pointList.length];
-                if (p.y > Math.min(p1.y, p2.y))
-                {
-                    if (p.y <= Math.max(p1.y, p2.y))
-                    {
-                        if (p.x <= Math.max(p1.x, p2.x))
-                        {
-                            if (p1.y != p2.y)
-                            {
-                                xinters = (p.y - p1.y) * (p2.x - p1.x) / (p2.y - p1.y) + p1.x;
-                                if (p1.x == p2.x || p.x <= xinters)
-                                    counter++;
-                            }
-                        }
-                    }
-                }
-                p1 = p2;
-            }
-
-            if (counter % 2 == 0)
-            {
-                return false;
-            }
-            else
-            {
-                return true;
-            }
-
-            return false;
+            return Geometry.point_inside_polygon(check_point, poly);
         }
 
         public function isVertexInsideOtherElement(data:Object):Boolean
@@ -561,28 +490,22 @@ package com
             {
                 if(boundary_count[int(b.v1.id)] == undefined)
                 {
-                    trace("-ud:v1-")
                     boundary_count[int(b.v1.id)] = 1;
                 }
                 else
                 {
-                    trace("-d:v1-")
                     boundary_count[int(b.v1.id)] += 1;
                 }
 
                 if(boundary_count[int(b.v2.id)] == undefined)
                 {
-                    trace("-ud:v2-")
                     boundary_count[int(b.v2.id)] = 1;
                 }
                 else
                 {
-                    trace("-d:v2-")
                     boundary_count[int(b.v2.id)] += 1;
                 }
             }
-
-            trace(boundary_count[int(data.v1.id)], boundary_count[int(data.v2.id)])
 
             if(boundary_count[int(data.v1.id)] == undefined)
             {
@@ -620,6 +543,18 @@ package com
             return nodes;
         }
 
+        public function getArrayBoundaries():Array
+        {
+            var _boundaries:Array = [];
+
+            for each(var b:Object in this.boundaries)
+            {
+                _boundaries.push([int(b.v1.id),int(b.v2.id)]);
+            }
+
+            return _boundaries;
+        }
+
         public function getArrayEdges():Array
         {
             var _edges:Array = [];
@@ -644,7 +579,7 @@ package com
             return edges;
         }
 
-        public function getArrayUniqueEdges(_edges:Array):Array
+        private function getArrayUniqueEdges(_edges:Array):Array
         {
             var dup:Array = [];
             for(var i:int=0;i<_edges.length;i++)
@@ -678,6 +613,34 @@ package com
                     return true;
             }
             return false;
+        }
+
+        private function isElementWithDuplicateVertices(data:Object):Boolean
+        {
+            var v:Array = [];
+            v.push(data.v1.id)
+            v.push(data.v2.id)
+            v.push(data.v3.id)
+
+            if(data.v4 != undefined)
+            {
+                v.push(data.v4.id)
+            }
+
+            var dup:Boolean = false;
+
+            for(var i:int=0;i<v.length-1;i++)
+            {
+                for(var j:int=i+1;j<v.length;j++)
+                {
+                    if(v[i] == v[j])
+                    {
+                        dup = true;
+                    }
+                }
+            }
+
+            return dup;
         }
 
         private function checkDuplicateElement(data:Object):Boolean
@@ -783,6 +746,79 @@ package com
             return null
         }
 
+        private function getBoundaryVertexId():Array
+        {
+            var vertex_id:Array = [];
+
+            for each(var b:Object in this.boundaries)
+            {
+                vertex_id.push(b.v1.id);
+                vertex_id.push(b.v2.id);
+            }
+
+            return UtilityFunction.getUniqueValue(vertex_id);
+        }
+
+        public function isVertexOutsideBoundary():Boolean
+        {
+            var i:int, v:Object;
+
+            var boundaryVertexId:Array = this.getBoundaryVertexId();
+            trace("-boundaryVertexId-")
+            trace(boundaryVertexId)
+
+            var boundaryVertexArray:Array = []
+
+            for(i=0;i<boundaryVertexId.length;i++)
+            {
+                v = this.getVertex(boundaryVertexId[i]);
+                boundaryVertexArray.push([v.x, v.y]);
+            }
+
+            trace("-boundaryVertexArray-")
+            trace(boundaryVertexArray);
+
+            var allVertexId:Array = [];
+
+            for each(v in this.vertices)
+            {
+                allVertexId.push(v.id);
+            }
+
+            var otherVertexId:Array = [];
+            
+            for(i=0;i<allVertexId.length;i++)
+            {
+                if(boundaryVertexId.indexOf(allVertexId[i]) == -1)
+                {
+                    otherVertexId.push(allVertexId[i]);
+                }
+            }
+
+            trace("-otherVertexId-")
+            trace(otherVertexId);
+
+            var inside:Boolean = true;
+
+            for(i=0;i<otherVertexId.length;i++)
+            {
+                v = this.getVertex(otherVertexId[i]);
+                var check_point:Array = [v.x, v.y];
+
+                inside = Geometry.point_inside_polygon(check_point, boundaryVertexArray);
+                trace(check_point, inside)
+
+                if(inside == false)
+                {
+                    trace("-Final-",inside);
+                    return inside;
+                }
+            }
+
+            trace("-Final-",inside);
+            return inside;
+        }
+
         public function getCurve(id:int):Object
         {
             return {id:1};
@@ -816,29 +852,6 @@ package com
             }
         }
 
-        /*
-        private function boundariesChange(evt:):void
-        {
-            if(evt.kind == CollectionEventKind.UPDATE)
-            {
-                var e:MeshEditorEvent = new MeshEditorEvent(MeshEditorEvent.BOUNDARY_UPDATED);
-                e.data = this.updatedVertex;
-
-                this.dispatchEvent(e);
-            }
-        }*/
-
-        private function elementsChange(evt:CollectionEvent):void
-        {
-            if(evt.kind == CollectionEventKind.UPDATE)
-            {
-                //var e:MeshEditorEvent = new MeshEditorEvent(MeshEditorEvent.ELEMENT_UPDATED);
-                //e.data = this.updatedVertex;
-
-                //this.dispatchEvent(e);
-            }
-        }
-
         private function loadXmlVertices(vertices:XMLList):void
         {
             for each(var v:XML in vertices.vertex)
@@ -850,25 +863,24 @@ package com
         private function loadXmlElements(elements:XMLList):void
         {
             var v1:Object, v2:Object, v3:Object, v4:Object;
+            var m:int = -1;
 
             for each(var e:XML in elements.element)
             {
-                if(e.*.length() == 3)
-                {
-                    v1 = this.getVertex(int(e.v1));
-                    v2 = this.getVertex(int(e.v2));
-                    v3 = this.getVertex(int(e.v3));
+                v1 = this.getVertex(int(e.v1));
+                v2 = this.getVertex(int(e.v2));
+                v3 = this.getVertex(int(e.v3));
 
-                    this.addElement({id:int(e.@id), v1:v1, v2:v2, v3:v3});
+                m = int(e.material)
+
+                if(e.*.length() == 4)
+                {
+                    this.addElement({id:int(e.@id), v1:v1, v2:v2, v3:v3, material:m});
                 }
                 else
                 {
-                    v1 = this.getVertex(int(e.v1));
-                    v2 = this.getVertex(int(e.v2));
-                    v3 = this.getVertex(int(e.v3));
                     v4 = this.getVertex(int(e.v4));
-
-                    this.addElement({id:int(e.@id), v1:v1, v2:v2, v3:v3, v4:v4});
+                    this.addElement({id:int(e.@id), v1:v1, v2:v2, v3:v3, v4:v4, material:m});
                 }
             }
         }
@@ -896,7 +908,7 @@ package com
             this.loadXmlVertices(data.vertices);
             this.loadXmlElements(data.elements);
             this.loadXmlBoundaries(data.boundaries);
-            this.loadXmlCurves(data.curves);
+            //this.loadXmlCurves(data.curves);
         }
 
         public function loadHermesData(data:String):void
@@ -1125,6 +1137,7 @@ package com
                     str += "<v4>" + this.elements[i].v4.id + "</v4>";
                 }catch(e:Error) {}
 
+                str += "<material>" + this.elements[i].material + "</material>";
                 str += "</element>";
             }
 
@@ -1281,8 +1294,6 @@ package com
                 nodes += (v.x + " " + v.y + ",");
             }
 
-            //trace("NODES: ", nodes);
-
             for each (var b:Object in this.boundaries)
             {
                 var i1:int = this.vertices.getItemIndex(b.v1);
@@ -1290,8 +1301,6 @@ package com
 
                 boundaries += (i1 + " " + i2 + " " + b.marker +",");
             }
-
-            //trace("BOUNMDARIES: ", boundaries);
 
             return {"nodes":nodes, "boundaries":boundaries};
         }

@@ -22,6 +22,7 @@
                 this.gridElements.dataProvider = this.meshManager.elements;
                 this.gridElements.addEventListener(ListEvent.ITEM_ROLL_OVER, this.gridElementsItemRollOver, false, 0, true);
                 this.gridElements.addEventListener(ListEvent.CHANGE, this.gridElementsItemRollOver, false, 0, true);
+                this.gridElements.addEventListener(DataGridEvent.ITEM_EDIT_END, this.gridElementsItemEditEnd, false, 0, true);
             }
         ]]>
     </mx:Script>
@@ -31,7 +32,7 @@
     <mx:Label text="Mesh Editor" fontWeight="bold" fontSize="20" top="0" left="10"/>
 
     <mx:VBox top="30" left="620" horizontalAlign="center">
-        <mx:Accordion id="accordion" width="200" height="400" styleName="accordion">
+        <mx:Accordion id="accordion" width="210" height="400" styleName="accordion">
             <mx:Canvas label="Vertices" width="100%" height="100%">
                 <mx:DataGrid id="gridVertices" width="100%" height="100%" editable="true" allowMultipleSelection="true">
                     <mx:columns>
@@ -43,13 +44,14 @@
             </mx:Canvas>
 
             <mx:Canvas label="Elements" width="100%" height="100%">
-                <mx:DataGrid id="gridElements" width="100%" height="100%" allowMultipleSelection="true" creationComplete="gridElementsCreationComplete(event)">
+                <mx:DataGrid id="gridElements" width="100%" height="100%" editable="true" allowMultipleSelection="true" creationComplete="gridElementsCreationComplete(event)">
                     <mx:columns>
-                        <mx:DataGridColumn dataField="id" headerText="ID" width="30"/>
-                        <mx:DataGridColumn dataField="v1.id" headerText="V1"/>
-                        <mx:DataGridColumn dataField="v2.id" headerText="V2"/>
-                        <mx:DataGridColumn dataField="v3.id" headerText="V3"/>
-                        <mx:DataGridColumn dataField="v4.id" headerText="V4"/>
+                        <mx:DataGridColumn dataField="id" headerText="ID" width="30" editable="false"/>
+                        <mx:DataGridColumn dataField="v1.id" headerText="V1" editable="false"/>
+                        <mx:DataGridColumn dataField="v2.id" headerText="V2" editable="false"/>
+                        <mx:DataGridColumn dataField="v3.id" headerText="V3" editable="false"/>
+                        <mx:DataGridColumn dataField="v4.id" headerText="V4" editable="false"/>
+                        <mx:DataGridColumn dataField="material" headerText="M"/>
                     </mx:columns>
                 </mx:DataGrid>
             </mx:Canvas>
@@ -75,21 +77,17 @@
         </mx:HBox>
     </mx:VBox>
 
-    <!--
-    <mx:NumericStepper bottom="30" left="10" id="numStepper" minimum="10" maximum="270" stepSize="5" value="240" width="50"/>
-    -->
-
-    <mx:Button id="btnZoomIn" label="+" bottom="30" left="10" width="40" height="20" toolTip="Zoom IN"/>
-    <mx:Button id="btnZoomOut" label="-" bottom="30" left="60" width="40" height="20" toolTip="Zoom OUT"/>
+    <mx:Button id="btnZoomIn" label="Zoom In" bottom="110" right="10" toolTip="Zoom IN, Shortcut: ="/>
+    <mx:Button id="btnZoomOut" label="Zoom Out" bottom="110" right="140" toolTip="Zoom OUT, Shortcut: -"/>
     <mx:CheckBox id="chkBoxShowBoundary" bottom="30" left="350" label="Show Boundaries" selected="true"/>
     <mx:CheckBox id="chkBoxShowElement" bottom="30" left="500" label="Show Elements" selected="true"/>
 
     <mx:HBox bottom="3" left="10">
-        <mx:Button id="btnSaveMesh" label="Save" toolTip="Save Mesh Locally"/>
-        <mx:Button id="btnLoadMesh" label="Load" toolTip="Load local Mesh"/>
-        <mx:Button id="btnSubmitMesh" label="Submit" toolTip="Submit mesh to the server"/>
-        <mx:Button id="btnClear" label="Clear" toolTip="Clear Drawing"/>
-        <mx:Button id="btnTriangulateMesh" label="Triangulate" toolTip="Triangulate the given Domain"/>
+        <mx:Button id="btnSaveMesh" label="Save" toolTip="Save Mesh Locally, Shortcut: s"/>
+        <mx:Button id="btnLoadMesh" label="Load" toolTip="Load local Mesh, Shortcut: l"/>
+        <mx:Button id="btnSubmitMesh" label="Submit" toolTip="Submit mesh to the server, Shortcut: enter"/>
+        <mx:Button id="btnClear" label="Clear" toolTip="Clear Drawing, Shortcut: c"/>
+        <mx:Button id="btnTriangulateMesh" label="Triangulate" toolTip="Triangulate the given Domain, Shortcut: t"/>
         <mx:Button id="btnHelp" label="Help" toolTip="Display Help Dialog"/>
     </mx:HBox>
 

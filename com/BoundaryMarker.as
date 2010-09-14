@@ -27,7 +27,7 @@ package com
             this.y = -scaleFactor*data.v1.y;
 
             this.graphics.clear();
-            this.graphics.lineStyle(2, 0x00FF00);
+            this.graphics.lineStyle(2, 0x000000);
             this.graphics.beginFill(0xCECECE, 0.5);
 
             var gp:Point = this.parent.localToGlobal(new Point(scaleFactor*data.v2.x, -scaleFactor*data.v2.y));
