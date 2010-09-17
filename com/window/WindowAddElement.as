@@ -1,4 +1,4 @@
-package com
+package com.window
 {
     import mx.core.*;
     import mx.events.*;
@@ -6,7 +6,8 @@ package com
     import flash.events.*;
     import mx.containers.*;
 
-    import com.WindowSelectVertices
+    import com.window.WindowSelectVertices
+    import com.MeshEditorEvent;
 
     public class WindowAddElement extends WindowSelectVertices
     {

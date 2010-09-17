@@ -1,4 +1,4 @@
-package com
+package com.window
 {
     import mx.core.*;
     import mx.events.*;
@@ -7,7 +7,8 @@ package com
     import mx.containers.*;
     import mx.validators.*;
 
-    import com.WindowSelectVertices;
+    import com.window.WindowSelectVertices;
+    import com.MeshEditorEvent;
 
     public class WindowAddBoundary extends WindowSelectVertices
     {

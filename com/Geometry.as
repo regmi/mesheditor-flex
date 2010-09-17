@@ -1,28 +1,25 @@
 package com
 {
+    import mx.collections.*;
+
     public class Geometry
     {
-        public static function ccw(A:Array, B:Array, C:Array):Boolean
+        public static function ccw(A:Object, B:Object, C:Object):Boolean
         {
-            return (C[1]-A[1])*(B[0]-A[0]) > (B[1]-A[1])*(C[0]-A[0]);
+            return (C.y-A.y)*(B.x-A.x) > (B.y-A.y)*(C.x-A.x);
         }
 
-        public static function intersect(A:Array, B:Array, C:Array, D:Array):Boolean
+        public static function intersect(A:Object, B:Object, C:Object, D:Object):Boolean
         {
             return Geometry.ccw(A, C, D) != Geometry.ccw(B, C, D) && Geometry.ccw(A, B, C) != Geometry.ccw(A, B, D);
         }
 
-        public static function two_edges_intersect(nodes:Array, e1:Array, e2:Array):Boolean
+        public static function twoEdgesIntersect(e1:Array, e2:Array):Boolean
         {
-            var A:Array = nodes[e1[0]];
-            var B:Array = nodes[e1[1]];
-            var C:Array = nodes[e2[0]];
-            var D:Array = nodes[e2[1]];
-
-            return Geometry.intersect(A, B, C, D);
+            return Geometry.intersect(e1[0], e1[1], e2[0], e2[1]);
         }
 
-        public static function any_edges_intersect(nodes:Array, edges:Array):Boolean
+        public static function anyEdgesIntersect(edges:Array):Boolean
         {
             for(var i:int = 0; i<edges.length; i++)
             {
@@ -34,14 +31,14 @@ package com
                     if(e1[1] == e2[0] || e1[0] == e2[1])
                         continue;
 
-                    if(Geometry.two_edges_intersect(nodes, e1, e2))
+                    if(Geometry.twoEdgesIntersect(e1, e2))
                         return true;
                 }
             }
             return false;
         }
 
-        public static function edge_intersects_edges(e1:Array, nodes:Array, edges:Array):Boolean
+        public static function edgeIntersectsEdges(e1:Array, edges:Array):Boolean
         {
             for(var i:int=0; i<edges.length; i++)
             {
@@ -50,67 +47,33 @@ package com
                 if(e1[1] == e2[0] || e1[0] == e2[1])
                     continue;
 
-                if(Geometry.two_edges_intersect(nodes, e1, e2))
+                if(Geometry.twoEdgesIntersect(e1, e2))
                     return true
             }
 
             return false
         }
 
-        public static function point_inside_polygon(check_point:Array, poly:Array):Boolean
+        public static function pointInsidePolygon(checkPoint:Object, polyEdges:Array):Boolean
         {
-            var cx:Number = check_point[0];
-            var cy:Number = check_point[1];
+            var intersect:int = 0;
+            var testEdge:Array = [checkPoint, {x:100, y:checkPoint.y}];
 
-            var n:int = poly.length;
-
-            var inside:Boolean = false;
-
-            var p1x:Number = poly[0][0];
-            var p1y:Number = poly[0][1];
-
-            for(var i:int=1;i<=n;i++)
+            for each(var e:Array in polyEdges)
             {
-                var p2x:Number = poly[i%n][0]
-                var p2y:Number = poly[i%n][1]
-
-                if(cy > Math.min(p1y,p2y) && cy <= Math.max(p1y,p2y))
-                {
-                    if(cx <= Math.max(p1x,p2x))
-                    {
-                        if(p1y != p2y)
-                        {
-                            var xinters:Number = (cy-p1y)*(p2x-p1x)/(p2y-p1y)+p1x;
-
-                            if(p1x == p2x || cx <= xinters)
-                            {
-                                inside = (!inside);
-                            }
-                        }
-                    }
-                }
-
-                p1x = p2x;
-                p1y = p2y;
+                if(Geometry.twoEdgesIntersect(testEdge, e))
+                    intersect += 1;
             }
 
-            return inside;
+            if(intersect % 2 == 0)
+                return false;
+            else
+                return true;
+
+            return false;
         }
 
-        public static function pointInPoly(check_point:Array, poly:Array):Boolean
-        {
-            var i:int, j:int, c:Boolean = false;
-
-            for (i = 0, j = poly.length-1; i < poly.length; j = i++)
-            {
-                if ( ((poly[i][1]>check_point[1]) != (poly[j][1]>check_point[1])) && (check_point[0] < (poly[j][0]-poly[i][0]) * (check_point[1]-poly[i][1]) / (poly[j][1]-poly[i][1]) + poly[i][0]) )
-                   c = !c;
-            }
-
-            return c;
-        }
-
-        public static function find_loop(edges:Array):Array
+        public static function findLoop(edges:Array):Array
         {
             var loops:Array = [];
             var loopId:int = 0, currentEdge:int = 0;
@@ -163,6 +126,32 @@ package com
                 return null;
 
             return loops;
+        }
+
+        public static function getPolygonVerticesFromPolygonEdges(polygonEdges:Array):Array
+        {
+            var polyVertices:Array = [];
+
+            var e1:Array = polygonEdges[0];
+            for(var i:int=1; i<=polygonEdges.length;i++)
+            {
+                var e2:Array = polygonEdges[i%polygonEdges.length];
+
+                if(e1[0] == e2[0] || e1[0] == e2[1])
+                {
+                    polyVertices.push(e1[0]);
+                }
+                else if(e2[0] == e1[0] || e2[0] == e1[1])
+                {
+                    polyVertices.push(e2[0]);
+                }
+
+                e1 = e2;
+            }
+
+            //polyVertices.push(polyVertices[0]);
+
+            return polyVertices;
         }
     }
 }

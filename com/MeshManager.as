@@ -50,7 +50,7 @@ package com
 
         public function addVertex(data:Object):void
         {
-            if (!this.checkDuplicateVertex(data) && !this.isVertexInsideOtherElement(data))
+            if (!this.checkDuplicateVertex(data) && !this.isThisVertexInsideAlreadyDrawnElement(data))
             {
                 var evt:MeshEditorEvent = new MeshEditorEvent(MeshEditorEvent.VERTEX_ADDED);
                 evt.data = data;
@@ -400,25 +400,76 @@ package com
             return false;
         }
 
-        public function isVertexInsideElement(data:Object, element:Object):Boolean
+        public function isVertexInsideElement(vertex:Object, element:Object):Boolean
         {
-            var poly:Array = [];
+            var polyEdges:Array = [];
 
-            poly.push([element.v1.x, element.v1.y]);
-            poly.push([element.v2.x, element.v2.y]);
-            poly.push([element.v3.x, element.v3.y]);
+            polyEdges.push([element.v1, element.v2]);
+            polyEdges.push([element.v2, element.v3]);
 
-            try
+            if(element.v4 == undefined)
             {
-                poly.push([element.v4.x, element.v4.y]);
-            }catch(e:Error){}
+                polyEdges.push([element.v3, element.v1]);
+            }
+            else
+            {
+                polyEdges.push([element.v3, element.v4]);
+                polyEdges.push([element.v4, element.v1]);
+            }
 
-            var check_point:Array = [data.x, data.y];
-
-            return Geometry.point_inside_polygon(check_point, poly);
+            return Geometry.pointInPoly(vertex, polyEdges);
         }
 
-        public function isVertexInsideOtherElement(data:Object):Boolean
+        public function isAnyVertexOutsideBoundary():int
+        {
+            var domain:Array = this.getArrayBoundaries();
+
+            var loops:Array = Geometry.findLoop(domain);
+
+            if(loops == null)
+            {
+                //Open Boundaries
+                return -1;
+            }
+            else
+            {
+                var boundaryVertexArray:Array = []
+                for each(var b:Object in this.boundaries)
+                {
+                    if(boundaryVertexArray.indexOf(b.v1) == -1)
+                        boundaryVertexArray.push(b.v1);
+
+                    if(boundaryVertexArray.indexOf(b.v2) == -1)
+                        boundaryVertexArray.push(b.v2);
+                }
+
+                var otherVertexArray:Array = [];
+                for each(var v:Object in this.vertices)
+                {
+                    if(boundaryVertexArray.indexOf(v) == -1)
+                    {
+                        otherVertexArray.push(v);
+                    }
+                }
+
+                for(var a:int=0;a<otherVertexArray.length;a++)
+                {
+                    var check_point:Object = otherVertexArray[a];
+                    var inside:Boolean = Geometry.pointInPoly(check_point, domain);
+
+                    if(inside == false)
+                    {
+                        return -2;
+                    }
+                }
+
+                return 0;
+            }
+
+            return -3;
+        }
+
+        public function isThisVertexInsideAlreadyDrawnElement(data:Object):Boolean
         {
             var count:int = 0;
             var ewov:Array;
@@ -446,101 +497,114 @@ package com
             return false;
         }
 
+        public function isAnyVertexInsideAnyElement():Boolean
+        {
+            var count:int = 0;
+
+            for each(var v:Object in this.vertices)
+            {
+                var ewov:Array = this.getElementWithVertex(v, false);
+                count = 0;
+
+                for each(var element:Object in ewov)
+                {
+                    if(this.isVertexInsideElement(v, element))
+                    {
+                        count += 1;
+                        break;
+                    }
+                }
+
+                if(count != 0)
+                    return true;
+            }
+
+            return false;
+        }
+
         public function isNewBoundaryIntersectingOtherEdge(b:Object):Boolean
         {
             var _edges:Array = this.getArrayEdges();
-            _edges.push([int(b.v1.id), int(b.v2.id)]);
+            _edges.push([b.v1, b.v2]);
 
             var edges:Array = this.getArrayUniqueEdges(_edges);
 
-            return Geometry.any_edges_intersect(this.getArrayNodes(),edges);
+            return Geometry.anyEdgesIntersect(edges);
         }
 
         public function isNewElementIntersectingOtherEdge(e:Object):Boolean
         {
             var _edges:Array = this.getArrayEdges();
-            _edges.push([int(e.v1.id), int(e.v2.id)]);
-            _edges.push([int(e.v2.id), int(e.v3.id)]);
+            _edges.push([e.v1, e.v2]);
+            _edges.push([e.v2, e.v3]);
 
             if(e.v4 == undefined)
             {
-                _edges.push([int(e.v3.id),int(e.v1.id)]);
+                _edges.push([e.v3, e.v1]);
             }
             else
             {
-                _edges.push([int(e.v3.id), int(e.v4.id)]);
-                _edges.push([int(e.v4.id), int(e.v1.id)]);
+                _edges.push([e.v3, e.v4]);
+                _edges.push([e.v4, e.v1]);
             }
 
             var edges:Array = this.getArrayUniqueEdges(_edges);
 
-            return Geometry.any_edges_intersect(this.getArrayNodes(),edges);
+            return Geometry.anyEdgesIntersect(edges);
         }
 
         public function isEdgeIntersectingEdge():Boolean
         {
-            return Geometry.any_edges_intersect(this.getArrayNodes(), this.getArrayEdges());
+            return Geometry.anyEdgesIntersect(this.getArrayEdges());
         }
 
         public function isMoreThenTwoBoundariesFromSameVertex(data:Object):Boolean
         {
-            var boundary_count:Dictionary = new Dictionary(); //boundary_count[ vertex_id ] = count
+            var boundary_count:Dictionary = new Dictionary(); //boundary_count[ vertex_Obj ] = count
 
             for each(var b:Object in this.boundaries)
             {
-                if(boundary_count[int(b.v1.id)] == undefined)
+                if(boundary_count[b.v1] == undefined)
                 {
-                    boundary_count[int(b.v1.id)] = 1;
+                    boundary_count[b.v1] = 1;
                 }
                 else
                 {
-                    boundary_count[int(b.v1.id)] += 1;
+                    boundary_count[b.v1] += 1;
                 }
 
-                if(boundary_count[int(b.v2.id)] == undefined)
+                if(boundary_count[b.v2] == undefined)
                 {
-                    boundary_count[int(b.v2.id)] = 1;
+                    boundary_count[b.v2] = 1;
                 }
                 else
                 {
-                    boundary_count[int(b.v2.id)] += 1;
+                    boundary_count[b.v2] += 1;
                 }
             }
 
-            if(boundary_count[int(data.v1.id)] == undefined)
+            if(boundary_count[data.v1] == undefined)
             {
-                boundary_count[int(data.v1.id)] = 1;
+                boundary_count[data.v1] = 1;
             }
             else
             {
-                boundary_count[int(data.v1.id)] += 1;
+                boundary_count[data.v1] += 1;
             }
 
-            if(boundary_count[int(data.v2.id)] == undefined)
+            if(boundary_count[data.v2] == undefined)
             {
-                boundary_count[int(data.v2.id)] = 1;
+                boundary_count[data.v2] = 1;
             }
             else
             {
-                boundary_count[int(data.v2.id)] += 1;
+                boundary_count[data.v2] += 1;
             }
 
-            if(boundary_count[int(data.v1.id)] <= 2 && boundary_count[int(data.v2.id)] <= 2)
+            if(boundary_count[data.v1] <= 2 && boundary_count[data.v2] <= 2)
                 return false;
 
             return true;
-        }
-
-        public function getArrayNodes():Array
-        {
-            var nodes:Array = [];
-  
-            for each(var v:Object in this.vertices)
-            {
-                nodes.push([Number(v.x),Number(v.y)]);
-            }
-
-            return nodes;
         }
 
         public function getArrayBoundaries():Array
@@ -549,7 +613,7 @@ package com
 
             for each(var b:Object in this.boundaries)
             {
-                _boundaries.push([int(b.v1.id),int(b.v2.id)]);
+                _boundaries.push([b.v1,b.v2]);
             }
 
             return _boundaries;
@@ -561,20 +625,22 @@ package com
 
             for each(var e:Object in this.elements)
             {
-                _edges.push([int(e.v1.id),int(e.v2.id)]);
-                _edges.push([int(e.v2.id),int(e.v3.id)]);
+                _edges.push([e.v1,e.v2]);
+                _edges.push([e.v2,e.v3]);
 
                 if(e.v4 == undefined)
                 {
-                    _edges.push([int(e.v3.id),int(e.v1.id)]);
+                    _edges.push([e.v3,e.v1]);
                 }
                 else
                 {
-                    _edges.push([int(e.v3.id),int(e.v4.id)]);
-                    _edges.push([int(e.v4.id),int(e.v1.id)]);
+                    _edges.push([e.v3,e.v4]);
+                    _edges.push([e.v4,e.v1]);
                 }
             }
 
+            _edges = _edges.concat(this.getArrayBoundaries());
+    
             var edges:Array = this.getArrayUniqueEdges(_edges);
             return edges;
         }
@@ -618,13 +684,13 @@ package com
         private function isElementWithDuplicateVertices(data:Object):Boolean
         {
             var v:Array = [];
-            v.push(data.v1.id)
-            v.push(data.v2.id)
-            v.push(data.v3.id)
+            v.push(data.v1)
+            v.push(data.v2)
+            v.push(data.v3)
 
             if(data.v4 != undefined)
             {
-                v.push(data.v4.id)
+                v.push(data.v4)
             }
 
             var dup:Boolean = false;
@@ -652,10 +718,10 @@ package com
 
             try
             {
-                vId1.push(data.v1.id);
-                vId1.push(data.v2.id);
-                vId1.push(data.v3.id);
-                vId1.push(data.v4.id);
+                vId1.push(data.v1);
+                vId1.push(data.v2);
+                vId1.push(data.v3);
+                vId1.push(data.v4);
             }catch(e:Error){}
 
             for each(var element:Object in this.elements)
@@ -665,16 +731,16 @@ package com
 
                 try
                 {
-                    vId2.push(int(element.v1.id));
-                    vId2.push(int(element.v2.id));
-                    vId2.push(int(element.v3.id));
-                    vId2.push(int(element.v4.id));
+                    vId2.push(element.v1);
+                    vId2.push(element.v2);
+                    vId2.push(element.v3);
+                    vId2.push(element.v4);
                 }
                 catch(e:Error) {}
 
                 if(vId1.length == vId2.length)
                 {
-                    for each(var val:Number in vId2)
+                    for each(var val:Object in vId2)
                     {
                         if(vId1.indexOf(val) == -1)
                             break;
@@ -694,7 +760,7 @@ package com
         {
             for(var i:int=0;i<this.boundaries.length;i++)
             {
-                if((this.boundaries[i].v1.id == data.v1.id && this.boundaries[i].v2.id == data.v2.id) || (this.boundaries[i].v1.id == data.v2.id && this.boundaries[i].v2.id == data.v1.id))
+                if((this.boundaries[i].v1 == data.v1 && this.boundaries[i].v2 == data.v2) || (this.boundaries[i].v1 == data.v2 && this.boundaries[i].v2 == data.v1))
                     return true;
             }
 
@@ -744,79 +810,6 @@ package com
                     return this.boundaries[i];
             }
             return null
-        }
-
-        private function getBoundaryVertexId():Array
-        {
-            var vertex_id:Array = [];
-
-            for each(var b:Object in this.boundaries)
-            {
-                vertex_id.push(b.v1.id);
-                vertex_id.push(b.v2.id);
-            }
-
-            return UtilityFunction.getUniqueValue(vertex_id);
-        }
-
-        public function isVertexOutsideBoundary():Boolean
-        {
-            var i:int, v:Object;
-
-            var boundaryVertexId:Array = this.getBoundaryVertexId();
-            trace("-boundaryVertexId-")
-            trace(boundaryVertexId)
-
-            var boundaryVertexArray:Array = []
-
-            for(i=0;i<boundaryVertexId.length;i++)
-            {
-                v = this.getVertex(boundaryVertexId[i]);
-                boundaryVertexArray.push([v.x, v.y]);
-            }
-
-            trace("-boundaryVertexArray-")
-            trace(boundaryVertexArray);
-
-            var allVertexId:Array = [];
-
-            for each(v in this.vertices)
-            {
-                allVertexId.push(v.id);
-            }
-
-            var otherVertexId:Array = [];
-            
-            for(i=0;i<allVertexId.length;i++)
-            {
-                if(boundaryVertexId.indexOf(allVertexId[i]) == -1)
-                {
-                    otherVertexId.push(allVertexId[i]);
-                }
-            }
-
-            trace("-otherVertexId-")
-            trace(otherVertexId);
-
-            var inside:Boolean = true;
-
-            for(i=0;i<otherVertexId.length;i++)
-            {
-                v = this.getVertex(otherVertexId[i]);
-                var check_point:Array = [v.x, v.y];
-
-                inside = Geometry.point_inside_polygon(check_point, boundaryVertexArray);
-                trace(check_point, inside)
-
-                if(inside == false)
-                {
-                    trace("-Final-",inside);
-                    return inside;
-                }
-            }
-
-            trace("-Final-",inside);
-            return inside;
         }
 
         public function getCurve(id:int):Object

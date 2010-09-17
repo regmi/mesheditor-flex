@@ -1,4 +1,4 @@
-package com
+package com.window
 {
     import mx.core.*;
     import mx.events.*;
@@ -8,7 +8,7 @@ package com
     import mx.containers.*;
     import mx.controls.dataGridClasses.*;
 
-    import com.WindowSelectVertices_LAYOUT
+    import com.window.WindowSelectVertices_LAYOUT
 
     public class WindowSelectVertices extends WindowSelectVertices_LAYOUT
     {

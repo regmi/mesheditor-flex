@@ -15,16 +15,8 @@ package com
     import flash.events.*;
     import flash.external.*;
 
-    import com.WindowAddVertex;
-    import com.WindowAddElement;
-    import com.WindowAddCurve;
-    import com.WindowAddBoundary;
-    import com.WindowShowHelp;
-
-    import com.MeshEditorEvent;
-    import com.MeshManager;
-    import com.DrawingArea;
-    import com.Geometry;
+    import com.*;
+    import com.window.*;
 
     public class MeshEditor extends Application
     {
@@ -494,50 +486,32 @@ package com
 
         private function btnSaveMeshClick(evt:MouseEvent):void
         {
-            var edges:Array = this.meshManager.getArrayBoundaries();
+            var anyOutside:int = meshManager.isAnyVertexOutsideBoundary();
 
-            /*
-            trace("-Save Mesh Click-")
-            for each(var v:Array in edges)
+            if(anyOutside == 0)
             {
-                trace(v[0],v[1]);
-            }
-            */
-
-            //trace("-Finding loop-")
-            var loops:Array = Geometry.find_loop(edges);
-
-            if(loops == null)
-            {
-                Alert.show("There are OPEN Boundaries. Do you still want to save ?", "Warning !", 3, this, this.alertClickHandler)
-            }
-            else
-            {
-                /*
-                trace("-Printing loops-")
-                for(var i:int=0;i<loops.length;i++)
-                {
-                    trace("-loop: ", i)
-                    var loop:Array = loops[i];
-                    for(var j:int=0;j<loop.length;j++)
-                    {
-                        trace(loop[j][0],loop[j][1])
-                    }
-                }
-                */
-
                 this.writeMeshToFile();
+            }
+            else if(anyOutside == -1)
+            {
+                Alert.show("There are OPEN Boundaries. Do you still want to save mesh ?", "Warning !", 3, this, this.saveAlertClickHandler)
+            }
+            else if(anyOutside == -2)
+            {
+                Alert.show("Some vertices are outside the boundaries. Do you still want to save mesh ?", "Warning !", 3, this, this.saveAlertClickHandler)
             }
         }
 
-        private function alertClickHandler(event:CloseEvent):void
+        private function saveAlertClickHandler(evt:CloseEvent):void
         {
-            if (event.detail==Alert.YES)
+            if (evt.detail==Alert.YES)
                 this.writeMeshToFile();
-            else
-            {
-                //status.text="You answered No";
-            }
+        }
+
+        private function submitAlertClickHandler(evt:CloseEvent):void
+        {
+            if (evt.detail==Alert.YES)
+                this.sumbitMeshToOnlineLab();
         }
 
         private function writeMeshToFile():void
@@ -550,7 +524,7 @@ package com
             this.meshfile.save(data, "domain.mesh")
         }
 
-        private function btnSubmitMeshClick(evt:MouseEvent):void
+        private function sumbitMeshToOnlineLab():void
         {
             var var_name:String = Application.application.parameters['var_name'] == null ? 'domain' : Application.application.parameters['var_name'];
             var arg:String = var_name + " = Mesh(" + this.meshManager.getMeshCSV() + ")";
@@ -562,6 +536,24 @@ package com
             else
             {
                 trace("-No External Interface-");
+            }
+        }
+
+        private function btnSubmitMeshClick(evt:MouseEvent):void
+        {
+            var anyOutside:int = meshManager.isAnyVertexOutsideBoundary();
+
+            if(anyOutside == 0)
+            {
+                this.sumbitMeshToOnlineLab();
+            }
+            if(anyOutside == -1)
+            {
+                Alert.show("There are OPEN Boundaries. Do you still want to submit mesh ?", "Warning !", 3, this, this.submitAlertClickHandler)
+            }
+            else if(anyOutside == -2)
+            {
+                Alert.show("Some vertices are outside the boundaries. Do you still want to submit mesh ?", "Warning !", 3, this, this.submitAlertClickHandler)
             }
         }
 
@@ -606,40 +598,6 @@ package com
 
         private function btnZoomInClick(evt:MouseEvent):void
         {
-            var test_points:Array = [[-0.5,0.5],[0.5,-0.5],[0.7,0]];
-            var poly:Array = [[0,0],[-0.7,0.3],[-0.7,0.7],[-0.3,0.7],[-0.3,0.3],[-0.7,0.3],[0,0],[-1,-1],[-1,1],[1,1],[1,-1],[-1,-1],[0,0],[0.7,-0.3],[0.7,-0.7],[0.3,-0.7],[0.3,-0.3],[0.7,-0.3],[0,0]];
-
-            var edges:Array = [];
-            var loops:Array = Geometry.find_loop(edges)
-
-            if(loops != null)
-            {
-                trace("-Printing loops-")
-                for(var i:int=0;i<loops.length;i++)
-                {
-                    trace("-loop: ", i)
-                    var loop:Array = loops[i];
-                    for(var j:int=0;j<loop.length;j++)
-                    {
-                        trace(loop[j][0],loop[j][1])
-                    }
-                }
-            }
-            else
-            {
-                trace("-Open Boundaries-")
-            }
-            /*
-            for(var i:int=0;i<test_points.length;i++)
-            {
-                var test:Boolean = Geometry.point_inside_polygon(test_points[i],poly);
-                //var test:Boolean = Geometry.pointInPoly(test_points[i],poly);
-                trace(test_points[i][0],test_points[i][1], test);
-            }
-            */
-
-            //this.meshManager.isVertexOutsideBoundary();
-
             if(this.drawingArea.scaleFactor < 280)
             {
                 this.drawingArea.scaleFactor += 5;
@@ -712,7 +670,7 @@ package com
 
         private function drawingAreaVertexDragEnd(evt:MeshEditorEvent):void
         {
-            if(this.meshManager.isVertexInsideOtherElement(evt.data) || this.meshManager.isEdgeIntersectingEdge())
+            if(this.meshManager.isAnyVertexInsideAnyElement() || this.meshManager.isEdgeIntersectingEdge())
             {
                 evt.data.x = evt.data2.x;
                 evt.data.y = evt.data2.y;

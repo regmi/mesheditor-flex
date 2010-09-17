@@ -1,4 +1,4 @@
-package com
+package com.window
 {
     import mx.core.*;
     import mx.events.*;
@@ -6,7 +6,7 @@ package com
     import flash.events.*;
     import mx.containers.*;
 
-    import com.WindowAddCurve_LAYOUT;
+    import com.window.WindowAddCurve_LAYOUT;
     
     public class WindowAddCurve extends WindowAddCurve_LAYOUT
     {        

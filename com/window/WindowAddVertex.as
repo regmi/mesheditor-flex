@@ -1,4 +1,4 @@
-package com
+package com.window
 {
     import mx.core.*;
     import mx.events.*;
@@ -6,7 +6,7 @@ package com
     import flash.events.*;
     import mx.validators.*;
     
-    import com.WindowAddVertex_LAYOUT;
+    import com.window.WindowAddVertex_LAYOUT;
     import com.MeshEditorEvent;
     
     public class WindowAddVertex extends WindowAddVertex_LAYOUT

@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<mx:TitleWindow xmlns:mx="http://www.adobe.com/2006/mxml" width="420" height="370" xmlns:custom="com.*" title="Select Vertices" showCloseButton="true"
+<mx:TitleWindow xmlns:mx="http://www.adobe.com/2006/mxml" width="420" height="370" xmlns:custom="com.window.*" title="Select Vertices" showCloseButton="true"
     paddingLeft="0" paddingRight="0" paddingTop="0" paddingBottom="0"
 >
     <mx:Script>
