@@ -12,7 +12,7 @@ package com
     public class MeshManager extends EventDispatcher
     {
         [Bindable]
-        public var vertices:ArrayCollection; 
+        public var vertices:ArrayCollection;
 
         [Bindable]
         public var elements:ArrayCollection; 
@@ -20,32 +20,30 @@ package com
         [Bindable]
         public var boundaries:ArrayCollection; 
 
-        [Bindable]
-        public var curves:ArrayCollection; 
+        private var edges:Array;
 
         private var nextVertexId:int;
         private var nextElementId:int;
         private var nextBoundaryId:int;
-        private var nextCurveId:int;
 
         public var updatedVertex:Object;
+        public var updatedBoundary:Object;
 
         public function MeshManager():void
         {
             super();
 
             this.vertices = new ArrayCollection();
-            this.vertices.addEventListener(CollectionEvent.COLLECTION_CHANGE,this.verticesChange);
+            this.vertices.addEventListener(CollectionEvent.COLLECTION_CHANGE,this.verticesChange, false);
 
             this.elements = new ArrayCollection();
-            this.curves = new ArrayCollection();
 
             this.boundaries = new ArrayCollection();
+            this.boundaries.addEventListener(CollectionEvent.COLLECTION_CHANGE,this.boundariesChange, false);
 
             this.nextVertexId = 0;
             this.nextElementId = 0;
             this.nextBoundaryId = 0;
-            this.nextCurveId = 0;
         }
 
         public function addVertex(data:Object):void
@@ -75,7 +73,6 @@ package com
         {
             this.removeElementWithVertex(data);
             this.removeBoundaryWithVertex(data);
-            this.removeCurveWithVertex(data);
 
             for(var i:int=0; i<this.vertices.length;i++)
             {
@@ -255,15 +252,15 @@ package com
 
             for(var i:int=0;i<this.elements.length;i++)
             {
-                if(this.elements[i].v1.id == data.id)
+                if(this.elements[i].v1 == data)
                     etu.push(this.elements[i]);
                 else
                 {
-                    if(this.elements[i].v2.id == data.id)
+                    if(this.elements[i].v2 == data)
                         etu.push(this.elements[i]);
                     else
                     {
-                        if(this.elements[i].v3.id == data.id)
+                        if(this.elements[i].v3 == data)
                             etu.push(this.elements[i]);
                         else
                         {
@@ -374,21 +371,6 @@ package com
             }
         }
 
-        public function addCurve(data:Object):void
-        {
-            
-        }
-
-        public function removeCurve(id:int):void
-        {
-            
-        }
-
-        public function removeCurveWithVertex(data:Object):void
-        {
-            
-        }
-
         private function checkDuplicateVertex(data:Object):Boolean
         {
             for(var i:int=0;i<this.vertices.length;i++)
@@ -417,7 +399,7 @@ package com
                 polyEdges.push([element.v4, element.v1]);
             }
 
-            return Geometry.pointInPoly(vertex, polyEdges);
+            return Geometry.pointInsidePolygon(vertex, polyEdges);
         }
 
         public function isAnyVertexOutsideBoundary():int
@@ -455,7 +437,7 @@ package com
                 for(var a:int=0;a<otherVertexArray.length;a++)
                 {
                     var check_point:Object = otherVertexArray[a];
-                    var inside:Boolean = Geometry.pointInPoly(check_point, domain);
+                    var inside:Boolean = Geometry.pointInsidePolygon(check_point, domain);
 
                     if(inside == false)
                     {
@@ -767,11 +749,6 @@ package com
             return false;
         }
 
-        private function checkDuplicateCurve(data:Object):Boolean
-        {
-            return false;
-        }
-
         public function getVertex(id:int):Object
         {
             for(var i:int=0;i<this.vertices.length;i++)
@@ -812,23 +789,17 @@ package com
             return null
         }
 
-        public function getCurve(id:int):Object
-        {
-            return {id:1};
-        }
-
         public function clear():void
         {
             this.vertices.removeAll();
             this.elements.removeAll();
             this.boundaries.removeAll();
-            this.curves.removeAll();
 
             this.nextVertexId = 0;
             this.nextElementId = 0;
             this.nextBoundaryId = 0;
-            this.nextCurveId = 0;
             this.updatedVertex = null;
+            this.updatedBoundary = null;
         }
 
         private function verticesChange(evt:CollectionEvent):void
@@ -842,6 +813,24 @@ package com
 
                 this.updateElementWithVertex(this.updatedVertex);
                 this.updateBoundaryWithVertex(this.updatedVertex);
+            }
+        }
+
+        private function boundariesChange(evt:CollectionEvent):void
+        {
+            if(evt.kind == CollectionEventKind.UPDATE)
+            {
+                if(this.updatedBoundary != null)
+                {
+                    trace("colection changed:", this.updatedBoundary)
+                    trace(this.updatedBoundary.v1.id, this.updatedBoundary.v2.id)
+
+                    var e:MeshEditorEvent = new MeshEditorEvent(MeshEditorEvent.BOUNDARY_UPDATED);
+                    e.data = this.updatedBoundary;
+
+                    this.dispatchEvent(e);
+                    //this.updateElementWithBoundary(this.updatedBoundary);
+                }
             }
         }
 
@@ -887,13 +876,8 @@ package com
                 v1 = this.getVertex(int(b.v1));
                 v2 = this.getVertex(int(b.v2));
 
-                this.addBoundary({id:int(b.@id), v1:v1, v2:v2, marker:b.marker});
+                this.addBoundary({id:int(b.@id), v1:v1, v2:v2, marker:b.marker, angle:0});
             }
-        }
-
-        private function loadXmlCurves(curves:XMLList):void
-        {
-
         }
 
         public function loadXmlData(data:XML):void
@@ -901,7 +885,6 @@ package com
             this.loadXmlVertices(data.vertices);
             this.loadXmlElements(data.elements);
             this.loadXmlBoundaries(data.boundaries);
-            //this.loadXmlCurves(data.curves);
         }
 
         public function loadHermesData(data:String):void
@@ -1070,7 +1053,7 @@ package com
                         marker = parseInt(tmp_value);
                         tmp_value = "";
 
-                        this.addBoundary({v1:v1, v2:v2, marker:marker});
+                        this.addBoundary({v1:v1, v2:v2, marker:marker, angle:0});
 
                         v1 = null;
                         v2 = null;
@@ -1145,18 +1128,7 @@ package com
                 str += "</boundary>";
             }
 
-            str += "</boundaries><curves>";
-
-            for(i=0;i<this.curves.length;i++)
-            {
-                str += "<curve id='" + this.curves[i].id + "'>";
-                str += "<v1>" + this.curves[i].v1.id + "</v1>";
-                str += "<v2>" + this.curves[i].v2.id + "</v2>";
-                str += "<angle>" + this.curves[i].angle + "</angle>";
-                str += "</curve>";
-            }
-
-            str += "</curves></mesheditor>";
+            str += "</boundaries></mesheditor>";
 
             return str;
         }

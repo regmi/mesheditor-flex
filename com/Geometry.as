@@ -1,5 +1,7 @@
 package com
 {
+    import Math;
+    import flash.geom.*;
     import mx.collections.*;
 
     public class Geometry
@@ -152,6 +154,101 @@ package com
             //polyVertices.push(polyVertices[0]);
 
             return polyVertices;
+        }
+
+        public static function getDistance(v1:Object, v2:Object):Number
+        {
+            return Math.sqrt((v2.x-v1.x)*(v2.x-v1.x) + (v2.y-v1.y)*(v2.y-v1.y));
+        }
+
+        public static function getRadiusOfArc(boundary:Object):Number
+        {
+            var a:Number = Geometry.getDistance(boundary.v1, boundary.v2);
+            var r:Number = Math.sqrt(a*a/(2*(1-Math.cos(Math.abs(boundary.angle)*Math.PI/180))));
+
+            return r;
+        }
+
+        public static function getArcInfo(boundary:Object):Object
+        {
+            var A:Object = boundary.v1;
+            var B:Object = boundary.v2;
+
+            var r:Number = Geometry.getRadiusOfArc(boundary);
+
+            var Ex:Number, Ey:Number
+            Ex = (A.x + B.x)/2;
+            Ey = (A.y + B.y)/2;
+
+            var AE:Number, CE:Number;
+            AE = Math.sqrt((A.x - Ex)*(A.x - Ex) + (A.y - Ey)*(A.y - Ey));
+            CE = Math.sqrt(r*r - AE*AE);
+
+            var angAB:Number, angCE:Number;
+            angAB = Math.atan2(B.y-A.y, B.x-A.x);
+            angCE = angAB + Math.PI/2.0;
+
+            //two possible centers
+            var C:Point = new Point(); //center
+            var D:Point = new Point(); //center
+
+            C.x = Ex - CE * Math.cos(angCE);
+            C.y = Ey - CE * Math.sin(angCE);
+
+            D.x = Ex + CE * Math.cos(angCE);
+            D.y = Ey + CE * Math.sin(angCE);
+
+            var angCA:Number, angCB:Number, angDA:Number, angDB:Number;
+
+            angCA = Math.atan2(A.y-C.y, A.x-C.x);
+            if(angCA < 0)
+                angCA += 2.0*Math.PI;
+
+            angCB = Math.atan2(B.y-C.y, B.x-C.x);
+            if(angCB < 0)
+                angCB += 2.0*Math.PI;
+
+            angDA = Math.atan2(A.y-D.y, A.x-D.x);
+            if(angDA < 0)
+                angDA += 2.0*Math.PI;
+
+            angDB = Math.atan2(B.y-D.y, B.x-D.x);
+            if(angDB < 0)
+                angDB += 2.0*Math.PI;
+
+            var rad_to_deg:Number = 57.295779513;
+            var tmp:Number;
+
+            //Convert angle to degree
+            angCA *= rad_to_deg;
+            angCB *= rad_to_deg;
+            angDA *= rad_to_deg;
+            angDB *= rad_to_deg;
+
+            if(angDA > angDB)
+            {
+                angDA = angDA - 360;
+            }
+
+            if(angCA > angCB)
+            {
+                angCA = angCA - 360;
+            }
+
+            var arcInfo:Object = new Object();
+
+            arcInfo.center = D;
+            arcInfo.startAngle = angDA;
+            arcInfo.endAngle = angDB;
+
+            arcInfo.radius = r;
+
+            trace("-- Arc Info --");
+            trace(C.x, C.y, angCA, angCB);
+            trace(D.x, D.y, angDA, angDB);
+            trace(r, boundary.angle);
+
+            return arcInfo;
         }
     }
 }

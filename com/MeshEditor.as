@@ -21,7 +21,6 @@ package com
     public class MeshEditor extends Application
     {
         // Components in MXML
-        //public var numStepper:NumericStepper;
         public var btnShowWindow:Button;
         public var btnRemoveItem:Button;
         public var gridVertices:DataGrid;
@@ -434,11 +433,18 @@ package com
                 TextInput(evt.currentTarget.itemEditorInstance).errorString = "Enter a valid Number.";
                 return;
             }
-            /*
             else
             {
-                this.meshManager.updatedBoundary = this.gridVertices.selectedItem;
-            }*/
+                var grid:DataGrid = evt.target as DataGrid;
+                var row:Number = Number(evt.rowIndex);
+
+                if(evt.dataField == "angle")
+                {
+                    this.meshManager.updatedBoundary = grid.dataProvider.getItemAt(row);
+                }
+                else
+                    this.meshManager.updatedBoundary = null;
+            }
         }
 
         protected function gridElementsItemEditEnd(evt:DataGridEvent):void

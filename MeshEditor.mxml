@@ -63,6 +63,7 @@
                         <mx:DataGridColumn dataField="v1.id" headerText="V1" editable="false"/>
                         <mx:DataGridColumn dataField="v2.id" headerText="V2" editable="false"/>
                         <mx:DataGridColumn dataField="marker" headerText="Marker"/>
+                        <mx:DataGridColumn dataField="angle" headerText="Ang"/>
                     </mx:columns>
                 </mx:DataGrid>
             </mx:Canvas>

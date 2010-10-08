@@ -6,7 +6,7 @@ package com
     import flash.utils.*;
     import flash.filters.*;
     import mx.core.*;
-    import com.VertexMarker;
+    import com.*;
     import mx.managers.*;
 
     public class DrawingArea extends UIComponent
@@ -351,7 +351,7 @@ package com
                     v2.toggleSelect(false);
 
                     e = new MeshEditorEvent(MeshEditorEvent.BOUNDARY_ADDED);
-                    e.data = {v1:v1.dataProvider, v2:v2.dataProvider, marker:1};
+                    e.data = {v1:v2.dataProvider, v2:v1.dataProvider, marker:1, angle:0};
                     this.dispatchEvent(e);
                 }
                 else if(this.readyToAdd == this.ADD_ELEMENT && this.selectedVertexQueue.length == 4)
@@ -396,11 +396,13 @@ package com
                 this.selectedVertexQueue.push(vm);
             }
 
-            //trace queue
-            //var str:String = ""
-            //for each(var v:VertexMarker in this.selectedVertexQueue)
-            //    str += v.dataProvider.id + ", ";
-            //trace(str);
+            /*
+            trace ("-Queue-");
+            var str:String = ""
+            for each(var v:VertexMarker in this.selectedVertexQueue)
+                str += v.dataProvider.id + ", ";
+            trace(str);
+            */
         }
 
         public function clearSelectedVertexQueue():void
