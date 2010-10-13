@@ -33,7 +33,7 @@ package com
         }
 
         //It should be called only after ElementMarker is placed in the display list
-        public function drawBorder(data:Object, scaleFactor:Number):void
+        public function __drawBorder(data:Object, scaleFactor:Number):void
         {
             this.x = scaleFactor*data.v1.x;
             this.y = -scaleFactor*data.v1.y;
@@ -63,6 +63,30 @@ package com
             catch(e:Error) { }
 
             this.graphics.lineTo(0,0);
+            this.graphics.endFill();
+        }
+
+        public function drawBorder(data:Object, scaleFactor:Number):void
+        {
+            this.graphics.clear();
+            this.graphics.lineStyle(1, 0x0033FF);
+
+            this.graphics.beginFill(0xCECECE, 0.5);
+
+            for each(var edg:Object in data.edges)
+            {
+                if(edg.boundary == true && edg.angle != 0)
+                {
+                    var arcInfo:Object = Geometry.getArcInfo(edg);
+                    DrawingShapes.drawArc1(this.graphics, arcInfo, scaleFactor);
+                }
+                else
+                {
+                    this.graphics.moveTo(scaleFactor*edg.v1.x, -scaleFactor*edg.v1.y);
+                    this.graphics.lineTo(scaleFactor*edg.v2.x, -scaleFactor*edg.v2.y);
+                }
+            }
+
             this.graphics.endFill();
         }
     }

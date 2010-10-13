@@ -161,6 +161,31 @@ package com
             return Math.sqrt((v2.x-v1.x)*(v2.x-v1.x) + (v2.y-v1.y)*(v2.y-v1.y));
         }
 
+        public static function calcIncenterOfTriangle(triangle:Object):Point
+        {
+            var a:Number,b:Number,c:Number,p:Number;
+
+            a = Geometry.getDistance(triangle.v2, triangle.v3);
+            b = Geometry.getDistance(triangle.v3, triangle.v1);
+            c = Geometry.getDistance(triangle.v1, triangle.v2);
+            p = a + b + c;
+
+            var ap:Number = a/p;
+            var bp:Number = b/p;
+            var cp:Number = c/p;
+
+            var x1:Number = ap*triangle.v1.x;
+            var y1:Number = ap*triangle.v1.y;
+
+            var x2:Number = ap*triangle.v2.x;
+            var y2:Number = ap*triangle.v2.y;
+
+            var x3:Number = ap*triangle.v3.x;
+            var y3:Number = ap*triangle.v3.y;
+
+            return new Point(x1+x2+x3, y1+y2+y3);
+        }
+
         public static function getRadiusOfArc(boundary:Object):Number
         {
             var a:Number = Geometry.getDistance(boundary.v1, boundary.v2);
@@ -171,8 +196,19 @@ package com
 
         public static function getArcInfo(boundary:Object):Object
         {
-            var A:Object = boundary.v1;
-            var B:Object = boundary.v2;
+            var A:Object;
+            var B:Object;
+
+            if(boundary.angle > 0)
+            {
+                A = boundary.v1;
+                B = boundary.v2;
+            }
+            else if(boundary.angle < 0)
+            {
+                A = boundary.v2;
+                B = boundary.v1;
+            }
 
             var r:Number = Geometry.getRadiusOfArc(boundary);
 
@@ -243,10 +279,10 @@ package com
 
             arcInfo.radius = r;
 
-            trace("-- Arc Info --");
-            trace(C.x, C.y, angCA, angCB);
-            trace(D.x, D.y, angDA, angDB);
-            trace(r, boundary.angle);
+            //trace("-- Arc Info --");
+            //trace(C.x, C.y, angCA, angCB);
+            //trace(D.x, D.y, angDA, angDB);
+            //trace(r, boundary.angle);
 
             return arcInfo;
         }

@@ -570,7 +570,7 @@ package com
 
             //httpTriangulationService.url = "http://localhost/~aayush/cgi-bin/generate_mesh.py";
             httpTriangulationService.url = "http://hpfem.org/~aayush/cgi-bin/generate_mesh.py";
-            
+
             httpTriangulationService.method = "POST";
             httpTriangulationService.resultFormat = "xml"
             httpTriangulationService.request = this.meshManager.getDomainForTriangulation();

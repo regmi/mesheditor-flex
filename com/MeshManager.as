@@ -20,11 +20,12 @@ package com
         [Bindable]
         public var boundaries:ArrayCollection; 
 
-        private var edges:Array;
+        private var edges:ArrayCollection;
 
         private var nextVertexId:int;
         private var nextElementId:int;
         private var nextBoundaryId:int;
+        private var nextEdgeId:int;
 
         public var updatedVertex:Object;
         public var updatedBoundary:Object;
@@ -41,9 +42,12 @@ package com
             this.boundaries = new ArrayCollection();
             this.boundaries.addEventListener(CollectionEvent.COLLECTION_CHANGE,this.boundariesChange, false);
 
+            this.edges = new ArrayCollection();
+
             this.nextVertexId = 0;
             this.nextElementId = 0;
             this.nextBoundaryId = 0;
+            this.nextEdgeId = 0;
         }
 
         public function addVertex(data:Object):void
@@ -72,6 +76,7 @@ package com
         public function removeVertex(data:Object):void
         {
             this.removeElementWithVertex(data);
+            this.removeEdgeWithVertex(data);
             this.removeBoundaryWithVertex(data);
 
             for(var i:int=0; i<this.vertices.length;i++)
@@ -96,8 +101,25 @@ package com
         {
             if(!this.checkDuplicateElement(data) && !this.isElementEncloseOtherVertex(data) && !this.isNewElementIntersectingOtherEdge(data) && !this.isElementWithDuplicateVertices(data))
             {
-                var evt:MeshEditorEvent = new MeshEditorEvent(MeshEditorEvent.ELEMENT_ADDED);
-                evt.data = data;
+                var ei1:Object = null, ei2:Object = null, ei3:Object = null, ei4:Object = null;
+
+                ei1 = this.addEdge({v1:data.v1, v2:data.v2}, false);
+                ei2 = this.addEdge({v1:data.v2, v2:data.v3}, false);
+
+                if(data.v4 == undefined)
+                    ei3 = this.addEdge({v1:data.v3, v2:data.v1}, false);
+                else
+                {
+                    ei3 = this.addEdge({v1:data.v3, v2:data.v4}, false);
+                    ei4 = this.addEdge({v1:data.v4, v2:data.v1}, false);
+                }
+
+                this.traceEdges("addElement()");
+
+                if(data.v4 == undefined)
+                    data.edges = [ei1.edge,ei2.edge,ei3.edge];
+                else
+                    data.edges = [ei1.edge,ei2.edge,ei3.edge,ei4.edge];
 
                 if(data.id == null)
                 {
@@ -110,8 +132,11 @@ package com
                 }
 
                 this.elements.addItem(data);
-                this.dispatchEvent(evt);
                 this.nextElementId++;
+
+                var evt:MeshEditorEvent = new MeshEditorEvent(MeshEditorEvent.ELEMENT_ADDED);
+                evt.data = data;
+                this.dispatchEvent(evt);
             }
         }
 
@@ -121,10 +146,18 @@ package com
             {
                 if(this.elements[i].id == data.id)
                 {
+                    for each(var edg:Object in this.elements[i].edges)
+                    {
+                        this.removeEdge(edg, false);
+                    }
+
                     this.elements.removeItemAt(i);
+
                     break;
                 }
             }
+
+            //this.traceEdges("removeElement()");
 
             var evt:MeshEditorEvent = new MeshEditorEvent(MeshEditorEvent.ELEMENT_REMOVED);
             evt.data = data;
@@ -283,20 +316,44 @@ package com
             }
         }
 
+        public function updateElementWithEdge(edge:Object):void
+        {
+            var etu:Array = [];
+
+            for(var i:int=0;i<this.elements.length;i++)
+            {
+                for each(var edg:Object in this.elements[i].edges)
+                {
+                    if(edg == edge)
+                        etu.push(this.elements[i]);
+                }
+            }
+
+            for(i=0;i<etu.length;i++)
+            {
+                var e:MeshEditorEvent = new MeshEditorEvent(MeshEditorEvent.ELEMENT_UPDATED);
+                e.data = etu[i];
+
+                this.dispatchEvent(e);
+            }
+        }
+
         public function updateBoundaryWithVertex(data:Object):void
         {
             var btu:Array = [];
 
             for(var i:int=0;i<this.boundaries.length;i++)
             {
-                if(this.boundaries[i].v1.id == data.id)
+                if(this.boundaries[i].v1 == data)
                     btu.push(this.boundaries[i]);
                 else
                 {
-                    if(this.boundaries[i].v2.id == data.id)
+                    if(this.boundaries[i].v2 == data)
                         btu.push(this.boundaries[i]);
                 }
             }
+
+            trace("--boundary updated--")
 
             for(i=0;i<btu.length;i++)
             {
@@ -307,47 +364,167 @@ package com
             }
         }
 
-        public function addBoundary(data:Object):void
+        private function getEdgeWithVertex(v1:Object, v2:Object):Object
         {
-            if (!this.checkDuplicateBoundary(data) && !this.isNewBoundaryIntersectingOtherEdge(data) && !this.isMoreThenTwoBoundariesFromSameVertex(data))
+            for each(var e:Object in this.edges)
             {
-                var evt:MeshEditorEvent = new MeshEditorEvent(MeshEditorEvent.BOUNDARY_ADDED);
-                evt.data = data;
+                if((e.v1 == v1 && e.v2 == v2) || (e.v1 == v2 && e.v2 == v1))
+                {
+                    return e;
+                }
+            }
 
+            return null
+        }
+
+        private function addEdge(data:Object, validate:Boolean=true):Object
+        {
+            var edgeInfo:Object = {newEdge:false, edge:null};
+            var dupEdge:Object = this.checkDuplicateEdge(data);
+
+            var tooManyBoundaryFromSameVertex:Boolean = false;
+            var newEdgeIntersectOtherEdge:Boolean = false;
+
+            if(dupEdge != null)
+            {
+                edgeInfo.newEdge = false;
+                edgeInfo.edge = dupEdge;
+                return edgeInfo;
+            }
+
+            if(validate)
+            {
+                if(data.boundary == true)
+                    tooManyBoundaryFromSameVertex = this.isMoreThenTwoBoundariesFromSameVertex(data);
+
+                newEdgeIntersectOtherEdge = this.isNewEdgeIntersectingOtherEdge(data);
+            }
+
+            if (!tooManyBoundaryFromSameVertex && !newEdgeIntersectOtherEdge)
+            {
                 if(data.id == null)
                 {
-                    data.id = this.nextBoundaryId;
+                    data.id = this.nextEdgeId;
                 }
                 else
                 {
-                    if(data.id > this.nextBoundaryId)
-                        this.nextBoundaryId = data.id;
+                    if(data.id > this.nextEdgeId)
+                        this.nextEdgeId = data.id;
                 }
 
-                this.boundaries.addItem(data);
-                this.dispatchEvent(evt);
-                this.nextBoundaryId++;
+                this.edges.addItem(data);
+                this.nextEdgeId++;
+
+                edgeInfo.newEdge = true;
+                edgeInfo.edge = this.edges[this.edges.length-1];
             }
+
+            return edgeInfo;
+        }
+
+        public function addBoundary(data:Object):void
+        {
+            var edgeInfo:Object = this.addEdge(data);
+
+            if(edgeInfo.edge != null)
+            {
+                if(this.boundaries.getItemIndex(edgeInfo.edge) == -1)
+                {
+                    edgeInfo.edge.marker = data.marker;
+                    edgeInfo.edge.angle = data.angle;
+                    edgeInfo.edge.boundary = true;
+
+                    edgeInfo.edge.v1 = data.v1;
+                    edgeInfo.edge.v2 = data.v2;
+
+                    //this.traceEdges("addBoundary()");
+
+                    this.boundaries.addItem(edgeInfo.edge);
+
+                    var evt:MeshEditorEvent = new MeshEditorEvent(MeshEditorEvent.BOUNDARY_ADDED);
+                    evt.data = edgeInfo.edge;
+
+                    this.dispatchEvent(evt);
+
+                    this.updateElementWithEdge(edgeInfo.edge);
+                }
+            }
+        }
+
+        private function traceEdges(msg:String):void
+        {
+            trace("--- All Edges: " + msg + " ---")
+            trace(this.edges.length);
+            for(var i:Number=0 ;i<this.edges.length;i++)
+            {
+                trace(this.edges[i].v1.id, this.edges[i].v2.id, this.edges[i].boundary)
+            }
+        }
+
+        public function removeEdge(data:Object, removeBoundary:Boolean):void
+        {
+            if(data.boundary == true)
+            {
+                if(removeBoundary)
+                    this.edges.removeItemAt(this.edges.getItemIndex(data));
+            }
+            else
+            {
+                this.edges.removeItemAt(this.edges.getItemIndex(data));
+            }
+
+            if(this.edges.length == 0)
+                this.nextEdgeId = 0;
         }
 
         public function removeBoundary(data:Object):void
         {
-            for(var i:int=0; i<this.boundaries.length;i++)
+            this.boundaries.removeItemAt(this.boundaries.getItemIndex(data));
+
+            if(this.boundaries.length == 0)
+                this.nextBoundaryId = 0;
+
+            if(!this.isEdgeInElement(data))
             {
-                if(this.boundaries[i].id == data.id)
-                {
-                    this.boundaries.removeItemAt(i);
-                    break;
-                }
+                this.removeEdge(data, true);
             }
+            else
+            {
+                delete data.marker;
+                delete data.angle;
+                delete data.boundary;
+            }
+
+            //this.traceEdges("removeBoundary()");
 
             var evt:MeshEditorEvent = new MeshEditorEvent(MeshEditorEvent.BOUNDARY_REMOVED);
             evt.data = data;
 
             this.dispatchEvent(evt);
+        }
 
-            if(this.boundaries.length == 0)
-                this.nextBoundaryId = 0;
+        public function removeEdgeWithVertex(data:Object):void
+        {
+            var etr:Array = [];
+
+            for(var i:int=0;i<this.edges.length;i++)
+            {
+                if(this.edges[i].v1.id == data.id)
+                    etr.push(this.edges[i]);
+                else
+                {
+                    if(this.edges[i].v2.id == data.id)
+                        etr.push(this.edges[i]);
+                }
+            }
+
+            for(i=0;i<etr.length;i++)
+            {
+                this.removeEdge(etr[i], true);
+            }
+
+            if(this.edges.length == 0)
+                this.nextEdgeId = 0;
         }
 
         public function removeBoundaryWithVertex(data:Object):void
@@ -479,6 +656,23 @@ package com
             return false;
         }
 
+        private function isEdgeInElement(edge:Object):Boolean
+        {
+            var cnt:Number = 0;
+            for each(var e:Object in this.elements)
+            {
+                if( e.edges.indexOf(edge) == -1)
+                    cnt++;
+                else
+                    return true;
+            }
+
+            if(cnt == this.elements.length)
+                return false;
+
+            return true;
+        }
+
         public function isAnyVertexInsideAnyElement():Boolean
         {
             var count:int = 0;
@@ -504,7 +698,7 @@ package com
             return false;
         }
 
-        public function isNewBoundaryIntersectingOtherEdge(b:Object):Boolean
+        public function isNewEdgeIntersectingOtherEdge(b:Object):Boolean
         {
             var _edges:Array = this.getArrayEdges();
             _edges.push([b.v1, b.v2]);
@@ -605,26 +799,12 @@ package com
         {
             var _edges:Array = [];
 
-            for each(var e:Object in this.elements)
+            for each(var e:Object in this.edges)
             {
                 _edges.push([e.v1,e.v2]);
-                _edges.push([e.v2,e.v3]);
-
-                if(e.v4 == undefined)
-                {
-                    _edges.push([e.v3,e.v1]);
-                }
-                else
-                {
-                    _edges.push([e.v3,e.v4]);
-                    _edges.push([e.v4,e.v1]);
-                }
             }
-
-            _edges = _edges.concat(this.getArrayBoundaries());
     
-            var edges:Array = this.getArrayUniqueEdges(_edges);
-            return edges;
+            return _edges;
         }
 
         private function getArrayUniqueEdges(_edges:Array):Array
@@ -698,27 +878,24 @@ package com
             var count:int = 0;
             var tmp:int = 0;
 
-            try
-            {
-                vId1.push(data.v1);
-                vId1.push(data.v2);
-                vId1.push(data.v3);
+            vId1.push(data.v1);
+            vId1.push(data.v2);
+            vId1.push(data.v3);
+
+            if(data.v4 != undefined)
                 vId1.push(data.v4);
-            }catch(e:Error){}
 
             for each(var element:Object in this.elements)
             {
                 count = 0;
                 vId2.splice(0,vId2.length);
 
-                try
-                {
-                    vId2.push(element.v1);
-                    vId2.push(element.v2);
-                    vId2.push(element.v3);
-                    vId2.push(element.v4);
-                }
-                catch(e:Error) {}
+                vId2.push(element.v1);
+                vId2.push(element.v2);
+                vId2.push(element.v3);
+
+                if(data.v4 != undefined)
+                    vId1.push(data.v4);
 
                 if(vId1.length == vId2.length)
                 {
@@ -738,15 +915,15 @@ package com
             return false;
         }
 
-        private function checkDuplicateBoundary(data:Object):Boolean
+        private function checkDuplicateEdge(data:Object):Object
         {
-            for(var i:int=0;i<this.boundaries.length;i++)
+            for(var i:int=0;i<this.edges.length;i++)
             {
-                if((this.boundaries[i].v1 == data.v1 && this.boundaries[i].v2 == data.v2) || (this.boundaries[i].v1 == data.v2 && this.boundaries[i].v2 == data.v1))
-                    return true;
+                if((this.edges[i].v1 == data.v1 && this.edges[i].v2 == data.v2) || (this.edges[i].v1 == data.v2 && this.edges[i].v2 == data.v1))
+                    return this.edges[i];
             }
 
-            return false;
+            return null;
         }
 
         public function getVertex(id:int):Object
@@ -794,9 +971,11 @@ package com
             this.vertices.removeAll();
             this.elements.removeAll();
             this.boundaries.removeAll();
+            this.edges.removeAll();
 
             this.nextVertexId = 0;
             this.nextElementId = 0;
+            this.nextEdgeId = 0;
             this.nextBoundaryId = 0;
             this.updatedVertex = null;
             this.updatedBoundary = null;
@@ -806,13 +985,19 @@ package com
         {
             if(evt.kind == CollectionEventKind.UPDATE)
             {
-                var e:MeshEditorEvent = new MeshEditorEvent(MeshEditorEvent.VERTEX_UPDATED);
-                e.data = this.updatedVertex;
+                if(this.updatedVertex != null)
+                {
+                    this.updatedVertex.x = Number(this.updatedVertex.x);
+                    this.updatedVertex.y = Number(this.updatedVertex.y);
 
-                this.dispatchEvent(e);
+                    var e:MeshEditorEvent = new MeshEditorEvent(MeshEditorEvent.VERTEX_UPDATED);
+                    e.data = this.updatedVertex;
 
-                this.updateElementWithVertex(this.updatedVertex);
-                this.updateBoundaryWithVertex(this.updatedVertex);
+                    this.dispatchEvent(e);
+
+                    this.updateElementWithVertex(this.updatedVertex);
+                    this.updateBoundaryWithVertex(this.updatedVertex);
+                }
             }
         }
 
@@ -822,14 +1007,15 @@ package com
             {
                 if(this.updatedBoundary != null)
                 {
-                    trace("colection changed:", this.updatedBoundary)
-                    trace(this.updatedBoundary.v1.id, this.updatedBoundary.v2.id)
+                    this.updatedBoundary.angle = Number(this.updatedBoundary.angle);
+                    this.updatedBoundary.marker = int(this.updatedBoundary.marker);
 
                     var e:MeshEditorEvent = new MeshEditorEvent(MeshEditorEvent.BOUNDARY_UPDATED);
                     e.data = this.updatedBoundary;
 
                     this.dispatchEvent(e);
-                    //this.updateElementWithBoundary(this.updatedBoundary);
+
+                    this.updateElementWithEdge(this.updatedBoundary);
                 }
             }
         }
@@ -838,7 +1024,7 @@ package com
         {
             for each(var v:XML in vertices.vertex)
             {
-                this.addVertex({id:int(v.@id), x:v.x, y:v.y});
+                this.addVertex({id:int(v.@id), x:Number(v.x), y:Number(v.y)});
             }
         }
 
@@ -876,7 +1062,7 @@ package com
                 v1 = this.getVertex(int(b.v1));
                 v2 = this.getVertex(int(b.v2));
 
-                this.addBoundary({id:int(b.@id), v1:v1, v2:v2, marker:b.marker, angle:0});
+                this.addBoundary({id:int(b.@id), v1:v1, v2:v2, marker:int(b.marker), angle:Number(b.angle), boundary:true});
             }
         }
 
@@ -1232,16 +1418,30 @@ package com
             }
 
             str += "}\n\nboundaries = \n{\n";
+            var hasCurves:Boolean = false;
+            var strCurves:String = "";
 
             for(i=0;i<this.boundaries.length;i++)
             {
                 i1 = this.vertices.getItemIndex(this.boundaries[i].v1);
                 i2 = this.vertices.getItemIndex(this.boundaries[i].v2);
 
+                if(this.boundaries[i].angle != 0)
+                {
+                    hasCurves = true;
+                    strCurves += "    {" + i1 + "," + i2 + "," + this.boundaries[i].angle +"},\n";
+                }
+
                 if(i==this.boundaries.length-1)
                     str += "    {" + i1 + "," + i2 + "," + this.boundaries[i].marker +"}\n";
                 else
                     str += "    {" + i1 + "," + i2 + "," + this.boundaries[i].marker +"},\n";
+            }
+
+            if(hasCurves)
+            {
+                str += "}\n\ncurves = \n{\n";
+                str += ( strCurves.slice(0,strCurves.length-2) + "\n" );
             }
 
             str += "}\n";
@@ -1264,7 +1464,7 @@ package com
                 var i1:int = this.vertices.getItemIndex(b.v1);
                 var i2:int = this.vertices.getItemIndex(b.v2);
 
-                boundaries += (i1 + " " + i2 + " " + b.marker +",");
+                boundaries += (i1 + " " + i2 + " " + b.marker + " " + b.angle + ",");
             }
 
             return {"nodes":nodes, "boundaries":boundaries};
