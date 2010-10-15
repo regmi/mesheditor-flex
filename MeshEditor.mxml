@@ -1,8 +1,12 @@
 <?xml version="1.0" encoding="utf-8"?>
 <custom:MeshEditor
-    xmlns:mx="http://www.adobe.com/2006/mxml" width="840" height="600"
+    xmlns:mx="http://www.adobe.com/2006/mxml"
     xmlns:custom="com.*"
-    layout="absolute"
+    layout="vertical"
+    paddingTop="10"
+    paddingBottom="10"
+    paddingLeft="10"
+    paddingRight="10"
 >
     <mx:Script>
         <![CDATA[
@@ -27,71 +31,81 @@
         ]]>
     </mx:Script>
 
-    <mx:Style source="./assets/style.css"/>
+    <mx:HBox horizontalAlign="right" width="100%" height="100%">
+        <mx:VBox horizontalAlign="center" width="100%" height="100%">
+            <mx:HBox horizontalAlign="left" id="hboxDrawingArea" width="100%" height="100%">
+            </mx:HBox>
+            <mx:HBox horizontalAlign="right" width="100%">
+                <mx:HBox horizontalAlign="left" width="100%">
+                    <mx:CheckBox id="chkBoxShowVertexIndex" label="Show Vertex Index" selected="false"/>
+                    <mx:CheckBox id="chkBoxShowElementIndex" label="Show Elements Index" selected="false"/>
+                    <mx:CheckBox id="chkBoxShowBoundary" label="Show Boundaries" selected="true"/>
+                    <mx:CheckBox id="chkBoxShowElement" label="Show Elements" selected="true"/>
+                </mx:HBox>
+                <mx:HBox horizontalAlign="right">
+                    <mx:Button id="btnZoomIn" label="Zoom In" toolTip="Zoom IN, Shortcut: ="/>
+                    <mx:Button id="btnZoomOut" label="Zoom Out" toolTip="Zoom OUT, Shortcut: -"/>
+                </mx:HBox>
+            </mx:HBox>
+        </mx:VBox>
 
-    <mx:Label text="Mesh Editor" fontWeight="bold" fontSize="20" top="0" left="10"/>
+        <mx:VBox horizontalAlign="center" width="210" height="100%">
+            <mx:Accordion id="accordion" width="100%" height="80%" styleName="accordion">
+                <mx:Canvas label="Vertices" width="100%" height="100%">
+                    <mx:DataGrid id="gridVertices" width="100%" height="100%" editable="true" allowMultipleSelection="true">
+                        <mx:columns>
+                            <mx:DataGridColumn dataField="id" editable="false" headerText="ID" width="30"/>
+                            <mx:DataGridColumn dataField="x" headerText="X"/>
+                            <mx:DataGridColumn dataField="y" headerText="Y"/>
+                        </mx:columns>
+                    </mx:DataGrid>
+                </mx:Canvas>
 
-    <mx:VBox top="30" left="620" horizontalAlign="center">
-        <mx:Accordion id="accordion" width="210" height="400" styleName="accordion">
-            <mx:Canvas label="Vertices" width="100%" height="100%">
-                <mx:DataGrid id="gridVertices" width="100%" height="100%" editable="true" allowMultipleSelection="true">
-                    <mx:columns>
-                        <mx:DataGridColumn dataField="id" editable="false" headerText="ID" width="30"/>
-                        <mx:DataGridColumn dataField="x" headerText="X"/>
-                        <mx:DataGridColumn dataField="y" headerText="Y"/>
-                    </mx:columns>
-                </mx:DataGrid>
-            </mx:Canvas>
+                <mx:Canvas label="Elements" width="100%" height="100%">
+                    <mx:DataGrid id="gridElements" width="100%" height="100%" editable="true" allowMultipleSelection="true" creationComplete="gridElementsCreationComplete(event)">
+                        <mx:columns>
+                            <mx:DataGridColumn dataField="id" headerText="ID" width="30" editable="false"/>
+                            <mx:DataGridColumn dataField="v1.id" headerText="V1" editable="false"/>
+                            <mx:DataGridColumn dataField="v2.id" headerText="V2" editable="false"/>
+                            <mx:DataGridColumn dataField="v3.id" headerText="V3" editable="false"/>
+                            <mx:DataGridColumn dataField="v4.id" headerText="V4" editable="false"/>
+                            <mx:DataGridColumn dataField="material" headerText="M"/>
+                        </mx:columns>
+                    </mx:DataGrid>
+                </mx:Canvas>
 
-            <mx:Canvas label="Elements" width="100%" height="100%">
-                <mx:DataGrid id="gridElements" width="100%" height="100%" editable="true" allowMultipleSelection="true" creationComplete="gridElementsCreationComplete(event)">
-                    <mx:columns>
-                        <mx:DataGridColumn dataField="id" headerText="ID" width="30" editable="false"/>
-                        <mx:DataGridColumn dataField="v1.id" headerText="V1" editable="false"/>
-                        <mx:DataGridColumn dataField="v2.id" headerText="V2" editable="false"/>
-                        <mx:DataGridColumn dataField="v3.id" headerText="V3" editable="false"/>
-                        <mx:DataGridColumn dataField="v4.id" headerText="V4" editable="false"/>
-                        <mx:DataGridColumn dataField="material" headerText="M"/>
-                    </mx:columns>
-                </mx:DataGrid>
-            </mx:Canvas>
+                <mx:Canvas label="Boundaries" width="100%" height="100%">
+                    <mx:DataGrid id="gridBoundaries" width="100%" height="100%" editable="true" allowMultipleSelection="true" creationComplete="gridBoundariesCreationComplete(event)">
+                        <mx:columns>
+                            <mx:DataGridColumn dataField="id" headerText="ID" width="30"  editable="false"/>
+                            <mx:DataGridColumn dataField="v1.id" headerText="V1" editable="false"/>
+                            <mx:DataGridColumn dataField="v2.id" headerText="V2" editable="false"/>
+                            <mx:DataGridColumn dataField="marker" headerText="Marker"/>
+                            <mx:DataGridColumn dataField="angle" headerText="Ang"/>
+                        </mx:columns>
+                    </mx:DataGrid>
+                </mx:Canvas>
+            </mx:Accordion>
 
-            <mx:Canvas label="Boundaries" width="100%" height="100%">
-                <mx:DataGrid id="gridBoundaries" width="100%" height="100%" editable="true" allowMultipleSelection="true" creationComplete="gridBoundariesCreationComplete(event)">
-                    <mx:columns>
-                        <mx:DataGridColumn dataField="id" headerText="ID" width="30"  editable="false"/>
-                        <mx:DataGridColumn dataField="v1.id" headerText="V1" editable="false"/>
-                        <mx:DataGridColumn dataField="v2.id" headerText="V2" editable="false"/>
-                        <mx:DataGridColumn dataField="marker" headerText="Marker"/>
-                        <mx:DataGridColumn dataField="angle" headerText="Ang"/>
-                    </mx:columns>
-                </mx:DataGrid>
-            </mx:Canvas>
-
-            <mx:Canvas label="Curves" width="100%" height="100%">
-            </mx:Canvas>
-        </mx:Accordion>
-
-        <mx:HBox horizontalAlign="center">
-            <mx:Button id="btnShowWindow" label="+"/>
-            <mx:Button id="btnRemoveItem" label="-"/>
-        </mx:HBox>
-    </mx:VBox>
-
-    <mx:Button id="btnZoomIn" label="Zoom In" bottom="110" right="10" toolTip="Zoom IN, Shortcut: ="/>
-    <mx:Button id="btnZoomOut" label="Zoom Out" bottom="110" right="140" toolTip="Zoom OUT, Shortcut: -"/>
-    <mx:CheckBox id="chkBoxShowBoundary" bottom="30" left="350" label="Show Boundaries" selected="true"/>
-    <mx:CheckBox id="chkBoxShowElement" bottom="30" left="500" label="Show Elements" selected="true"/>
-
-    <mx:HBox bottom="3" left="10">
-        <mx:Button id="btnSaveMesh" label="Save" toolTip="Save Mesh Locally, Shortcut: s"/>
-        <mx:Button id="btnLoadMesh" label="Load" toolTip="Load local Mesh, Shortcut: l"/>
-        <mx:Button id="btnSubmitMesh" label="Submit" toolTip="Submit mesh to the server, Shortcut: enter"/>
-        <mx:Button id="btnClear" label="Clear" toolTip="Clear Drawing, Shortcut: c"/>
-        <mx:Button id="btnTriangulateMesh" label="Triangulate" toolTip="Triangulate the given Domain, Shortcut: t"/>
-        <mx:Button id="btnHelp" label="Help" toolTip="Display Help Dialog"/>
+            <mx:HBox horizontalAlign="center">
+                <mx:Button id="btnShowWindow" label="+"/>
+                <mx:Button id="btnRemoveItem" label="-"/>
+            </mx:HBox>
+        </mx:VBox>
     </mx:HBox>
 
-    <mx:Label id="lblCordinate" text="" fontWeight="bold" fontSize="15" bottom="0" right="10"/>
+    <mx:HBox width="100%" horizontalAlign="left">
+        <mx:HBox width="100%">
+            <mx:Button id="btnSaveMesh" label="Save" toolTip="Save Mesh Locally, Shortcut: s"/>
+            <mx:Button id="btnLoadMesh" label="Load" toolTip="Load local Mesh, Shortcut: l"/>
+            <mx:Button id="btnSubmitMesh" label="Submit" toolTip="Submit mesh to the server, Shortcut: enter"/>
+            <mx:Button id="btnClear" label="Clear" toolTip="Clear Drawing, Shortcut: c"/>
+            <mx:Button id="btnTriangulateMesh" label="Triangulate" toolTip="Triangulate the given Domain, Shortcut: t"/>
+            <mx:Button id="btnHelp" label="Help" toolTip="Display Help Dialog"/>
+        </mx:HBox>
+        <mx:HBox width="100%" horizontalAlign="right">
+            <mx:Label id="lblCordinate" text="x , y" fontWeight="bold" fontSize="15"/>
+        </mx:HBox>
+    </mx:HBox>
 
 </custom:MeshEditor>

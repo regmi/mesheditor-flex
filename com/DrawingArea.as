@@ -26,6 +26,7 @@ package com
         public var canvas:Sprite;
         private var grid:Grid;
         private var selectionLine:Sprite;
+        private var msk:Sprite;
         
         public var scaleFactor:Number;
         private var vertexDragged:VertexMarker;
@@ -40,29 +41,20 @@ package com
         private var selectedVertexQueue:Array;
         private var pointBeforeDrag:Point;
 
-        public function DrawingArea(w:int, h:int):void
+        public function DrawingArea(w:int=100, h:int=100):void
         {
             super();
 
-            this.width = w;
-            this.height = h;
+            this.percentWidth = w;
+            this.percentHeight = h;
             this.scaleFactor = 240;
 
             this.vertexContainer = new Sprite();
             this.elementContainer = new Sprite();
             this.boundaryContainer = new Sprite();
 
-            this.graphics.beginFill(0xFFFFFF);
-            this.graphics.drawRect(0,0,w,h);
-            this.graphics.endFill();
-
             this.grid = new Grid();
             this.grid.drawGrid(this.scaleFactor);
-
-            var mask:Sprite = new Sprite();
-            mask.graphics.beginFill(0xFFFFFF);
-            mask.graphics.drawRect(0,0,w,h);
-            mask.graphics.endFill();
 
             this.selectionLine = new Sprite();
 
@@ -71,17 +63,17 @@ package com
             this.canvas.addChild(this.elementContainer);
             this.canvas.addChild(this.boundaryContainer);
             this.canvas.addChild(this.vertexContainer);
-            this.canvas.x = this.width/2;
-            this.canvas.y = this.height/2;
             this.canvas.doubleClickEnabled = true;
             this.canvas.addEventListener(MouseEvent.MOUSE_DOWN, this.canvasMouseDown);
             this.canvas.addEventListener(MouseEvent.MOUSE_UP, this.canvasMouseUp);
             this.canvas.addEventListener(MouseEvent.DOUBLE_CLICK, this.canvasMouseDoubleClick);
 
-            this.addChild(this.canvas);
-            this.addChild(mask);
+            this.msk = new Sprite();
 
-            this.canvas.mask = mask;
+            this.addChild(this.canvas);
+            this.addChild(this.msk);
+
+            this.canvas.mask = this.msk;
 
             this.dictVertexMarker = new Dictionary();
             this.dictElementMarker = new Dictionary();
@@ -105,6 +97,22 @@ package com
 
             this.addEventListener(MouseEvent.MOUSE_UP, this.drawingAreaMouseUp);
             this.addEventListener(MouseEvent.MOUSE_DOWN, this.drawingAreaMouseDown);
+        }
+
+        override protected function updateDisplayList(unscaledWidth:Number, unscaledHeight:Number):void
+        {
+            this.graphics.clear();
+            this.graphics.beginFill(0xFFFFFF);
+            this.graphics.drawRect(0,0,unscaledWidth,unscaledHeight);
+            this.graphics.endFill();
+
+            this.msk.graphics.clear();
+            this.msk.graphics.beginFill(0xFFFFFF);
+            this.msk.graphics.drawRect(0,0,unscaledWidth,unscaledHeight);
+            this.msk.graphics.endFill();
+
+            this.canvas.x = unscaledWidth/2;
+            this.canvas.y = unscaledHeight/2;
         }
 
         public function addVertex(data:Object):void

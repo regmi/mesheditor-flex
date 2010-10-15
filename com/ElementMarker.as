@@ -71,7 +71,7 @@ package com
             this.graphics.clear();
             this.graphics.lineStyle(1, 0x0033FF);
 
-            this.graphics.beginFill(0xCECECE, 0.5);
+            //this.graphics.beginFill(0xCECECE, 0.5);
 
             for each(var edg:Object in data.edges)
             {
@@ -87,7 +87,7 @@ package com
                 }
             }
 
-            this.graphics.endFill();
+            //this.graphics.endFill();
         }
     }
 }

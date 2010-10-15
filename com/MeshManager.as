@@ -1207,6 +1207,76 @@ package com
                 i++;
             }
 
+            //read curves
+            var _curves:Array = [];
+            i = data.indexOf("curves");
+            if(i != -1)
+            {
+                start_section = false;
+                start_data = false;
+                tmp_value = "";
+
+                v1 = null;
+                v2 = null;
+                var angle:int = -1;
+
+                while(true)
+                {
+                    if(data.charAt(i) == "{")
+                    {
+                        if(start_section)
+                        {
+                            start_data = true;
+                        }
+                        else
+                        {
+                            start_section = true;
+                        }
+                    }
+                    else if(data.charAt(i) == "}")
+                    {
+                        if(start_data)
+                        {
+                            start_data = false;
+
+                            angle = parseInt(tmp_value);
+                            tmp_value = "";
+
+                            _curves.push({v1:v1, v2:v2, angle:angle});
+
+                            v1 = null;
+                            v2 = null;
+                            angle = -1;
+                        }
+                        else
+                        {
+                            start_section = false;
+                            break;
+                        }
+                    }
+                    else
+                    {
+                        if(start_section && start_data)
+                        {
+                            if(data.charAt(i) == ",")
+                            {
+                                if(v1 == null)
+                                    v1 = this.getVertex(parseInt(tmp_value));
+                                else if(v2 == null)
+                                    v2 = this.getVertex(parseInt(tmp_value));
+
+                                tmp_value = "";
+                            }
+                            else
+                                tmp_value += data.charAt(i);
+                        }
+                    }
+                    i++;
+                }
+            }
+            else
+                var noCurves:Boolean = true;
+
             //read boundaries
             i = data.indexOf("boundaries");
             start_section = false;
@@ -1239,7 +1309,31 @@ package com
                         marker = parseInt(tmp_value);
                         tmp_value = "";
 
-                        this.addBoundary({v1:v1, v2:v2, marker:marker, angle:0});
+                        if(noCurves)
+                        {
+                            this.addBoundary({v1:v1, v2:v2, marker:marker, boundary:true, angle:0});
+                        }
+                        else
+                        {
+                            for each(var c:Object in _curves)
+                            {
+                                if((v1 == c.v1 && v2 == c.v2) || (v1 == c.v2 && v2 == c.v1))
+                                {
+                                    c.marker = marker;
+                                    c.boundary = true;
+                                    this.addBoundary(c);
+
+                                    _curves.splice(_curves.indexOf(c),1);
+
+                                    var curveAdded:Boolean = true;
+                                }
+                            }
+
+                            if(!curveAdded)
+                                this.addBoundary({v1:v1, v2:v2, marker:marker, boundary:true, angle:0});
+
+                            curveAdded = false;
+                        }
 
                         v1 = null;
                         v2 = null;

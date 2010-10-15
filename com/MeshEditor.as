@@ -38,6 +38,7 @@ package com
         public var chkBoxShowElement:CheckBox;
         public var chkBoxShowBoundary:CheckBox;
         public var lblCordinate:Label;
+        public var hboxDrawingArea:HBox;
 
         private var windowAddVertex:WindowAddVertex;
         private var windowAddElement:WindowAddElement;
@@ -58,12 +59,18 @@ package com
 
             this.addEventListener(FlexEvent.CREATION_COMPLETE, this.creationComplete);
             this.addEventListener(FlexEvent.APPLICATION_COMPLETE, this.applicationComplete);
+            this.addEventListener(ResizeEvent.RESIZE, this.resize);
         }
 
         private function applicationComplete(evt:FlexEvent):void
         {
             this.stage.focus = this;
             this.stage.addEventListener(KeyboardEvent.KEY_DOWN, this.handleKeyDown);
+        }
+
+        private function resize(evt:ResizeEvent):void
+        {
+            trace("-resized-")
         }
 
         private function creationComplete(evt:FlexEvent):void
@@ -85,7 +92,7 @@ package com
             this.gridVertices.addEventListener(ListEvent.CHANGE, this.gridVerticesItemRollOver);
             this.gridVertices.addEventListener(DataGridEvent.ITEM_EDIT_END, this.gridVerticesItemEditEnd);
 
-            this.drawingArea = new DrawingArea(600, 515);
+            this.drawingArea = new DrawingArea();
             this.drawingArea.addEventListener(MeshEditorEvent.VERTEX_ADDED, this.drawingAreaVertexAdded);
             this.drawingArea.addEventListener(MeshEditorEvent.VERTEX_REMOVED, this.drawingAreaVertexRemoved);
             this.drawingArea.addEventListener(MeshEditorEvent.VERTEX_UPDATED, this.drawingAreaVertexUpdated);
@@ -97,9 +104,7 @@ package com
             this.drawingArea.addEventListener(MouseEvent.MOUSE_OUT, this.drawingAreaMouseOut);
             this.drawingArea.addEventListener(MouseEvent.MOUSE_MOVE, this.drawingAreaMouseMove);
             this.drawingArea.scaleFactor = 240;
-            this.drawingArea.x = 10;
-            this.drawingArea.y = 30;
-            this.addChild(this.drawingArea);
+            this.hboxDrawingArea.addChild(this.drawingArea);
 
             this.meshManager = new MeshManager();
             this.meshManager.addEventListener(MeshEditorEvent.VERTEX_ADDED, this.meshManagerVertexAdded);
@@ -492,7 +497,8 @@ package com
 
         private function btnSaveMeshClick(evt:MouseEvent):void
         {
-            var anyOutside:int = meshManager.isAnyVertexOutsideBoundary();
+            //var anyOutside:int = meshManager.isAnyVertexOutsideBoundary();
+            var anyOutside:int = 0;
 
             if(anyOutside == 0)
             {
