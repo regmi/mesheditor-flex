@@ -39,6 +39,8 @@ package com
         public var chkBoxShowBoundary:CheckBox;
         public var lblCordinate:Label;
         public var hboxDrawingArea:HBox;
+        public var hScrollBar:HScrollBar;
+        public var vScrollBar:VScrollBar;
 
         private var windowAddVertex:WindowAddVertex;
         private var windowAddElement:WindowAddElement;
@@ -59,18 +61,12 @@ package com
 
             this.addEventListener(FlexEvent.CREATION_COMPLETE, this.creationComplete);
             this.addEventListener(FlexEvent.APPLICATION_COMPLETE, this.applicationComplete);
-            this.addEventListener(ResizeEvent.RESIZE, this.resize);
         }
 
         private function applicationComplete(evt:FlexEvent):void
         {
             this.stage.focus = this;
             this.stage.addEventListener(KeyboardEvent.KEY_DOWN, this.handleKeyDown);
-        }
-
-        private function resize(evt:ResizeEvent):void
-        {
-            trace("-resized-")
         }
 
         private function creationComplete(evt:FlexEvent):void
@@ -121,11 +117,24 @@ package com
 
             this.gridVertices.dataProvider = this.meshManager.vertices;
 
+            this.hScrollBar.addEventListener(ScrollEvent.SCROLL, this.hScrollBarScroll);
+            this.vScrollBar.addEventListener(ScrollEvent.SCROLL, this.vScrollBarScroll);
+
             try
             {
                 this.parseFlashVars();
             }
             catch(e:Error) {}
+        }
+
+        private function hScrollBarScroll(evt:ScrollEvent):void
+        {
+            this.drawingArea.scrollCanvas(-1, evt.position);
+        }
+
+        private function vScrollBarScroll(evt:ScrollEvent):void
+        {
+            this.drawingArea.scrollCanvas(evt.position, -1);
         }
 
         private function zoomInOut():void
