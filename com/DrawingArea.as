@@ -94,8 +94,6 @@ package com
 
             this.readyToAdd = 0;
             this.selectedVertexQueue = [];
-
-            this.addEventListener(MouseEvent.MOUSE_UP, this.drawingAreaMouseUp);
         }
 
         override protected function updateDisplayList(unscaledWidth:Number, unscaledHeight:Number):void
@@ -437,6 +435,7 @@ package com
         {
             var i:int,p:int;
 
+            //Scroll vertically
             if(vPos >=0 && hPos == -1)
             {
                 i = (50 - vPos)
@@ -447,6 +446,7 @@ package com
                 else
                     this.canvas.y = (this.height/2) + p;
             }
+            //Scroll Horizontally
             else if(vPos == -1 && hPos >= 0)
             {
                 i = (50 - hPos)
@@ -459,7 +459,7 @@ package com
             }
         }
 
-        private function drawingAreaMouseUp(evt:MouseEvent):void
+        public function mouseUp(evt:MouseEvent):void
         {
             if(evt.ctrlKey)
             {
@@ -476,6 +476,14 @@ package com
                 {
                     this.clearSelectedVertexQueue();
                 }
+            }
+        }
+
+        public function mouseDown(evt:MouseEvent):void
+        {
+            if(evt.shiftKey)
+            {
+                this.canvas.startDrag();
             }
         }
 

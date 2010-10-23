@@ -2,7 +2,6 @@
 <custom:MeshEditor
     xmlns:mx="http://www.adobe.com/2006/mxml"
     xmlns:custom="com.*"
-    layout="vertical"
     paddingTop="10"
     paddingBottom="10"
     paddingLeft="10"
@@ -37,11 +36,11 @@
                 <mx:HBox horizontalAlign="left" width="100%" height="100%" horizontalGap="0">
                     <mx:HBox horizontalAlign="left" id="hboxDrawingArea" width="100%" height="100%">
                     </mx:HBox>
-                    <mx:VScrollBar id="vScrollBar" height="100%" minScrollPosition="0" maxScrollPosition="100" scrollPosition="50" lineScrollSize="1" pageScrollSize="1" repeatDelay="1000" repeatInterval="500"/>
+                    <mx:VScrollBar id="vScrollBar" height="100%" minScrollPosition="0" maxScrollPosition="100" scrollPosition="50" lineScrollSize="1" pageScrollSize="1" repeatDelay="500" repeatInterval="250"/>
                 </mx:HBox>
 
                 <mx:HBox horizontalAlign="left" paddingRight="15" width="100%">
-                    <mx:HScrollBar id="hScrollBar" width="100%" minScrollPosition="0" maxScrollPosition="100" scrollPosition="50" lineScrollSize="1" pageScrollSize="1" repeatDelay="1000" repeatInterval="500"/>
+                    <mx:HScrollBar id="hScrollBar" width="100%" minScrollPosition="0" maxScrollPosition="100" scrollPosition="50" lineScrollSize="1" pageScrollSize="1" repeatDelay="500" repeatInterval="250"/>
                 </mx:HBox>
             </mx:VBox>
 

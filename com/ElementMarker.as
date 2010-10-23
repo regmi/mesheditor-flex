@@ -15,58 +15,10 @@ package com
             super();
             this.dataProvider = data;
             this.doubleClickEnabled = true;
-
-            /*
-            var menuItem:ContextMenuItem = new ContextMenuItem("Change Color");
-            //menuItem.addEventListener(ContextMenuEvent.MENU_ITEM_SELECT,changeColor);
-
-            var customContextMenu:ContextMenu = new ContextMenu();
-
-            //hide the Flash menu
-            //customContextMenu.hideBuiltInItems();
-            customContextMenu.customItems.push(menuItem);
-            this.contextMenu = customContextMenu;
-            */
-
-            //this.buttonMode = true;
-            //this.useHandCursor = true;
         }
 
         //It should be called only after ElementMarker is placed in the display list
-        public function __drawBorder(data:Object, scaleFactor:Number):void
-        {
-            this.x = scaleFactor*data.v1.x;
-            this.y = -scaleFactor*data.v1.y;
-
-            this.graphics.clear();
-            this.graphics.lineStyle(1, 0x0033FF);
-            this.graphics.beginFill(0xCECECE, 0.5);
-
-            var gp:Point = this.parent.localToGlobal(new Point(scaleFactor*data.v2.x, -scaleFactor*data.v2.y));
-            var lp:Point = this.globalToLocal(gp);
-            this.graphics.lineTo(lp.x, lp.y);
-
-            try
-            {
-                gp = this.parent.localToGlobal(new Point(scaleFactor*data.v3.x, -scaleFactor*data.v3.y));
-                lp = this.globalToLocal(gp);
-                this.graphics.lineTo(lp.x, lp.y);
-            }
-            catch(e:Error) { }
-
-            try
-            {
-                gp = this.parent.localToGlobal(new Point(scaleFactor*data.v4.x, -scaleFactor*data.v4.y));
-                lp = this.globalToLocal(gp);
-                this.graphics.lineTo(lp.x, lp.y);
-            }
-            catch(e:Error) { }
-
-            this.graphics.lineTo(0,0);
-            this.graphics.endFill();
-        }
-
-        public function drawBorder(data:Object, scaleFactor:Number):void
+        public function _drawBorder(data:Object, scaleFactor:Number):void
         {
             this.graphics.clear();
             this.graphics.lineStyle(1, 0x0033FF);
@@ -88,6 +40,63 @@ package com
             }
 
             //this.graphics.endFill();
+        }
+
+        public function drawBorder(data:Object, scaleFactor:Number):void
+        {
+            var path:Array = Geometry.getPath(data.edges);
+
+            trace("--Path--")
+            for each(var e:Object in path)
+            {
+                trace(e.v1.id, e.v2.id)
+            }
+
+            this.graphics.clear();
+            this.graphics.lineStyle(1, 0x0033FF);
+            this.graphics.beginFill(0xCECECE, 0.5);
+            this.graphics.moveTo(scaleFactor*path[0].v1.x, -scaleFactor*path[0].v1.y);
+
+            if(path[0].boundary == undefined)
+            {
+                this.graphics.lineTo(scaleFactor*path[0].v2.x, -scaleFactor*path[0].v2.y);
+            }
+            else
+            {
+                if(path[0].boundary == true && path[0].angle == 0)
+                {
+                    this.graphics.lineTo(scaleFactor*path[0].v2.x, -scaleFactor*path[0].v2.y);
+                }
+                else
+                {
+                    var arcInfo:Object = Geometry.getArcInfo2(path[0]);
+                    trace(path[0].v1.id, path[0].v2.id);
+                    DrawingShapes.drawArc0(this.graphics, arcInfo, scaleFactor);
+                }
+            }
+
+            for(var i:int=1;i<path.length;i++)
+            {
+                if(path[i].boundary == undefined)
+                {
+                    this.graphics.lineTo(scaleFactor*path[i].v2.x, -scaleFactor*path[i].v2.y);
+                }
+                else
+                {
+                    if(path[i].boundary == true && path[i].angle == 0)
+                    {
+                        this.graphics.lineTo(scaleFactor*path[i].v2.x, -scaleFactor*path[i].v2.y);
+                    }
+                    else
+                    {
+                        var arcInfo:Object = Geometry.getArcInfo2(path[i]);
+                        trace(path[i].v1.id, path[i].v2.id);
+                        DrawingShapes.drawArc0(this.graphics, arcInfo, scaleFactor);
+                    }
+                }
+            }
+
+            this.graphics.endFill();
         }
     }
 }

@@ -99,6 +99,9 @@ package com
             this.drawingArea.addEventListener(MeshEditorEvent.BOUNDARY_REMOVED, this.drawingAreaBoundaryRemoved);
             this.drawingArea.addEventListener(MouseEvent.MOUSE_OUT, this.drawingAreaMouseOut);
             this.drawingArea.addEventListener(MouseEvent.MOUSE_MOVE, this.drawingAreaMouseMove);
+            this.drawingArea.addEventListener(MouseEvent.MOUSE_WHEEL, this.drawingAreaMouseWheel);
+            this.drawingArea.addEventListener(MouseEvent.MOUSE_UP, this.drawingAreaMouseUp);
+            this.drawingArea.addEventListener(MouseEvent.MOUSE_DOWN, this.drawingAreaMouseDown);
             this.drawingArea.scaleFactor = 240;
             this.hboxDrawingArea.addChild(this.drawingArea);
 
@@ -177,7 +180,7 @@ package com
             {
                 this.btnLoadMeshClick(null);
             }
-            else if(evt.charCode == 13)//submit
+            else if(evt.ctrlKey && evt.charCode == 13)//submit
             {
                 this.btnSubmitMeshClick(null);
             }
@@ -208,11 +211,11 @@ package com
             {
                 this.btnHelpClick(null);
             }
-            else if(evt.charCode == 45)//zoom out
+            else if(evt.ctrlKey && evt.charCode == 45)//zoom out
             {
                 this.btnZoomOutClick(null);
             }
-            else if(evt.charCode == 61)//zoom in
+            else if(evt.ctrlKey && evt.charCode == 61)//zoom in
             {
                 this.btnZoomInClick(null);
             }
@@ -624,6 +627,28 @@ package com
                 this.drawingArea.scaleFactor += 5;
                 this.zoomInOut();
             }
+        }
+
+        private function drawingAreaMouseWheel(evt:MouseEvent):void
+        {
+            if(evt.delta > 0)
+            {
+                this.btnZoomInClick(null);
+            }
+            else
+            {
+                this.btnZoomOutClick(null);
+            }
+        }
+
+        private function drawingAreaMouseUp(evt:MouseEvent):void
+        {
+            this.drawingArea.mouseUp(evt);
+        }
+
+        private function drawingAreaMouseDown(evt:MouseEvent):void
+        {
+            this.drawingArea.mouseDown(evt);
         }
 
         private function btnHelpClick(evt:MouseEvent):void
