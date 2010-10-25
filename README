@@ -1,8 +1,0 @@
-Flex sdk can be downloaded from
-http://www.adobe.com/cfusion/entitlement/index.cfm?e=flex3sdk
-
-How to compile:
---------------------------------------------
-- add flex_sdk/bin to your system path
-- $ make
-
