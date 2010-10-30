@@ -46,16 +46,12 @@ package com
         {
             var path:Array = Geometry.getPath(data.edges);
 
-            trace("--Path--")
-            for each(var e:Object in path)
-            {
-                trace(e.v1.id, e.v2.id)
-            }
-
             this.graphics.clear();
             this.graphics.lineStyle(1, 0x0033FF);
             this.graphics.beginFill(0xCECECE, 0.5);
             this.graphics.moveTo(scaleFactor*path[0].v1.x, -scaleFactor*path[0].v1.y);
+
+            var arcInfo:Object;
 
             if(path[0].boundary == undefined)
             {
@@ -69,8 +65,7 @@ package com
                 }
                 else
                 {
-                    var arcInfo:Object = Geometry.getArcInfo2(path[0]);
-                    trace(path[0].v1.id, path[0].v2.id);
+                    arcInfo = Geometry.getArcInfo2(path[0]);
                     DrawingShapes.drawArc0(this.graphics, arcInfo, scaleFactor);
                 }
             }
@@ -89,8 +84,7 @@ package com
                     }
                     else
                     {
-                        var arcInfo:Object = Geometry.getArcInfo2(path[i]);
-                        trace(path[i].v1.id, path[i].v2.id);
+                        arcInfo = Geometry.getArcInfo2(path[i]);
                         DrawingShapes.drawArc0(this.graphics, arcInfo, scaleFactor);
                     }
                 }

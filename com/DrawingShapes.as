@@ -108,11 +108,12 @@
 
 			var angle_from:Number = arcInfo.startAngle;
 			var angle_to:Number = arcInfo.endAngle;
+			var angle_diff:Number;
 
 			if(arcInfo.centerAngle > 0)
-				var angle_diff:Number = Math.abs(angle_to - angle_from);
+				angle_diff = Math.abs(angle_to - angle_from);
 			else
-				var angle_diff:Number = Math.abs(angle_from - angle_to);
+				angle_diff = Math.abs(angle_from - angle_to);
 
 			var steps:Number = Math.round(angle_diff*precision);
 
@@ -124,19 +125,14 @@
 			var py:Number = center_y + radius*Math.sin(angle_from*deg_to_rad);
 
 			graphics.lineTo(px,-py);
-			trace("--draw--")
-			trace(angle_from, angle_to)
-			trace(px/scaleFactor,py/scaleFactor);
-			trace(steps);
 
 			for (var i:int=1; i<=steps; i++)
 			{
+				var angle:Number;
 				if(arcInfo.centerAngle > 0)
-					var angle:Number = angle_from + angle_diff/steps*i;
+					angle = angle_from + angle_diff/steps*i;
 				else
-					var angle:Number = angle_from - angle_diff/steps*i;
-
-				trace(angle)
+					angle = angle_from - angle_diff/steps*i;
 
 				graphics.lineTo(center_x + radius*Math.cos(angle*deg_to_rad),-(center_y+radius*Math.sin(angle*deg_to_rad)));
 			}
