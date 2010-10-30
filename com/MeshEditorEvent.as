@@ -22,6 +22,8 @@ package com
         public static const BOUNDARY_SELECTED:String = "boundarySelected";
         public static const BOUNDARY_UPDATED:String = "boundaryUpdated";
 
+        public static const RPC_RESULT:String = "rpcResult";
+
         public var data:Object;
         public var data2:Object;
 

@@ -27,9 +27,9 @@ package com
         public var gridElements:DataGrid;
         public var gridBoundaries:DataGrid;
         public var accordion:Accordion;
+        public var btnSubmitMesh:Button;
         public var btnSaveMesh:Button;
         public var btnLoadMesh:Button;
-        public var btnSubmitMesh:Button;
         public var btnTriangulateMesh:Button;
         public var btnClear:Button;
         public var btnHelp:Button;
@@ -41,6 +41,7 @@ package com
         public var hboxDrawingArea:HBox;
         public var hScrollBar:HScrollBar;
         public var vScrollBar:VScrollBar;
+        public var txtEvaluate:TextInput;
 
         private var windowAddVertex:WindowAddVertex;
         private var windowAddElement:WindowAddElement;
@@ -51,6 +52,8 @@ package com
         public var meshManager:MeshManager;
         private var drawingArea:DrawingArea;
         private var meshfile:FileReference;
+
+        private var rpcConnection:Rpc;
 
         public function MeshEditor()
         {
@@ -67,6 +70,11 @@ package com
         {
             this.stage.focus = this;
             this.stage.addEventListener(KeyboardEvent.KEY_DOWN, this.handleKeyDown);
+
+            if (this.loaderInfo.hasOwnProperty("uncaughtErrorEvents"))
+            {
+                IEventDispatcher(this.loaderInfo["uncaughtErrorEvents"]).addEventListener("uncaughtError", this.uncaughtErrorHandler);
+            }
         }
 
         private function creationComplete(evt:FlexEvent):void
@@ -74,10 +82,10 @@ package com
             this.chkBoxShowElement.addEventListener(Event.CHANGE, this.chkBoxShowElementChange);
             this.chkBoxShowBoundary.addEventListener(Event.CHANGE, this.chkBoxShowBoundaryChange);
             this.btnShowWindow.addEventListener(MouseEvent.CLICK, this.btnShowWindowClick);
+            this.btnSubmitMesh.addEventListener(MouseEvent.CLICK, this.btnSubmitMeshClick);
             this.btnRemoveItem.addEventListener(MouseEvent.CLICK, this.btnRemoveItemClick);
             this.btnSaveMesh.addEventListener(MouseEvent.CLICK, this.btnSaveMeshClick);
             this.btnLoadMesh.addEventListener(MouseEvent.CLICK, this.btnLoadMeshClick);
-            this.btnSubmitMesh.addEventListener(MouseEvent.CLICK, this.btnSubmitMeshClick);
             this.btnTriangulateMesh.addEventListener(MouseEvent.CLICK, this.btnTriangulateMeshClick);
             this.btnClear.addEventListener(MouseEvent.CLICK, this.btnClearClick);
             this.btnHelp.addEventListener(MouseEvent.CLICK, this.btnHelpClick);
@@ -123,11 +131,33 @@ package com
             this.hScrollBar.addEventListener(ScrollEvent.SCROLL, this.hScrollBarScroll);
             this.vScrollBar.addEventListener(ScrollEvent.SCROLL, this.vScrollBarScroll);
 
+            this.rpcConnection = new Rpc("http://localhost:8000/async");
+            this.rpcConnection.addEventListener(MeshEditorEvent.RPC_RESULT, this.rpcConnectionRpcResult);
+
             try
             {
                 this.parseFlashVars();
             }
             catch(e:Error) {}
+        }
+
+        private function uncaughtErrorHandler(evt:ErrorEvent):void
+        {
+            Debug.trace("-- Uncaught Error --");
+            Debug.trace(evt["error"].toString());
+            Debug.trace("Stack Trace:")
+            Debug.trace(evt["error"].getStackTrace());
+        }
+
+        private function rpcConnectionRpcResult(evt:MeshEditorEvent):void
+        {
+            Debug.trace("-- rpc evaluate res --");
+            Debug.trace(evt.data.result.out);
+
+            var res:XML = XML(String(evt.data.result.out));
+
+            this.btnClearClick(null);
+            this.meshManager.loadXmlData(res);
         }
 
         private function hScrollBarScroll(evt:ScrollEvent):void
@@ -162,8 +192,6 @@ package com
 
         private function handleKeyDown(evt:KeyboardEvent):void
         {
-            //trace(evt.charCode);
-
             if(evt.ctrlKey && evt.charCode == 127)
             {
                 this.btnRemoveItemClick(null);
@@ -559,7 +587,7 @@ package com
             }
             else
             {
-                trace("-No External Interface-");
+                Debug.trace("-No External Interface-");
             }
         }
 
@@ -583,6 +611,7 @@ package com
 
         private function btnTriangulateMeshClick(evt:MouseEvent):void
         {
+            /*
             var httpTriangulationService:HTTPService = new HTTPService();
             httpTriangulationService.addEventListener(ResultEvent.RESULT, this.httpTriangulationServiceResultHandler);
 
@@ -593,13 +622,23 @@ package com
             httpTriangulationService.resultFormat = "xml"
             httpTriangulationService.request = this.meshManager.getDomainForTriangulation();
             httpTriangulationService.send();
+            */
+
+            var domain:Object = this.meshManager.getDomainForTriangulation();
+            //var command:String = "from femhub.triangulation import print_triangulated_mesh_xml; nodes = '0 0,0 1,1 1,1 0,0.5 0.5'; boundaries = '0 1 1 0,1 2 1 0,2 3 1 0,3 0 1 0'; print_triangulated_mesh_xml(nodes, boundaries)";
+            var command:String = "from femhub.triangulation import print_triangulated_mesh_xml; print_triangulated_mesh_xml('" + domain.nodes + "','" + domain.boundaries + "')";
+            //var command:String = this.txtEvaluate.text;
+            //Debug.trace(command);
+            //this.rpcConnection.evaluate(command);
+            var o:Object = new Object()
+            o.xyz();
         }
 
         private function httpTriangulationServiceResultHandler(evt:ResultEvent):void
         {
             var res:XML = XML(String(evt.result));
 
-            trace(res)
+            Debug.trace(res);
 
             this.btnClearClick(null);
             this.meshManager.loadXmlData(res);

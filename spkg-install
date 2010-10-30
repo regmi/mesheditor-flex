@@ -1,0 +1,31 @@
+#! /bin/sh
+
+if [ "$SPKG_LOCAL" = "" ]; then
+   echo "SPKG_LOCAL undefined ... exiting";
+   echo "Maybe run 'sage -sh'?"
+   exit 1
+fi
+
+PACKAGE_NAME=mesheditorflex
+
+onlinelab_directory="$SPKG_LOCAL/lib/python/site-packages/onlinelab/"
+mesheditor_previous="$SPKG_LOCAL/share/onlinelab/core-home/static/external/MeshEditor.swf"
+
+# bash check if directory exists
+if [ -d $onlinelab_directory ]; then
+    if [ -f $mesheditor_MeshEditor.swf ]; then
+        rm $SPKG_LOCAL/share/onlinelab/core-home/static/external/MeshEditor.swf
+    fi
+    echo "Copying MeshEditor.swf into femhub..."
+    cp MeshEditor.swf $SPKG_LOCAL/share/onlinelab/core-home/static/external/
+
+else
+	echo "Error installing $PACKAGE_NAME: mesheditorflex needs FEMhub Online Lab installed previously."
+        exit 1
+fi
+
+if [ $? -ne 0 ]; then
+   echo "Error installing $PACKAGE_NAME."
+   exit 1
+fi
+
