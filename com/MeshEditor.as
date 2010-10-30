@@ -629,9 +629,7 @@ package com
             var command:String = "from femhub.triangulation import print_triangulated_mesh_xml; print_triangulated_mesh_xml('" + domain.nodes + "','" + domain.boundaries + "')";
             //var command:String = this.txtEvaluate.text;
             //Debug.trace(command);
-            //this.rpcConnection.evaluate(command);
-            var o:Object = new Object()
-            o.xyz();
+            this.rpcConnection.evaluate(command);
         }
 
         private function httpTriangulationServiceResultHandler(evt:ResultEvent):void

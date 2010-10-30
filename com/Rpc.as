@@ -46,16 +46,16 @@ package com
         {
             var resObject:Object = JSON.decode(String(evt.result));
 
-            if(resObject.result.status != "started")
+            if(resObject.result.status == "started" || resObject.result.status == "running")
+            {
+                Debug.trace("-- RPC initialization suceed ! --");
+            }
+            else
             {
                 this.uuid = "";
 
                 Debug.trace("-- RPC initialization failed --", true);
                 Debug.trace(String(evt.result));
-            }
-            else
-            {
-                Debug.trace("-- RPC initialization suceed ! --");
             }
 
             this.httpUserRequest.removeEventListener(ResultEvent.RESULT, this.initResult);

@@ -109,11 +109,11 @@
         <mx:HBox width="100%">
             <mx:Button id="btnSaveMesh" label="Save" toolTip="Save Mesh Locally, Shortcut: s"/>
             <mx:Button id="btnLoadMesh" label="Load" toolTip="Load local Mesh, Shortcut: l"/>
-            <mx:Button id="btnSubmitMesh" label="Submit" toolTip="Load local Mesh, Shortcut: l"/>
             <mx:Button id="btnClear" label="Clear" toolTip="Clear Drawing, Shortcut: c"/>
             <mx:Button id="btnTriangulateMesh" label="Triangulate" toolTip="Triangulate the given Domain, Shortcut: t"/>
             <mx:Button id="btnHelp" label="Help" toolTip="Display Help Dialog"/>
-            <mx:TextInput id="txtEvaluate" toolTip="Evaluate"/>
+            <mx:Button id="btnSubmitMesh" label="Submit" toolTip="Load local Mesh, Shortcut: l" visible="false"/>
+            <mx:TextInput id="txtEvaluate" toolTip="Evaluate" visible="false"/>
         </mx:HBox>
 
         <mx:HBox width="100%" horizontalAlign="right">
