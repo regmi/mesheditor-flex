@@ -14,6 +14,14 @@ Then install the flex sdk::
     change the following script according to your need and to your bashrc
         $ export PATH=$PATH:path_to/flex_sdk.3.5/bin
 
+This PATH export is a temporary solution (valid only in your 
+current terminal session). To make it permanent, you need to 
+add the following line into your .bashrc file::
+
+    export PATH=$PATH:/home/pavel/tmp/flex_sdk/bin
+
+Adapt the path to the one you chose for your installation.
+
 Now clone the mesh editor git repository (if you have not already done so)::
 
     $ git clone git://github.com/hpfem/mesheditor-flex.git
