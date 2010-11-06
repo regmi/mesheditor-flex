@@ -76,8 +76,8 @@ package com
         public function removeVertex(data:Object):void
         {
             this.removeElementWithVertex(data);
-            this.removeEdgeWithVertex(data);
             this.removeBoundaryWithVertex(data);
+            this.removeEdgeWithVertex(data);
 
             for(var i:int=0; i<this.vertices.length;i++)
             {
@@ -166,40 +166,6 @@ package com
 
             if(this.elements.length == 0)
                 this.nextElementId = 0;
-        }
-
-        public function removeElementWithVertex(data:Object):void
-        {
-            var etr:Array = [];
-
-            for(var i:int=0;i<this.elements.length;i++)
-            {
-                if(this.elements[i].v1.id == data.id)
-                    etr.push(this.elements[i]);
-                else
-                {
-                    if(this.elements[i].v2.id == data.id)
-                        etr.push(this.elements[i]);
-                    else
-                    {
-                        if(this.elements[i].v3.id == data.id)
-                            etr.push(this.elements[i]);
-                        else
-                        {
-                            try
-                            {
-                                if(this.elements[i].v4.id == data.id)
-                                    etr.push(this.elements[i]);
-                            }catch(e:Error){}
-                        }
-                    }
-                }
-            }
-
-            for(i=0;i<etr.length;i++)
-            {
-                this.removeElement(etr[i]);
-            }
         }
 
         public function getVertexNotInElement(data:Object):Array
@@ -1411,6 +1377,40 @@ package com
             str += "</boundaries></mesheditor>";
 
             return str;
+        }
+
+        public function removeElementWithVertex(data:Object):void
+        {
+            var etr:Array = [];
+
+            for(var i:int=0;i<this.elements.length;i++)
+            {
+                if(this.elements[i].v1.id == data.id)
+                    etr.push(this.elements[i]);
+                else
+                {
+                    if(this.elements[i].v2.id == data.id)
+                        etr.push(this.elements[i]);
+                    else
+                    {
+                        if(this.elements[i].v3.id == data.id)
+                            etr.push(this.elements[i]);
+                        else
+                        {
+                            try
+                            {
+                                if(this.elements[i].v4.id == data.id)
+                                    etr.push(this.elements[i]);
+                            }catch(e:Error){}
+                        }
+                    }
+                }
+            }
+
+            for(i=0;i<etr.length;i++)
+            {
+                this.removeElement(etr[i]);
+            }
         }
 
         public function getMeshCSV():String
