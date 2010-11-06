@@ -436,7 +436,9 @@ package com
             }
             else
             {
-                this.edges.removeItemAt(this.edges.getItemIndex(data));
+                var i:int = this.edges.getItemIndex(data);
+                if (i != -1)
+                    this.edges.removeItemAt(i);
             }
 
             if(this.edges.length == 0)
@@ -807,6 +809,14 @@ package com
                     return true;
             }
             return false;
+        }
+
+        public function deleteMesh():void
+        {
+            while(this.elements.length != 0)
+            {
+                this.removeElement(this.elements[0]);
+            }
         }
 
         private function isElementWithDuplicateVertices(data:Object):Boolean

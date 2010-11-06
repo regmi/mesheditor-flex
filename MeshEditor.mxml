@@ -112,6 +112,7 @@
             <mx:Button id="btnClear" label="Clear" toolTip="Clear Drawing, Shortcut: c"/>
             <mx:Button id="btnTriangulateMesh" label="Triangulate" toolTip="Triangulate the given Domain, Shortcut: t"/>
             <mx:Button id="btnHelp" label="Help" toolTip="Display Help Dialog"/>
+            <mx:Button id="btnDeleteMesh" label="Delete Mesh" toolTip="Delete Mesh"/>
             <mx:Button id="btnSubmitMesh" label="Submit" toolTip="Load local Mesh, Shortcut: l" visible="false"/>
             <mx:TextInput id="txtEvaluate" toolTip="Evaluate" visible="false"/>
         </mx:HBox>

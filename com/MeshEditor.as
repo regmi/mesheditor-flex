@@ -35,6 +35,7 @@ package com
         public var btnHelp:Button;
         public var btnZoomIn:Button;
         public var btnZoomOut:Button;
+        public var  btnDeleteMesh:Button;
         public var chkBoxShowElement:CheckBox;
         public var chkBoxShowBoundary:CheckBox;
         public var lblCordinate:Label;
@@ -91,6 +92,7 @@ package com
             this.btnHelp.addEventListener(MouseEvent.CLICK, this.btnHelpClick);
             this.btnZoomIn.addEventListener(MouseEvent.CLICK, this.btnZoomInClick);
             this.btnZoomOut.addEventListener(MouseEvent.CLICK, this.btnZoomOutClick);
+            this.btnDeleteMesh.addEventListener(MouseEvent.CLICK, this.btnDeleteMeshClick);
 
             this.gridVertices.addEventListener(ListEvent.ITEM_ROLL_OVER, this.gridVerticesItemRollOver);
             this.gridVertices.addEventListener(ListEvent.CHANGE, this.gridVerticesItemRollOver);
@@ -664,6 +666,11 @@ package com
                 this.drawingArea.scaleFactor += 5;
                 this.zoomInOut();
             }
+        }
+
+        private function btnDeleteMeshClick(evt:MouseEvent):void
+        {
+            this.meshManager.deleteMesh();
         }
 
         private function drawingAreaMouseWheel(evt:MouseEvent):void
