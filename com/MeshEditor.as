@@ -56,6 +56,8 @@ package com
 
         private var rpcConnection:Rpc;
 
+        private var oldBoundaryAngle:int;
+
         public function MeshEditor()
         {
             this.windowAddVertex = null;
@@ -145,16 +147,31 @@ package com
 
         private function uncaughtErrorHandler(evt:ErrorEvent):void
         {
-            Debug.trace("-- Uncaught Error --");
-            Debug.trace(evt["error"].toString());
-            Debug.trace("Stack Trace:")
-            Debug.trace(evt["error"].getStackTrace());
+            var em:String = "-- Uncaught Error --";
+
+            trace(em);
+            Debug.jsLog(em);
+
+            em = evt["error"].toString();
+
+            trace(em);
+            Debug.jsLog(em);
+
+            trace("Stack Trace:")
+            Debug.jsLog("Stack Trace:");
+
+            em = evt["error"].getStackTrace()
+
+            trace(em);
+            Debug.jsLog(em);
         }
 
         private function rpcConnectionRpcResult(evt:MeshEditorEvent):void
         {
-            Debug.trace("-- rpc evaluate res --");
-            Debug.trace(evt.data.result.out);
+            Debug.jsLog("-- rpc evaluate res --");
+            Debug.jsLog(evt.data.result.out);
+            trace("-- rpc evaluate res --")
+            trace(evt.data.result.out);
 
             var res:XML = XML(String(evt.data.result.out));
 
@@ -465,6 +482,66 @@ package com
             }
         }
 
+        protected function gridBoundariesItemEditPreEnd(evt:DataGridEvent):void
+        {
+            var grid:DataGrid = evt.target as DataGrid;
+            var field:String = evt.dataField;
+            var row:Number = Number(evt.rowIndex);
+
+            if(field == "angle")
+            {
+                this.meshManager.updatedBoundary = grid.dataProvider.getItemAt(row);
+                this.oldBoundaryAngle = int(grid.dataProvider.getItemAt(row)[field]);
+            }
+            else
+                this.meshManager.updatedBoundary = null;
+            
+            trace("-oba:-", this.oldBoundaryAngle)
+        }
+
+        protected function gridBoundariesItemEditPostEnd(evt:DataGridEvent):void
+        {
+            if (evt.reason == DataGridEventReason.CANCELLED)
+            {
+                return;
+            }
+
+            var grid:DataGrid = evt.target as DataGrid;
+            var field:String = evt.dataField;
+            var row:Number = Number(evt.rowIndex);
+
+            this.meshManager.updatedBoundary = grid.dataProvider.getItemAt(row);
+
+            if(field == "angle")
+            {
+                var newData:String = grid.dataProvider.getItemAt(row)[field];
+
+                if(newData == "" || isNaN(parseFloat(newData)))
+                {
+                    this.meshManager.updatedBoundary.angle = this.oldBoundaryAngle;
+                }
+                else
+                {
+                    var newAngle:Number = Number(newData);
+
+                    if(newAngle != 0)
+                    {
+                        if(this.meshManager.isEdgeIntersectingEdge())
+                        {
+                            Alert.show("Some edge intersect with this chosen value of angle !", "Error !", Alert.OK, this, this.boudaryAngleAlertHandler)
+                        }
+                    }
+                }
+            }
+        }
+
+        private function boudaryAngleAlertHandler(evt:CloseEvent):void
+        {
+            this.meshManager.updatedBoundary.angle = this.oldBoundaryAngle;
+            this.meshManager.boundariesChange(null);
+            this.gridBoundaries.dataProvider = this.meshManager.boundaries;
+        }
+
         protected function gridBoundariesItemEditEnd(evt:DataGridEvent):void
         {
             if (evt.reason == DataGridEventReason.CANCELLED)
@@ -589,7 +666,7 @@ package com
             }
             else
             {
-                Debug.trace("-No External Interface-");
+                trace("-No External Interface-");
             }
         }
 
@@ -638,7 +715,7 @@ package com
         {
             var res:XML = XML(String(evt.result));
 
-            Debug.trace(res);
+            trace(res);
 
             this.btnClearClick(null);
             this.meshManager.loadXmlData(res);
@@ -656,6 +733,7 @@ package com
             {
                 this.drawingArea.scaleFactor -= 5;
                 this.zoomInOut();
+                this.meshManager.scaleFactor = this.drawingArea.scaleFactor;
             }
         }
 
@@ -665,6 +743,7 @@ package com
             {
                 this.drawingArea.scaleFactor += 5;
                 this.zoomInOut();
+                this.meshManager.scaleFactor = this.drawingArea.scaleFactor;
             }
         }
 
@@ -754,8 +833,8 @@ package com
         private function drawingAreaVertexUpdated(evt:MeshEditorEvent):void
         {
             this.gridVertices.dataProvider  = this.meshManager.vertices;
-            this.meshManager.updateElementWithVertex(evt.data);
             this.meshManager.updateBoundaryWithVertex(evt.data);
+            this.meshManager.updateElementWithVertex(evt.data);
         }
 
         private function drawingAreaVertexDragEnd(evt:MeshEditorEvent):void
@@ -768,8 +847,8 @@ package com
 
             this.gridVertices.dataProvider  = this.meshManager.vertices;
             this.drawingArea.updateVertex(evt.data);
-            this.meshManager.updateElementWithVertex(evt.data);
             this.meshManager.updateBoundaryWithVertex(evt.data);
+            this.meshManager.updateElementWithVertex(evt.data);
         }
 
         private function drawingAreaVertexAdded(evt:MeshEditorEvent):void

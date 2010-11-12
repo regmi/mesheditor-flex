@@ -31,34 +31,74 @@ package com
         //It should be called only after ElementMarker is placed in the display list
         public function drawBorder(data:Object, scaleFactor:Number):void
         {
-            this.x = scaleFactor*data.v1.x;
-            this.y = -scaleFactor*data.v1.y;
+            var path:Array = Geometry.getPath(data.edges);
 
             this.graphics.clear();
             this.graphics.lineStyle(2, 0xAA0000);
             this.graphics.beginFill(0x3399CC, 0.5);
+            this.graphics.moveTo(scaleFactor*path[0].edge.v1.x, -scaleFactor*path[0].edge.v1.y);
 
-            var gp:Point = this.parent.localToGlobal(new Point(scaleFactor*data.v2.x, -scaleFactor*data.v2.y));
-            var lp:Point = this.globalToLocal(gp);
-            this.graphics.lineTo(lp.x, lp.y);
-
-            try
+            if(path[0].edge.boundary == undefined)
             {
-                gp = this.parent.localToGlobal(new Point(scaleFactor*data.v3.x, -scaleFactor*data.v3.y));
-                lp = this.globalToLocal(gp);
-                this.graphics.lineTo(lp.x, lp.y);
+                this.graphics.lineTo(scaleFactor*path[0].edge.v2.x, -scaleFactor*path[0].edge.v2.y);
             }
-            catch(e:Error) { }
-
-            try
+            else
             {
-                gp = this.parent.localToGlobal(new Point(scaleFactor*data.v4.x, -scaleFactor*data.v4.y));
-                lp = this.globalToLocal(gp);
-                this.graphics.lineTo(lp.x, lp.y);
+                if(path[0].edge.boundary == true && path[0].edge.angle == 0)
+                {
+                    this.graphics.lineTo(scaleFactor*path[0].edge.v2.x, -scaleFactor*path[0].edge.v2.y);
+                }
+                else
+                {
+                    for each(var p:Object in path[0].edge.curve_path)
+                    {
+                        this.graphics.lineTo(p.x * scaleFactor, -p.y * scaleFactor);
+                    }
+                    this.graphics.lineTo(scaleFactor*path[0].edge.v2.x, -scaleFactor*path[0].edge.v2.y);
+                }
             }
-            catch(e:Error) { }
 
-            this.graphics.lineTo(0,0);
+            for(var i:int=1;i<path.length;i++)
+            {
+                if(path[i].edge.boundary == undefined)
+                {
+                    if(path[i].reverse == false)
+                        this.graphics.lineTo(scaleFactor*path[i].edge.v2.x, -scaleFactor*path[i].edge.v2.y);
+                    else
+                        this.graphics.lineTo(scaleFactor*path[i].edge.v1.x, -scaleFactor*path[i].edge.v1.y);
+                }
+                else
+                {
+                    if(path[i].edge.boundary == true && path[i].edge.angle == 0)
+                    {
+                        if(path[i].reverse == false)
+                            this.graphics.lineTo(scaleFactor*path[i].edge.v2.x, -scaleFactor*path[i].edge.v2.y);
+                        else
+                            this.graphics.lineTo(scaleFactor*path[i].edge.v1.x, -scaleFactor*path[i].edge.v1.y);
+                    }
+                    else
+                    {
+                        var k:int;
+                        if(path[i].reverse == false)
+                        {
+                            for(k=0;k<path[i].edge.curve_path.length;k++)
+                            {
+                                this.graphics.lineTo(path[i].edge.curve_path[k].x * scaleFactor, -path[i].edge.curve_path[k].y * scaleFactor);
+                            }
+                            this.graphics.lineTo(scaleFactor*path[i].edge.v2.x, -scaleFactor*path[i].edge.v2.y);
+                        }
+                        else if(path[i].reverse == true)
+                        {
+                            for(k=path[i].edge.curve_path.length-1;k>=0;k--)
+                            {
+                                this.graphics.lineTo(path[i].edge.curve_path[k].x * scaleFactor, -path[i].edge.curve_path[k].y * scaleFactor);
+                            }
+                            this.graphics.lineTo(scaleFactor*path[i].edge.v1.x, -scaleFactor*path[i].edge.v1.y);
+                        }
+                    }
+                }
+            }
+
             this.graphics.endFill();
         }
 

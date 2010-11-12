@@ -196,7 +196,7 @@ package com
 
         public static function getPath(edges:Array):Array
         {
-            var path:Array = [edges[0]];
+            var path:Array = [{edge:edges[0],reverse:false}];
             var avEdges:Array = [];
 
             for(var i:int=1;i<edges.length;i++)
@@ -211,9 +211,9 @@ package com
 
                 for(var j:int=0;j<avEdges.length;j++)
                 {
-                    if(path[i].v2 == avEdges[j].v1)
+                    if(path[i].edge.v2 == avEdges[j].v1)
                     {
-                        path.push(avEdges[j]);
+                        path.push({edge:avEdges[j],reverse:false});
                         edgFound = true;
                         avEdges.splice(j,1);
                         break;
@@ -224,20 +224,9 @@ package com
                 {
                     for(j=0;j<avEdges.length;j++)
                     {
-                        if(path[i].v2 == avEdges[j].v2)
+                        if(path[i].edge.v2 == avEdges[j].v2)
                         {
-                            var e:Object = new Object();
-                            e.v1 = avEdges[j].v2;
-                            e.v2 = avEdges[j].v1;
-
-                            if(avEdges[j].boundary != undefined && avEdges[j].marker != undefined && avEdges[j].angle != undefined)
-                            {
-                                e.boundary = avEdges[j].boundary;
-                                e.marker = Number(avEdges[j].marker);
-                                e.angle = -Number(avEdges[j].angle);
-                            }
-
-                            path.push(e);
+                            path.push({edge:avEdges[j], reverse:true});
                             avEdges.splice(j,1);
                             break;
                         }
@@ -250,7 +239,7 @@ package com
             return path;
         }
 
-        public static function getArcInfo2(boundary:Object):Object
+        public static function getArcInfo(boundary:Object):Object
         {
             var A:Object = boundary.v1;
             var B:Object = boundary.v2;
@@ -315,8 +304,6 @@ package com
                 angCB -= 360;
             }
 
-
-/////////////////////////////////////////////////
             if(Math.abs(angCB) > 360)
             {
                 if(angCB < 0)
@@ -351,104 +338,10 @@ package com
             arcInfo.radius = r;
             arcInfo.centerAngle = boundary.angle;
 
-            trace("-- Arc Info --");
-            trace(C.x, C.y, angCA, angCB);
-            trace(D.x, D.y, angDA, angDB);
-            trace(r, arcInfo.centerAngle);
-
-            return arcInfo;
-        }
-
-        public static function getArcInfo(boundary:Object):Object
-        {
-            var A:Object;
-            var B:Object;
-
-            if(boundary.angle > 0)
-            {
-                A = boundary.v1;
-                B = boundary.v2;
-            }
-            else if(boundary.angle < 0)
-            {
-                A = boundary.v2;
-                B = boundary.v1;
-            }
-
-            var r:Number = Geometry.getRadiusOfArc(boundary);
-
-            var Ex:Number, Ey:Number
-            Ex = (A.x + B.x)/2;
-            Ey = (A.y + B.y)/2;
-
-            var AE:Number, CE:Number;
-            AE = Math.sqrt((A.x - Ex)*(A.x - Ex) + (A.y - Ey)*(A.y - Ey));
-            CE = Math.sqrt(r*r - AE*AE);
-
-            var angAB:Number, angCE:Number;
-            angAB = Math.atan2(B.y-A.y, B.x-A.x);
-            angCE = angAB + Math.PI/2.0;
-
-            //two possible centers
-            var C:Point = new Point(); //center
-            var D:Point = new Point(); //center
-
-            C.x = Ex - CE * Math.cos(angCE);
-            C.y = Ey - CE * Math.sin(angCE);
-
-            D.x = Ex + CE * Math.cos(angCE);
-            D.y = Ey + CE * Math.sin(angCE);
-
-            var angCA:Number, angCB:Number, angDA:Number, angDB:Number;
-
-            angCA = Math.atan2(A.y-C.y, A.x-C.x);
-            if(angCA < 0)
-                angCA += 2.0*Math.PI;
-
-            angCB = Math.atan2(B.y-C.y, B.x-C.x);
-            if(angCB < 0)
-                angCB += 2.0*Math.PI;
-
-            angDA = Math.atan2(A.y-D.y, A.x-D.x);
-            if(angDA < 0)
-                angDA += 2.0*Math.PI;
-
-            angDB = Math.atan2(B.y-D.y, B.x-D.x);
-            if(angDB < 0)
-                angDB += 2.0*Math.PI;
-
-            var rad_to_deg:Number = 57.295779513;
-            var tmp:Number;
-
-            //Convert angle to degree
-            angCA *= rad_to_deg;
-            angCB *= rad_to_deg;
-            angDA *= rad_to_deg;
-            angDB *= rad_to_deg;
-
-            if(angDA > angDB)
-            {
-                angDA = angDA - 360;
-            }
-
-            if(angCA > angCB)
-            {
-                angCA = angCA - 360;
-            }
-
-            var arcInfo:Object = new Object();
-
-            arcInfo.center = D;
-            arcInfo.startAngle = angDA;
-            arcInfo.endAngle = angDB;
-
-            arcInfo.radius = r;
-
             //trace("-- Arc Info --");
             //trace(C.x, C.y, angCA, angCB);
             //trace(D.x, D.y, angDA, angDB);
-            //trace(r, boundary.angle);
-
+            //trace(r, arcInfo.centerAngle);
             return arcInfo;
         }
     }

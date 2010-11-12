@@ -17,7 +17,9 @@
                 this.gridBoundaries.dataProvider = this.meshManager.boundaries;
                 this.gridBoundaries.addEventListener(ListEvent.ITEM_ROLL_OVER, this.gridBoundariesItemRollOver, false, 0, true);
                 this.gridBoundaries.addEventListener(ListEvent.CHANGE, this.gridBoundariesItemRollOver, false, 0, true);
-                this.gridBoundaries.addEventListener(DataGridEvent.ITEM_EDIT_END, this.gridBoundariesItemEditEnd, false, 0, true);
+                //this.gridBoundaries.addEventListener(DataGridEvent.ITEM_EDIT_END, this.gridBoundariesItemEditEnd, false, 0, true);
+                this.gridBoundaries.addEventListener(DataGridEvent.ITEM_EDIT_END, this.gridBoundariesItemEditPreEnd, false, 100, true);
+                this.gridBoundaries.addEventListener(DataGridEvent.ITEM_EDIT_END, this.gridBoundariesItemEditPostEnd, false, -100, true);
             }
 
             private function gridElementsCreationComplete(evt:FlexEvent):void

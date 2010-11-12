@@ -4,7 +4,7 @@ package com
 
     public class Debug
     {
-        public static function trace(val:Object, alert:Boolean=false):void
+        public static function jsLog(val:Object, alert:Boolean=false):void
         {
             if(ExternalInterface.available)
             {
@@ -12,10 +12,6 @@ package com
 
                 if(alert)
                     ExternalInterface.call("alert", val);
-            }
-            else
-            {
-                trace(val);
             }
         }
     }

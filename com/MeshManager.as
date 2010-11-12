@@ -29,6 +29,7 @@ package com
 
         public var updatedVertex:Object;
         public var updatedBoundary:Object;
+        public var scaleFactor:Number;
 
         public function MeshManager():void
         {
@@ -48,6 +49,9 @@ package com
             this.nextElementId = 0;
             this.nextBoundaryId = 0;
             this.nextEdgeId = 0;
+
+            this.updatedVertex = null;
+            this.updatedBoundary = null;
         }
 
         public function addVertex(data:Object):void
@@ -318,8 +322,6 @@ package com
                         btu.push(this.boundaries[i]);
                 }
             }
-
-            trace("--boundary updated--")
 
             for(i=0;i<btu.length;i++)
             {
@@ -769,9 +771,22 @@ package com
 
             for each(var e:Object in this.edges)
             {
-                _edges.push([e.v1,e.v2]);
+                if(e.angle == undefined || e.angle == 0)
+                    _edges.push([e.v1,e.v2]);
+                else if(e.angle != 0)
+                {
+                    
+                    _edges.push([e.v1,e.curve_path[0]]);
+
+                    for(var i:int = 0;i<e.curve_path.length-2;i++)
+                    {
+                        _edges.push([e.curve_path[i], e.curve_path[i+1]]);
+                    }
+
+                    _edges.push([e.curve_path[e.curve_path.length-1],e.v2]);
+                }
             }
-    
+
             return _edges;
         }
 
@@ -977,22 +992,37 @@ package com
             }
         }
 
-        private function boundariesChange(evt:CollectionEvent):void
+        public function boundariesChange(evt:CollectionEvent):void
         {
-            if(evt.kind == CollectionEventKind.UPDATE)
+            if(evt != null && evt.kind != CollectionEventKind.UPDATE)
+                return;
+
+            if(this.updatedBoundary != null)
             {
-                if(this.updatedBoundary != null)
-                {
-                    this.updatedBoundary.angle = Number(this.updatedBoundary.angle);
-                    this.updatedBoundary.marker = int(this.updatedBoundary.marker);
+                this.updatedBoundary.angle = Number(this.updatedBoundary.angle);
+                this.updatedBoundary.marker = int(this.updatedBoundary.marker);
 
-                    var e:MeshEditorEvent = new MeshEditorEvent(MeshEditorEvent.BOUNDARY_UPDATED);
-                    e.data = this.updatedBoundary;
+                var e:MeshEditorEvent = new MeshEditorEvent(MeshEditorEvent.BOUNDARY_UPDATED);
+                e.data = this.updatedBoundary;
 
-                    this.dispatchEvent(e);
+                this.dispatchEvent(e);
 
-                    this.updateElementWithEdge(this.updatedBoundary);
-                }
+                this.updateElementWithEdge(this.updatedBoundary);
+            }
+        }
+
+        public function boundaryAngleChange():void
+        {
+            trace("--boundary angle Change--");
+
+            if(this.updatedBoundary != null)
+            {
+                var e:MeshEditorEvent = new MeshEditorEvent(MeshEditorEvent.BOUNDARY_UPDATED);
+                e.data = this.updatedBoundary;
+
+                this.dispatchEvent(e);
+
+                this.updateElementWithEdge(this.updatedBoundary);
             }
         }
 

@@ -33,8 +33,14 @@ package com
             }
             else
             {
-                var arcInfo:Object = Geometry.getArcInfo(boundary);
-                DrawingShapes.drawArc1(this.graphics, arcInfo, scaleFactor);
+                DrawingShapes.generateArcCordinates(boundary, scaleFactor);
+
+                this.graphics.moveTo(scaleFactor*boundary.v1.x, -scaleFactor*boundary.v1.y);
+                for each(var p:Object in boundary.curve_path)
+                {
+                    this.graphics.lineTo(p.x * scaleFactor, -p.y * scaleFactor);
+                }
+                this.graphics.lineTo(scaleFactor*boundary.v2.x, -scaleFactor*boundary.v2.y);
             }
         }
     }
