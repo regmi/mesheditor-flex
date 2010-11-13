@@ -5,9 +5,10 @@ First install the flex sdk::
     $ wget http://hpfem.org/downloads/flex_sdk_3.5.zip
     $ unzip ../flex_sdk_3.5.zip
 
-    To add flex_sdk.3.5/bin directory to your system path:
-    change the following script according to your need and to your bashrc
-        $ export PATH=$PATH:path_to/flex_sdk.3.5/bin
+To add flex_sdk.3.5/bin directory to your system path:
+change the following script according to your need and to your bashrc::
+
+    export PATH=$PATH:path_to/flex_sdk.3.5/bin
 
 This PATH export is a temporary solution (valid only in your 
 current terminal session). To make it permanent, you need to 
