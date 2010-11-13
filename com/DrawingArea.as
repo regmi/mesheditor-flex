@@ -47,7 +47,7 @@ package com
 
             this.percentWidth = w;
             this.percentHeight = h;
-            this.scaleFactor = 240;
+            this.scaleFactor = 200;
 
             this.vertexContainer = new Sprite();
             this.elementContainer = new Sprite();

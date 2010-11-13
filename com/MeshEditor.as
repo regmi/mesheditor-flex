@@ -114,7 +114,6 @@ package com
             this.drawingArea.addEventListener(MouseEvent.MOUSE_WHEEL, this.drawingAreaMouseWheel);
             this.drawingArea.addEventListener(MouseEvent.MOUSE_UP, this.drawingAreaMouseUp);
             this.drawingArea.addEventListener(MouseEvent.MOUSE_DOWN, this.drawingAreaMouseDown);
-            this.drawingArea.scaleFactor = 240;
             this.hboxDrawingArea.addChild(this.drawingArea);
 
             this.meshManager = new MeshManager();
@@ -168,9 +167,9 @@ package com
 
         private function rpcConnectionRpcResult(evt:MeshEditorEvent):void
         {
-            Debug.jsLog("-- rpc evaluate res --");
+            Debug.jsLog("RPC.Engine.evaluate() ressult:");
             Debug.jsLog(evt.data.result.out);
-            trace("-- rpc evaluate res --")
+            trace("RPC.Engine.evaluate() ressult:");
             trace(evt.data.result.out);
 
             var res:XML = XML(String(evt.data.result.out));
@@ -706,8 +705,6 @@ package com
             var domain:Object = this.meshManager.getDomainForTriangulation();
             //var command:String = "from femhub.triangulation import print_triangulated_mesh_xml; nodes = '0 0,0 1,1 1,1 0,0.5 0.5'; boundaries = '0 1 1 0,1 2 1 0,2 3 1 0,3 0 1 0'; print_triangulated_mesh_xml(nodes, boundaries)";
             var command:String = "from femhub.triangulation import print_triangulated_mesh_xml; print_triangulated_mesh_xml('" + domain.nodes + "','" + domain.boundaries + "')";
-            //var command:String = this.txtEvaluate.text;
-            //Debug.trace(command);
             this.rpcConnection.evaluate(command);
         }
 

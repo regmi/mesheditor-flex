@@ -118,8 +118,6 @@ package com
                     ei4 = this.addEdge({v1:data.v4, v2:data.v1}, false);
                 }
 
-                this.traceEdges("addElement()");
-
                 if(data.v4 == undefined)
                     data.edges = [ei1.edge,ei2.edge,ei3.edge];
                 else
@@ -416,16 +414,6 @@ package com
 
                     this.updateElementWithEdge(edgeInfo.edge);
                 }
-            }
-        }
-
-        private function traceEdges(msg:String):void
-        {
-            trace("--- All Edges: " + msg + " ---")
-            trace(this.edges.length);
-            for(var i:Number=0 ;i<this.edges.length;i++)
-            {
-                trace(this.edges[i].v1.id, this.edges[i].v2.id, this.edges[i].boundary)
             }
         }
 
@@ -1075,8 +1063,8 @@ package com
         public function loadXmlData(data:XML):void
         {
             this.loadXmlVertices(data.vertices);
-            this.loadXmlElements(data.elements);
             this.loadXmlBoundaries(data.boundaries);
+            this.loadXmlElements(data.elements);
         }
 
         public function loadHermesData(data:String):void
