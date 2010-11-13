@@ -31,8 +31,8 @@ package com
 
             var arg:Object = {
                                 "jsonrpc": "2.0",
-                                "params": { "uuid":uuid },
-                                "method": "init",
+                                "params": { "uuid":this.uuid },
+                                "method": "RPC.Engine.init",
                                 "id": 1
                             };
 
@@ -46,23 +46,25 @@ package com
         {
             var resObject:Object = JSON.decode(String(evt.result));
 
-            if(resObject.result.status == "started" || resObject.result.status == "running")
+            if(resObject.result.status == "started" || resObject.result.reason == "engine-running")
             {
-                Debug.jsLog("-- RPC initialization suceed ! --");
-                trace("-- RPC initialization suceed ! --");
+                Debug.jsLog("RPC initialization suceed !");
+                trace("RPC initialization suceed !");
+
+                this.httpUserRequest.removeEventListener(ResultEvent.RESULT, this.initResult);
+                this.httpUserRequest.addEventListener(ResultEvent.RESULT, this.queryResult);
             }
             else
             {
                 this.uuid = "";
 
-                Debug.jsLog("-- RPC initialization failed --", true);
-                Debug.jsLog(String(evt.result));
-                trace("-- RPC initialization failed --");
-                trace(String(evt.result));
+                Debug.jsLog("RPC initialization failed: view JS console for detail error", true);
             }
 
-            this.httpUserRequest.removeEventListener(ResultEvent.RESULT, this.initResult);
-            this.httpUserRequest.addEventListener(ResultEvent.RESULT, this.queryResult);
+            Debug.jsLog("Return Value:");
+            Debug.jsLog(String(evt.result));
+            trace("Return Value");
+            trace(String(evt.result));
         }
 
         public function evaluate(source:String):void
@@ -70,7 +72,7 @@ package com
             var arg:Object = {
                                 "jsonrpc": "2.0",
                                 "params": { "uuid":this.uuid, "source": source },
-                                "method": "evaluate",
+                                "method": "RPC.Engine.evaluate",
                                 "id": 1
                             };
 

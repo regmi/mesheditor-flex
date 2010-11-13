@@ -211,12 +211,25 @@ package com
 
                 for(var j:int=0;j<avEdges.length;j++)
                 {
-                    if(path[i].edge.v2 == avEdges[j].v1)
+                    if(path[i].reverse == false)
                     {
-                        path.push({edge:avEdges[j],reverse:false});
-                        edgFound = true;
-                        avEdges.splice(j,1);
-                        break;
+                        if(path[i].edge.v2 == avEdges[j].v1)
+                        {
+                            path.push({edge:avEdges[j],reverse:false});
+                            edgFound = true;
+                            avEdges.splice(j,1);
+                            break;
+                        }
+                    }
+                    else
+                    {
+                        if(path[i].edge.v1 == avEdges[j].v1)
+                        {
+                            path.push({edge:avEdges[j],reverse:false});
+                            edgFound = true;
+                            avEdges.splice(j,1);
+                            break;
+                        }
                     }
                 }
 
@@ -224,11 +237,23 @@ package com
                 {
                     for(j=0;j<avEdges.length;j++)
                     {
-                        if(path[i].edge.v2 == avEdges[j].v2)
+                        if(path[i].reverse == false)
                         {
-                            path.push({edge:avEdges[j], reverse:true});
-                            avEdges.splice(j,1);
-                            break;
+                            if(path[i].edge.v2 == avEdges[j].v2)
+                            {
+                                path.push({edge:avEdges[j], reverse:true});
+                                avEdges.splice(j,1);
+                                break;
+                            }
+                        }
+                        else
+                        {
+                            if(path[i].edge.v1 == avEdges[j].v2)
+                            {
+                                path.push({edge:avEdges[j], reverse:true});
+                                avEdges.splice(j,1);
+                                break;
+                            }
                         }
                     }
                 }
