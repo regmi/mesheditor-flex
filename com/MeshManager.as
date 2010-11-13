@@ -29,6 +29,7 @@ package com
 
         public var updatedVertex:Object;
         public var updatedBoundary:Object;
+        public var scaleFactor:Number;
 
         public function MeshManager():void
         {
@@ -48,6 +49,9 @@ package com
             this.nextElementId = 0;
             this.nextBoundaryId = 0;
             this.nextEdgeId = 0;
+
+            this.updatedVertex = null;
+            this.updatedBoundary = null;
         }
 
         public function addVertex(data:Object):void
@@ -76,8 +80,8 @@ package com
         public function removeVertex(data:Object):void
         {
             this.removeElementWithVertex(data);
-            this.removeEdgeWithVertex(data);
             this.removeBoundaryWithVertex(data);
+            this.removeEdgeWithVertex(data);
 
             for(var i:int=0; i<this.vertices.length;i++)
             {
@@ -166,40 +170,6 @@ package com
 
             if(this.elements.length == 0)
                 this.nextElementId = 0;
-        }
-
-        public function removeElementWithVertex(data:Object):void
-        {
-            var etr:Array = [];
-
-            for(var i:int=0;i<this.elements.length;i++)
-            {
-                if(this.elements[i].v1.id == data.id)
-                    etr.push(this.elements[i]);
-                else
-                {
-                    if(this.elements[i].v2.id == data.id)
-                        etr.push(this.elements[i]);
-                    else
-                    {
-                        if(this.elements[i].v3.id == data.id)
-                            etr.push(this.elements[i]);
-                        else
-                        {
-                            try
-                            {
-                                if(this.elements[i].v4.id == data.id)
-                                    etr.push(this.elements[i]);
-                            }catch(e:Error){}
-                        }
-                    }
-                }
-            }
-
-            for(i=0;i<etr.length;i++)
-            {
-                this.removeElement(etr[i]);
-            }
         }
 
         public function getVertexNotInElement(data:Object):Array
@@ -353,8 +323,6 @@ package com
                 }
             }
 
-            trace("--boundary updated--")
-
             for(i=0;i<btu.length;i++)
             {
                 var e:MeshEditorEvent = new MeshEditorEvent(MeshEditorEvent.BOUNDARY_UPDATED);
@@ -470,7 +438,9 @@ package com
             }
             else
             {
-                this.edges.removeItemAt(this.edges.getItemIndex(data));
+                var i:int = this.edges.getItemIndex(data);
+                if (i != -1)
+                    this.edges.removeItemAt(i);
             }
 
             if(this.edges.length == 0)
@@ -801,9 +771,22 @@ package com
 
             for each(var e:Object in this.edges)
             {
-                _edges.push([e.v1,e.v2]);
+                if(e.angle == undefined || e.angle == 0)
+                    _edges.push([e.v1,e.v2]);
+                else if(e.angle != 0)
+                {
+                    
+                    _edges.push([e.v1,e.curve_path[0]]);
+
+                    for(var i:int = 0;i<e.curve_path.length-2;i++)
+                    {
+                        _edges.push([e.curve_path[i], e.curve_path[i+1]]);
+                    }
+
+                    _edges.push([e.curve_path[e.curve_path.length-1],e.v2]);
+                }
             }
-    
+
             return _edges;
         }
 
@@ -841,6 +824,14 @@ package com
                     return true;
             }
             return false;
+        }
+
+        public function deleteMesh():void
+        {
+            while(this.elements.length != 0)
+            {
+                this.removeElement(this.elements[0]);
+            }
         }
 
         private function isElementWithDuplicateVertices(data:Object):Boolean
@@ -1001,22 +992,37 @@ package com
             }
         }
 
-        private function boundariesChange(evt:CollectionEvent):void
+        public function boundariesChange(evt:CollectionEvent):void
         {
-            if(evt.kind == CollectionEventKind.UPDATE)
+            if(evt != null && evt.kind != CollectionEventKind.UPDATE)
+                return;
+
+            if(this.updatedBoundary != null)
             {
-                if(this.updatedBoundary != null)
-                {
-                    this.updatedBoundary.angle = Number(this.updatedBoundary.angle);
-                    this.updatedBoundary.marker = int(this.updatedBoundary.marker);
+                this.updatedBoundary.angle = Number(this.updatedBoundary.angle);
+                this.updatedBoundary.marker = int(this.updatedBoundary.marker);
 
-                    var e:MeshEditorEvent = new MeshEditorEvent(MeshEditorEvent.BOUNDARY_UPDATED);
-                    e.data = this.updatedBoundary;
+                var e:MeshEditorEvent = new MeshEditorEvent(MeshEditorEvent.BOUNDARY_UPDATED);
+                e.data = this.updatedBoundary;
 
-                    this.dispatchEvent(e);
+                this.dispatchEvent(e);
 
-                    this.updateElementWithEdge(this.updatedBoundary);
-                }
+                this.updateElementWithEdge(this.updatedBoundary);
+            }
+        }
+
+        public function boundaryAngleChange():void
+        {
+            trace("--boundary angle Change--");
+
+            if(this.updatedBoundary != null)
+            {
+                var e:MeshEditorEvent = new MeshEditorEvent(MeshEditorEvent.BOUNDARY_UPDATED);
+                e.data = this.updatedBoundary;
+
+                this.dispatchEvent(e);
+
+                this.updateElementWithEdge(this.updatedBoundary);
             }
         }
 
@@ -1411,6 +1417,40 @@ package com
             str += "</boundaries></mesheditor>";
 
             return str;
+        }
+
+        public function removeElementWithVertex(data:Object):void
+        {
+            var etr:Array = [];
+
+            for(var i:int=0;i<this.elements.length;i++)
+            {
+                if(this.elements[i].v1.id == data.id)
+                    etr.push(this.elements[i]);
+                else
+                {
+                    if(this.elements[i].v2.id == data.id)
+                        etr.push(this.elements[i]);
+                    else
+                    {
+                        if(this.elements[i].v3.id == data.id)
+                            etr.push(this.elements[i]);
+                        else
+                        {
+                            try
+                            {
+                                if(this.elements[i].v4.id == data.id)
+                                    etr.push(this.elements[i]);
+                            }catch(e:Error){}
+                        }
+                    }
+                }
+            }
+
+            for(i=0;i<etr.length;i++)
+            {
+                this.removeElement(etr[i]);
+            }
         }
 
         public function getMeshCSV():String

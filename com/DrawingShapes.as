@@ -102,8 +102,11 @@
 			target.moveTo( x2, y2 );
 		}
 
-		public static function drawArc0(graphics:Graphics, arcInfo:Object, scaleFactor:Number=1, precision:Number=1):void
-		{
+        public static function generateArcCordinates(boundary:Object, scaleFactor:int, precision:int = 1):void
+        {
+            var arc_points:Array = [];
+            var arcInfo:Object = Geometry.getArcInfo(boundary);
+
 			var deg_to_rad:Number = 0.0174532925;
 
 			var angle_from:Number = arcInfo.startAngle;
@@ -117,16 +120,14 @@
 
 			var steps:Number = Math.round(angle_diff*precision);
 
-			var center_x:Number = scaleFactor * arcInfo.center.x;
-			var center_y:Number = scaleFactor * arcInfo.center.y;
-			var radius:Number = arcInfo.radius * scaleFactor;
+			var center_x:Number = arcInfo.center.x;
+			var center_y:Number = arcInfo.center.y;
+			var radius:Number = arcInfo.radius;
 
 			var px:Number = center_x + radius*Math.cos(angle_from*deg_to_rad);
 			var py:Number = center_y + radius*Math.sin(angle_from*deg_to_rad);
 
-			graphics.lineTo(px,-py);
-
-			for (var i:int=1; i<=steps; i++)
+			for (var i:int=2; i<steps; i++)
 			{
 				var angle:Number;
 				if(arcInfo.centerAngle > 0)
@@ -134,44 +135,11 @@
 				else
 					angle = angle_from - angle_diff/steps*i;
 
-				graphics.lineTo(center_x + radius*Math.cos(angle*deg_to_rad),-(center_y+radius*Math.sin(angle*deg_to_rad)));
+                arc_points.push({x:(center_x + radius*Math.cos(angle*deg_to_rad)), y:center_y+radius*Math.sin(angle*deg_to_rad)});
+                trace(center_x + radius*Math.cos(angle*deg_to_rad), (center_y+radius*Math.sin(angle*deg_to_rad)));
 			}
-		}
 
-		/**
-		 * Draws an arc.
-		 * 
-		 * @param target the Graphics Class that the Arc is drawn on.
-		 * @param arcInfo Object containing info of the arc
-		 *           |___.center:Point
-		 *           |___.startAngle:Number
-		 *           |___.endAngle:Number
-		 *           |___.radius:Number
-		 */
-		public static function drawArc1(graphics:Graphics, arcInfo:Object, scaleFactor:Number=1, precision:Number=1):void
-		{
-			var deg_to_rad:Number = 0.0174532925;
-
-			var angle_from:Number = arcInfo.startAngle;
-			var angle_to:Number = arcInfo.endAngle;
-
-			var angle_diff:Number = angle_to - angle_from;
-			var steps:Number = Math.round(angle_diff*precision);
-
-			var center_x:Number = scaleFactor * arcInfo.center.x;
-			var center_y:Number = scaleFactor * arcInfo.center.y;
-			var radius:Number = arcInfo.radius * scaleFactor;
-
-			var px:Number = center_x + radius*Math.cos(angle_from*deg_to_rad);
-			var py:Number = center_y + radius*Math.sin(angle_from*deg_to_rad);
-
-			graphics.moveTo(px,-py);
-			for (var i:int=1; i<=steps; i++)
-			{
-				var angle:Number = angle_from + angle_diff/steps*i;
-
-				graphics.lineTo(center_x + radius*Math.cos(angle*deg_to_rad),-(center_y+radius*Math.sin(angle*deg_to_rad)));
-			}
+            boundary.curve_path = arc_points;
 		}
 
 		/**
