@@ -134,7 +134,7 @@ package com
             this.hScrollBar.addEventListener(ScrollEvent.SCROLL, this.hScrollBarScroll);
             this.vScrollBar.addEventListener(ScrollEvent.SCROLL, this.vScrollBarScroll);
 
-            this.rpcConnection = new Rpc("http://localhost:8000/async");
+            this.rpcConnection = new Rpc("/async");
             this.rpcConnection.addEventListener(MeshEditorEvent.RPC_RESULT, this.rpcConnectionRpcResult);
 
             try
