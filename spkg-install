@@ -7,5 +7,27 @@ if [ "$SPKG_LOCAL" = "" ]; then
    exit 1
 fi
 
+PACKAGE_NAME=mesheditorflex
+
+ONLINELAB_EXT_DIR="$SPKG_LOCAL/share/onlinelab/core-home/static/external"
+
+# Remove old file and copy new mesh editor
+rm -rf $SPKG_LOCAL/share/mesheditorflex
+mkdir $SPKG_LOCAL/share/mesheditorflex
 echo "Copying MeshEditor.swf into Femhub..."
-cp MeshEditor.swf $SPKG_LOCAL/share/onlinelab/core-home/static/external/
+cp MeshEditor.swf $SPKG_LOCAL/share/mesheditorflex
+
+# Check if the directory exist, and create symbolic link
+if [ -d $ONLINELAB_EXT_DIR ]; then
+    rm -rf $ONLINELAB_EXT_DIR/MeshEditor.swf
+    ln -s $SPKG_LOCAL/share/mesheditorflex/MeshEditor.swf $ONLINELAB_EXT_DIR/MeshEditor.swf
+else
+    echo "!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!"
+    echo "FEMhub Mesh Editor recommends that you install the latest onlinelab package."
+    echo "****************************************************************************"
+fi
+
+if [ $? -ne 0 ]; then
+   echo "Error installing $PACKAGE_NAME."
+   exit 1
+fi
